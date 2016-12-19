@@ -1,5 +1,3 @@
-Homepage: *****
-
 **Build Status**
 
 Current version: v0.92 bn 32
