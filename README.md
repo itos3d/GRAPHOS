@@ -1,3 +1,12 @@
+**Attribution**
+
+If you use this project for research purposes, please quote this article:
+
+Development of an all-purpose free photogrammetric tool
+Congress: XXIII ISPRS Congress
+Date: 12 to 19 of July of the year 2016,Prague,Czech Republic
+Authors: Diego González-Aguilera; Luis López-Fernández; Pablo Rodriguez-Gonzalvez; Diego Guerrero-Sevilla; David Hernandez-Lopez; Fabio Menna; Erica Nocerino; Isabella Toschi; Fabio Remondino; Andrea Ballabeni; Marco Gaiani
+
 **Build Status**
 
 Current version: v0.92 bn 32
