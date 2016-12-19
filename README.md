@@ -1,5 +1,3 @@
-![graphos.PNG](https://bitbucket.org/repo/gzan9b/images/2150666589-graphos.PNG)
-
 Homepage: *****
 
 **Build Status**
@@ -34,7 +32,3 @@ An Open Source photogrammetric platform for 3d reconstruction from multiple imag
 -vlFeat 0.9.20 or later
 
 -zlib
-
-[Download precompiled dependencies](https://bitbucket.org/Luisloez89/graphos_integratedphotogrammetricsuite/downloads/libs.zip)
-
-[Download binaries X64](https://mega.nz/#!ghZFUQCB!bsyvqvjapZMzVbR99rNGdEDWqmcb0TjUbQ4dA--G26Y)
