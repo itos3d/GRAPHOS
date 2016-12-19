@@ -1,0 +1,14 @@
+#include "TapiocaShProcess.h"
+
+using namespace PW;
+
+TapiocaShProcess::TapiocaShProcess()
+{
+    process = new QProcess();
+}
+
+void PW::TapiocaShProcess::run()
+{
+    process->start("/home/dguerrero/desarrollo/USAL/MicMac/micmac/MiTapioca.sh", QStringList() << "kk");
+    process->waitForFinished();
+}

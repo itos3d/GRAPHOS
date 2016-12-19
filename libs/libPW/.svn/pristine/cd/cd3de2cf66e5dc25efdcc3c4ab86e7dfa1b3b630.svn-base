@@ -1,0 +1,35 @@
+#include "ProcessedImageData.h"
+using namespace PW;
+
+ProcessedImageData::ProcessedImageData()
+{
+
+}
+
+ProcessedImageData::~ProcessedImageData()
+{
+
+}
+
+cv::Mat ProcessedImageData::getDescriptors(){
+    return mDescriptors;
+}
+
+std::vector<cv::KeyPoint> ProcessedImageData::getTiepoints(){
+    return mTiePoints;
+}
+
+QString ProcessedImageData::getImageName(){
+    return  mImageName;
+}
+
+void ProcessedImageData::setImageName(QString imagename){
+    mImageName=imagename;
+}
+void ProcessedImageData::setDescriptors(cv::Mat descriptors){
+    mDescriptors=descriptors;
+}
+
+void ProcessedImageData::setTiepoints(std::vector<cv::KeyPoint> tiePoints){
+    mTiePoints=tiePoints;
+}

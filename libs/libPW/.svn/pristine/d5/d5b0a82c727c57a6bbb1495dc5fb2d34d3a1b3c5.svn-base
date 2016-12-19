@@ -1,0 +1,56 @@
+#ifndef PROCESSCONCURRENT_H
+#define PROCESSCONCURRENT_H
+
+#include <QFutureWatcher>
+#include "Process.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT ProcessConcurrent : public Process
+{   
+    Q_OBJECT
+
+public:
+    ProcessConcurrent();
+
+    virtual void start();
+    virtual void wait();
+    virtual bool isRunning();
+
+    virtual QByteArray readStdout();
+    virtual QByteArray readStderr();
+
+public slots:
+    virtual void stop();
+    void on_mProcessFinished();
+
+protected:
+    virtual int run()=0;
+
+private:
+    bool mRunning;
+    QFutureWatcher<int> *mWatcher;
+
+};
+
+template <class T>
+class ProcessConcurrentList : public Process
+{
+public:
+
+    ProcessConcurrentList(QVector<T> v);
+    ~ProcessConcurrentList();
+
+    virtual void ProcessConcurrentList::start();
+
+protected:
+    //template <class T> virtual int run();
+    QVector<T> mVector;
+
+private:
+    bool mRunning;
+    QFutureWatcher<int> *mWatcher;
+};
+
+}
+
+#endif // PROCESSCONCURRENT_H

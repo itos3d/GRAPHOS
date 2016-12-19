@@ -1,0 +1,16 @@
+#ifndef TAWNYPROCESS_H
+#define TAWNYPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT TawnyProcess : public ExternalProcess
+{
+public:
+    TawnyProcess();
+};
+
+}
+
+#endif // TAWNYPROCESS_H

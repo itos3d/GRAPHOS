@@ -1,0 +1,23 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "TapasProcess.h"
+#include "libPW.h"
+
+
+using namespace  PW;
+
+TapasProcess::TapasProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + TAPAS_COMMAND)
+{
+//    setStartupMessage("Runnig Tapas...");
+    setStartupMessage("Computing relative orientations...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Tapas.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/TapasError.log");
+}

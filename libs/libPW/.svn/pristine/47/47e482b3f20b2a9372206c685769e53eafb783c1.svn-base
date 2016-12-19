@@ -1,0 +1,13 @@
+#ifndef C3DCPROCESS_H
+#define C3DCPROCESS_H
+#include "ExternalProcess.h"
+namespace PW{
+
+class LIBPWSHARED_EXPORT C3DCProcess: public ExternalProcess
+{
+public:
+    C3DCProcess();
+    ~C3DCProcess();
+};
+}
+#endif // C3DCPROCESS_H

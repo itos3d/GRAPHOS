@@ -1,0 +1,13 @@
+#ifndef MICMACCOMPUTESLAVESPROCESS_H
+#define MICMACCOMPUTESLAVESPROCESS_H
+#include "ExternalProcess.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT MicMacComputeSlavesProcess : public ExternalProcess
+{
+public:
+    MicMacComputeSlavesProcess(QString inputRegExp, QString orientation, QString outResults);
+    ~MicMacComputeSlavesProcess();
+};
+}
+#endif // MICMACCOMPUTESLAVESPROCESS_H

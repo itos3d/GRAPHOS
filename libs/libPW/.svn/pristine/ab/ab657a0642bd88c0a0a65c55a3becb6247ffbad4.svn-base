@@ -1,0 +1,16 @@
+#ifndef ASIFTKPD_H
+#define ASIFTKPD_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ASIFTkpd : public ExternalProcess
+{
+public:
+    ASIFTkpd(QString inputFile, QString outputDir="", bool resize=true, int numTilts=7);
+};
+
+}
+
+#endif // ASIFTKPD_H

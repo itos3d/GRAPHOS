@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="ExportAPERO">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="OrientationConique"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OrientationConique">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="OrIntImaM2C"/>
+        <xs:element ref="TypeProj"/>
+        <xs:element ref="FileInterne"/>
+        <xs:element ref="RelativeNameFI"/>
+        <xs:element ref="Externe"/>
+        <xs:element ref="Verif"/>
+        <xs:element ref="ConvOri"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="OrIntImaM2C">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="I00"/>
+        <xs:element ref="V10"/>
+        <xs:element ref="V01"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="I00" type="xs:string"/>
+  <xs:element name="V10" type="xs:string"/>
+  <xs:element name="V01" type="xs:string"/>
+  <xs:element name="TypeProj" type="xs:NCName"/>
+  <xs:element name="FileInterne" type="xs:string"/>
+  <xs:element name="RelativeNameFI" type="xs:boolean"/>
+  <xs:element name="Externe">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="AltiSol"/>
+        <xs:element ref="Profondeur"/>
+        <xs:element ref="Time"/>
+        <xs:element ref="KnownConv"/>
+        <xs:element ref="Centre"/>
+        <xs:element ref="ParamRotation"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="AltiSol" type="xs:decimal"/>
+  <xs:element name="Profondeur" type="xs:decimal"/>
+  <xs:element name="Time" type="xs:double"/>
+  <xs:element name="Centre" type="xs:string"/>
+  <xs:element name="ParamRotation">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="CodageMatr"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CodageMatr">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="L1"/>
+        <xs:element ref="L2"/>
+        <xs:element ref="L3"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="L1" type="xs:string"/>
+  <xs:element name="L2" type="xs:string"/>
+  <xs:element name="L3" type="xs:string"/>
+  <xs:element name="Verif">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Tol"/>
+        <xs:element ref="ShowMes"/>
+        <xs:element maxOccurs="unbounded" ref="Appuis"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Tol" type="xs:decimal"/>
+  <xs:element name="ShowMes" type="xs:boolean"/>
+  <xs:element name="Appuis">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="Num"/>
+        <xs:element ref="Im"/>
+        <xs:element ref="Ter"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="Num" type="xs:integer"/>
+  <xs:element name="Im" type="xs:string"/>
+  <xs:element name="Ter" type="xs:string"/>
+  <xs:element name="ConvOri">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="KnownConv"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="KnownConv" type="xs:NCName"/>
+</xs:schema>

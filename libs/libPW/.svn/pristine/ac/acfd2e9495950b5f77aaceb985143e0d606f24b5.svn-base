@@ -1,0 +1,39 @@
+#ifndef GROUNDCONTROLIO_H
+#define GROUNDCONTROLIO_H
+
+#include <QObject>
+#include <QMap>
+
+#include "PW3dPoint.h"
+#include "PW2dPoint.h"
+#include "PWImage.h"
+
+namespace PW{
+
+/*!
+ \brief Base Class representing Ground Control reader
+
+*/
+class LIBPWSHARED_EXPORT GroundControlIO : public QObject
+{
+    Q_OBJECT
+public:
+    explicit GroundControlIO(QObject *parent = 0);
+
+    virtual void read(QString url,
+                 QList<PW::PW3dPoint> &groudPoints,
+                 QMap<QString,QList<PW2dPoint *> *> &imagePoints) = 0;
+    virtual QList<PW::PW3dPoint> readGroundPoinst(QString url) = 0;
+    virtual QList<PW2dPoint *> readImagePoints(QString url) = 0;
+    virtual QMap<QString, QList<PW2dPoint *> *> readImagePointsByImage(QString url) = 0;
+
+    virtual int writeGroudPoints(QString url, QList<PW::PW3dPoint *> *points) = 0;
+    virtual int writeImagePoints(QString url, QList<PW::PWImage *> images) = 0;
+
+signals:
+
+public slots:
+
+};
+}
+#endif // GROUNDCONTROLIO_H

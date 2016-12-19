@@ -1,0 +1,20 @@
+#include "libPW.h"
+#include "ConvertProcess.h"
+
+using namespace PW;
+
+ConvertProcess::ConvertProcess(QString inputPath, QString outputPath):
+    ExternalProcess(TOOLS_CONVERT_COMMAND)
+{
+    QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+    workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+    setWorkingDir(workingDir);
+
+    setStartupMessage("Converting images to png...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/convert.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/convertError.log");
+
+    addIntputs(QStringList() << inputPath << outputPath);
+}
+
+

@@ -1,0 +1,15 @@
+#ifndef BASCULEPROCESS_H
+#define BASCULEPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT BasculeProcess : public ExternalProcess
+{
+public:
+    BasculeProcess();
+};
+}
+
+#endif // BASCULEPROCESS_H

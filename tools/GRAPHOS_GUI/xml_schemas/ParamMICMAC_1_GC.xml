@@ -1,0 +1,118 @@
+<ParamMICMAC>
+   <DicoLoc>
+  <!--      <ExitOnBrkp> true </ExitOnBrkp>  -->
+   </DicoLoc>
+
+  <Section_Terrain>  
+      <IntervAltimetrie>
+             <!-- Mandatory but unused -->
+             <ZIncCalc>   0.0  </ZIncCalc>
+      </IntervAltimetrie>
+      <IntervSpecialZInv >
+             <MulZMin >  0.8</MulZMin>
+             <MulZMax > 1.2 </MulZMax>
+      </IntervSpecialZInv>
+      
+        <Planimetrie>
+         <MasqueTerrain>
+             <MT_Image> PW_MASK </MT_Image>
+             <MT_Xml> PW_XML_MASK </MT_Xml>
+         </MasqueTerrain>
+     </Planimetrie>
+     
+  </Section_Terrain>
+
+  <Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+     <Im1> PW_MAIN_IMG </Im1>
+       <ImPat> PW_INPUT_IMGS </ImPat>
+     </Images>
+     
+          <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc>  NKS-Assoc-Im2Orient@-GC  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+  </Section_PriseDeVue>
+<!--
+-->
+
+  <Section_MEC >
+
+      <ChantierFullImage1>  true </ChantierFullImage1>
+
+
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	     <ZDilatAlti>  3    </ZDilatAlti>
+             <ZDilatPlani> 4    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   3.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+                 <DeZoom >        8        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        4        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        2        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        1        </DeZoom> 
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <AlgoRegul>    eAlgoDequant    </AlgoRegul>
+                 <DeZoom >        1        </DeZoom> 
+                 <ZPas>         1  </ZPas>
+        </EtapeMEC>
+
+  </Section_MEC>
+
+  <Section_Results >
+    <GeomMNT> eGeomMNTFaisceauIm1PrCh_Px1D  </GeomMNT> 
+  </Section_Results>
+
+  <Section_WorkSpace >
+        <WorkDir >  ThisDir </WorkDir> 
+        <TmpMEC>  MEC-0-PW-GC/  </TmpMEC>
+        <TmpResult>  MEC-0-PW-GC/  </TmpResult>
+        <TmpPyr>    Pyram-PW-GC/  </TmpPyr>
+	<ByProcess>  ${MMNbProc} </ByProcess>
+	<NomChantier> PW_NOM_CHANTIER </NomChantier>
+	
+     <PostProcess>
+         <OneCmdPar>
+             <OneCmdSer>  echo  ${ThisDir} </OneCmdSer>
+             <OneCmdSer>  ${MMDir}bin/Nuage2Ply ${ThisDir}MEC-0-PW-GC/NuageImProf_PW_NOM_CHANTIER_Etape_5.xml Attr=${ThisDir}PW_MAIN_IMG</OneCmdSer>
+          </OneCmdPar>
+     </PostProcess>
+     
+  </Section_WorkSpace>
+  
+  <Section_Vrac> </Section_Vrac>
+  
+</ParamMICMAC>
+
+ 

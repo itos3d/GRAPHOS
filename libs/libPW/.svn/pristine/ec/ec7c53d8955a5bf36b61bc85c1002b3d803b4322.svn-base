@@ -1,0 +1,206 @@
+#ifndef ORTOSKYXMLDEFINITIONS_H
+#define ORTOSKYXMLDEFINITIONS_H
+
+#define ORTOSKYXMLMATCHESFILE_TAG_PROJECT                                           "project"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_PHOTOGRAPHY                                       "photography"
+#define ORTOSKYXMLMATCHESFILE_TAG_FLIGHTS                                           "flights"
+#define ORTOSKYXMLMATCHESFILE_TAG_FLIGHT                                            "flight"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_SESSIONS                                          "sessions"
+#define ORTOSKYXMLMATCHESFILE_TAG_SESSION                                           "session"
+#define ORTOSKYXMLMATCHESFILE_TAG_SESSION_ATTRIBUTE_NAME                            "name"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_SOURCES                                           "sources"
+#define ORTOSKYXMLMATCHESFILE_TAG_CAMERAS                                           "cameras"
+#define ORTOSKYXMLMATCHESFILE_TAG_CAMERA                                            "camera"
+#define ORTOSKYXMLMATCHESFILE_TAG_SOURCE                                            "source"
+#define ORTOSKYXMLMATCHESFILE_TAG_CAMERA_NAME                                       "name"
+#define ORTOSKYXMLMATCHESFILE_TAG_FOCAL                                             "focal"
+#define ORTOSKYXMLMATCHESFILE_TAG_SENSORWIDTH                                       "sensorWidth"
+#define ORTOSKYXMLMATCHESFILE_TAG_SENSORHEIGHT                                      "sensorHeight"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_CALIBRATIONS                                      "calibrations"
+#define ORTOSKYXMLMATCHESFILE_TAG_CALIBRATION                                       "calibration"
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_ATTRIBUTE_ID                              "id"
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_ATTRIBUTE_NAME                            "name"
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_ATTRIBUTE_ENGINE                          "engine"
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_ATTRIBUTE_MODEL                           "model"
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_ATTRIBUTE_SOURCE_CALIBRATION_ID           "sourceCalibration"
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_ATTRIBUTE_APERO_FILENAME                  "fileName"
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_ATTRIBUTE_TYPE                            "type"
+
+#define ORTOSKYXMLMATCHESFILE_CALIBRATION_TYPE_APERO_FRASER_BASIC                   "PSCalibrationAperoFraserBasic"
+
+
+#define ORTOSKYXMLMATCHESFILE_TAG_ORIENTATIONS                                      "orientations"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATIONS_ATTRIBUTE_CURRENT                        "current"
+#define ORTOSKYXMLMATCHESFILE_TAG_ORIENTATION                                       "orientation"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_ATTRIBUTE_ID                              "id"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_ATTRIBUTE_TYPE                            "type"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_TYPE_FREE                                 "free"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_TYPE_FIXED                                "fixed"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_ORIENTATIONS                                "orientations"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_ORIENTATIONS_ATTRIBUTE_CURRENT              "current"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_ORIENTATION                                 "orientation"
+#define ORTOSKYXMLMATCHESFILE_IMAGE_ORIENTATION_ATTRIBUTE_POSITION                  "position"
+#define ORTOSKYXMLMATCHESFILE_IMAGE_ORIENTATION_ATTRIBUTE_ID                        "id"
+#define ORTOSKYXMLMATCHESFILE_IMAGE_ORIENTATION_ATTRIBUTE_NAME                      "name"
+#define ORTOSKYXMLMATCHESFILE_IMAGE_ORIENTATION_ATTRIBUTE_TYPE                      "type"
+#define ORTOSKYXMLMATCHESFILE_IMAGE_ORIENTATION_ATTRIBUTE_GROUND_CONTROL            "groundControl"
+#define ORTOSKYXMLMATCHESFILE_IMAGE_ORIENTATION_ATTRIBUTE_CALIBRATION               "calibration"
+
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_TYPE_APERO                                "PSOrientationAPERO"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_TYPE_SDGAP                                "PSOrientationSDGAP"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_PAIRS                                             "pairs"
+#define ORTOSKYXMLMATCHESFILE_TAG_PAIR                                              "pair"
+#define ORTOSKYXMLMATCHESFILE_TAG_PAIR_PHOTO1                                       "photo1"
+#define ORTOSKYXMLMATCHESFILE_TAG_PAIR_PHOTO2                                       "photo2"
+#define ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE1                                       "image1"
+#define ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE2                                       "image2"
+#define ORTOSKYXMLMATCHESFILE_ATTRIBUTE_FIRST_IMAGE                                 "first"
+#define ORTOSKYXMLMATCHESFILE_ATTRIBUTE_SECOND_IMAGE                                "second"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_CORRELATEDINFO                                    "correlatedInfo"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_PHOTO                                             "photo"
+#define ORTOSKYXMLMATCHESFILE_TAG_PHOTOS                                            "photos"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE                                             "image"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGES                                            "images"
+#define ORTOSKYXMLMATCHESFILE_TAG_DATASOURCE                                        "dataSource"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_DATASOURCE                                  "dataSource"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_NAME                                        "name"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_CAMERA                                      "camera"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SOURCE                                      "source"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SOURCE_ATTRIBUTE_NAME                       "name"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SOURCE_ATTRIBUTE_CALIBRATION                "calibration"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SHOT                                        "shot"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SHOT_FOCAL_VALUE                            "value"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN                          "ICO"
+#define ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION                       "ICP"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_POINTS                                            "points"
+#define ORTOSKYXMLMATCHESFILE_TAG_POINT                                             "pnt"
+#define ORTOSKYXMLMATCHESFILE_ATTRIBUTE_X1_COORDINATE                               "x1"
+#define ORTOSKYXMLMATCHESFILE_ATTRIBUTE_Y1_COORDINATE                               "y1"
+#define ORTOSKYXMLMATCHESFILE_ATTRIBUTE_X2_COORDINATE                               "x2"
+#define ORTOSKYXMLMATCHESFILE_ATTRIBUTE_Y2_COORDINATE                               "y2"
+#define ORTOSKYXMLMATCHESFILE_ATTRIBUTE_ACCURACY                                    "std"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_PROJECT_PATH                                      "projectPath"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_TMP_FOLDER_PATH                                   "tmpFolder"
+
+#define ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT                   "ll"
+#define ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT                   "ul"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_BUNDLE_ADJUSTMENTS_PARAMETERS                     "pbasParameters"
+#define ORTOSKYXMLMATCHESFILE_TAG_BUNDLE_ADJUSTMENT_PARAMETERS                      "pbaParameters"
+#define ORTOSKYXMLMATCHESFILE_TAG_BUNDLE_ADJUSTMENT_PARAMETERS_ATTRIBUTE_NAME       "name"
+#define ORTOSKYXMLMATCHESFILE_TAG_BUNDLE_ADJUSTMENT_PARAMETERS_ATTRIBUTE_TARGET_ORIENTATION       "targetOrientation"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_NUMBER_OF_IMAGES_TO_USE                           "numberOfImagesToUse"
+#define ORTOSKYXMLMATCHESFILE_TAG_NUMBER_OF_IMAGES_TO_USE_ALL                       "All"
+#define ORTOSKYXMLMATCHESFILE_TAG_NUMBER_OF_IMAGES_TO_USE_MIN_VALUE                 3
+
+#define ORTOSKYXMLMATCHESFILE_TAG_SOURCE_ORIENTATION                                "sourceOrientation"
+#define ORTOSKYXMLMATCHESFILE_TAG_SOURCE_ORIENTATION_NO_INPUT                       "null"
+#define ORTOSKYXMLMATCHESFILE_TAG_TARGET_CALIBRATION_NO_INPUT                       "null"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_TARGET_ORIENTATION                                "targetOrientation"
+#define ORTOSKYXMLMATCHESFILE_TAG_CALIBRATION_MODEL                                 "calibrationModel"
+#define ORTOSKYXMLMATCHESFILE_TAG_CALIBRATION_MODEL_ATTRIBUTE_TYPE                  "type"
+#define ORTOSKYXMLMATCHESFILE_TAG_CALIBRATION_MODEL_ATTRIBUTE_TARGET_CALIBRATION    "targetCalibration"
+#define ORTOSKYXMLMATCHESFILE_TAG_CALIBRATION_MODEL_ID                              "calibrationModelId"
+#define ORTOSKYXMLMATCHESFILE_TAG_CREATE_PLY                                        "createPly"
+#define ORTOSKYXMLMATCHESFILE_TAG_USE_GROUND_CONTROL                                "useGroundControl"
+#define ORTOSKYXMLMATCHESFILE_TAG_RESULTS_FILE_NAME                                 "resultsFileName"
+#define ORTOSKYXMLMATCHESFILE_TAG_UPDATE_ACCURACIES                                 "updateAccuracies"
+#define ORTOSKYXMLMATCHESFILE_TAG_STANDARD_DEVIATION_THRESHOLD                      "standardDeviationThreshold"
+#define ORTOSKYXMLMATCHESFILE_TAG_STANDARD_DEVIATION_THRESHOLD_MIN_VALUE            0.1
+#define ORTOSKYXMLMATCHESFILE_TAG_STANDARD_DEVIATION_THRESHOLD_MAX_VALUE            5.0
+
+#define ORTOSKYXMLMATCHESFILE_TAG_CCD_GRID_SIZE                                     "ccdGridSize"
+#define ORTOSKYXMLMATCHESFILE_TAG_CCD_GRID_SIZE_MIN_VALUE                           50
+#define ORTOSKYXMLMATCHESFILE_TAG_CCD_GRID_SIZE_MAX_VALUE                           1000
+#define ORTOSKYXMLMATCHESFILE_TAG_CCD_GRID_SIZE_SEPARATOR                           "x"
+#define ORTOSKYXMLMATCHESFILE_TAG_CCD_GRID_SIZE_SEPARATOR_BIS                       "X"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_NUMBER_OF_TIE_POINTS_IN_EACH_IMAGE                "numberOfTiePointsInEachImage"
+#define ORTOSKYXMLMATCHESFILE_TAG_NUMBER_OF_TIE_POINTS_IN_EACH_IMAGE_MIN_VALUE      -1
+#define ORTOSKYXMLMATCHESFILE_TAG_NUMBER_OF_TIE_POINTS_IN_EACH_IMAGE_MAX_VALUE      500
+
+#define ORTOSKYXMLMATCHESFILE_TAG_PRINT_ACCURACIES_OF_TIE_POINTS                    "printAccuracies"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_LEAST_SQUARES_PARAMETERS                          "leastSquaresParameters"
+#define ORTOSKYXMLMATCHESFILE_TAG_PRIORI_STANDART_DEVIATION_OF_UNIT_WEIGHT          "prioriStandardDeviationOfUnitWeight"
+#define ORTOSKYXMLMATCHESFILE_TAG_PRIORI_STANDART_DEVIATION_OF_UNIT_WEIGHT_MIN_VALUE    0.3
+#define ORTOSKYXMLMATCHESFILE_TAG_PRIORI_STANDART_DEVIATION_OF_UNIT_WEIGHT_MAX_VALUE    40.0
+
+#define ORTOSKYXMLMATCHESFILE_TAG_MAXIMUM_NUMBER_OF_ITERATIONS                      "maximumNumberOfIterations"
+#define ORTOSKYXMLMATCHESFILE_TAG_MAXIMUM_NUMBER_OF_ITERATIONS_MIN_VALUE            1
+#define ORTOSKYXMLMATCHESFILE_TAG_MAXIMUM_NUMBER_OF_ITERATIONS_MAX_VALUE            20
+
+#define ORTOSKYXMLMATCHESFILE_TAG_PARAMETERS_FOR_AUTOMATIC_SELECTION_OF_TIEPOINTS   "parametersForAutomaticSelectionOfTiePoints"
+
+#define ORTOSKYXMLMATCHESFILE_TAG_GCPS                                              "GCPs"
+#define ORTOSKYXMLMATCHESFILE_TAG_GCP                                               "gcp"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_NAME                                    "name"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_TYPE                                    "type"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_X_COORDINATE                            "x"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_Y_COORDINATE                            "y"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_Z_COORDINATE                            "z"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_SX_COORDINATE                           "sx"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_SY_COORDINATE                           "sy"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_SZ_COORDINATE                           "sz"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_EX_COORDINATE                           "ex"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_EY_COORDINATE                           "ey"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_EZ_COORDINATE                           "ez"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_E2D_COORDINATE                          "e2D"
+#define ORTOSKYXMLMATCHESFILE_GCP_ATTRIBUTE_E3D_COORDINATE                          "e3D"
+
+//#define ORTOSKYXMLMATCHESFILE_GCP_PRECISION                                         4
+
+#define ORTOSKYXMLMATCHESFILE_GCP_TYPE_CONTROL                                      "control"
+#define ORTOSKYXMLMATCHESFILE_GCP_TYPE_CHECK                                        "check"
+
+#define ORTOSKYXMLMATCHESFILE_GCP_TAG_IMG                                           "image"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_ID                                  "id"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_NAME                                "name"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_X_COORDINATE                        "x"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_Y_COORDINATE                        "y"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_STD_COORDINATE                      "std"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_EX_COORDINATE                       "ex"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_EY_COORDINATE                       "ey"
+#define ORTOSKYXMLMATCHESFILE_GCP_IMG_ATTRIBUTE_E2D_COORDINATE                      "e2D"
+
+#define ORTOSKYXMLMATCHESFILE_CRS_TAG                                               "CRS"
+#define ORTOSKYXMLMATCHESFILE_CRS_EPSGCODE_TAG                                      "EPSG"
+#define ORTOSKYXMLMATCHESFILE_CRS_ZUNIT_TAG                                         "zUnit"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG                                       "toWGS84"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P0                              "p0"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P1                              "p1"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P2                              "p2"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P3                              "p3"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P4                              "p4"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P5                              "p5"
+#define ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P6                              "p6"
+
+#define ORTOSKYXMLMATCHESFILE_GENERAL_TAG                                           "general"
+
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_POSITION_TAG                              "position"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_POSITION_ATTRIBUTE_X                      "x"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_POSITION_ATTRIBUTE_Y                      "y"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_POSITION_ATTRIBUTE_Z                      "z"
+
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_ATTITUDE_TAG                              "attitude"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_ATTITUDE_ATTRIBUTE_OMEGA                  "omega"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_ATTITUDE_ATTRIBUTE_PHI                    "phi"
+#define ORTOSKYXMLMATCHESFILE_ORIENTATION_ATTITUDE_ATTRIBUTE_KAPPA                  "kappa"
+
+#define ORTOSKYXMLMATCHESFILE_RESULTS_FILE_NAME_BASE                                "Results_"
+#define ORTOSKYXMLMATCHESFILE_RESULTS_FILE_NAME_EXTENSION                           ".txt"
+
+#endif // ORTOSKYXMLDEFINITIOS_H

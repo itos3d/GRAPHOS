@@ -1,0 +1,232 @@
+<Global>
+	<ParamApero>
+		<DicoLoc>
+		   <Symb>  AeroIn=-PW_INPUT_ORI  </Symb>
+		   <Symb>  AeroOut=-PW_OUTPUT_ORI  </Symb>
+		   <Symb>  OutCalib=Ori${AeroOut}/PW_AUTOCAL_FILE </Symb>
+		</DicoLoc>
+		<SectionBDD_Observation>
+			<BDD_PtsLiaisons>
+				<Id>    Id_Pastis_Hom  </Id>
+				<KeySet> NKS-Set-Homol@@PW_MATCH_FORMAT  </KeySet>
+				<KeyAssoc>  NKS-Assoc-CplIm2Hom@@PW_MATCH_FORMAT   </KeyAssoc>
+				</BDD_PtsLiaisons>
+			<BDD_Orient>
+				<Id>  Or-Init   </Id>
+				<KeySet>  NKS-Set-Orient@${AeroIn} </KeySet>
+				<KeyAssoc>  NKS-Assoc-Im2Orient@${AeroIn} </KeyAssoc>
+			</BDD_Orient>
+			<BDD_ObsAppuisFlottant >
+				<Id> Id-Appui </Id>
+				<KeySetOrPat>  Mesure-Appuis.xml </KeySetOrPat>
+			</BDD_ObsAppuisFlottant>
+		</SectionBDD_Observation>
+		<SectionInconnues>
+			<CalibrationCameraInc>
+				<Name> TheKeyCalib   </Name>
+				<CalValueInit>
+					<CalFromFileExtern>
+						<NameFile>   Ori${AeroIn}/PW_AUTOCAL_FILE   </NameFile>
+						<NameTag>    CalibrationInternConique </NameTag>
+					</CalFromFileExtern>
+				</CalValueInit>
+			</CalibrationCameraInc>
+			<PoseCameraInc>
+				<PatternName>    PW_INPUT_IMGS   </PatternName>
+				<CalcNameCalib>  TheKeyCalib </CalcNameCalib>
+				<PosValueInit>
+					<PosFromBDOrient> Or-Init </PosFromBDOrient>
+				</PosValueInit>
+			</PoseCameraInc>
+			<PointFlottantInc>
+				<Id> Id-Appui </Id>
+				<KeySetOrPat>  Dico-Appuis.xml </KeySetOrPat>
+			</PointFlottantInc>
+		</SectionInconnues>
+		<SectionChantier>
+			<DirectoryChantier> ThisDir </DirectoryChantier>
+		</SectionChantier>
+		<SectionSolveur>
+			<ModeResolution> eSysL2BlocSym </ModeResolution> 
+		</SectionSolveur>
+		<SectionCompensation>
+			<EtapeCompensation>
+				<SectionObservations>
+					<ObsLiaisons>
+						<NameRef> Id_Pastis_Hom </NameRef>
+						<Pond>
+							<EcartMesureIndiv>  Pastis_EcartMesureIndiv_E1 </EcartMesureIndiv>
+							<Show> eNSM_Paquet     </Show>
+							<NbMax>   100    </NbMax>
+							<ModePonderation>  eL1Secured </ModePonderation>
+							<SigmaPond> Pastis_SigmaPond_E1 </SigmaPond>
+							<EcartMax> Pastis_EcartMax_E1 </EcartMax>
+						</Pond>
+					</ObsLiaisons>
+					<ObsAppuisFlottant>
+						<NameRef> Id-Appui </NameRef>
+						<PondIm> 
+							<EcartMesureIndiv>  Appui_EcartMesureIndiv_E1 </EcartMesureIndiv>
+							<Show> eNSM_Paquet     </Show>
+							<NbMax>   100    </NbMax>
+							<ModePonderation>  eL1Secured </ModePonderation>
+							<SigmaPond> Appui_SigmaPond_E1 </SigmaPond>
+							<EcartMax> Appui_EcartMax_E1 </EcartMax>
+						</PondIm>
+						<PtsShowDet>  .* </PtsShowDet>
+						<DetShow3D >   0 </DetShow3D>
+						<ShowMax> true </ShowMax>
+						<ShowSom>  true</ShowSom>
+					</ObsAppuisFlottant>
+				</SectionObservations>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eAllParamFiges  </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<BasculeOrientation>
+						<AfterCompens> false </AfterCompens>
+						<PatternNameEstim> .* </PatternNameEstim>
+						<ModeBascule>
+							<BasculeOnPoints>
+								<BascOnAppuis >
+									<NameRef> Id-Appui </NameRef>
+								</BascOnAppuis>
+								<ModeL2> true </ModeL2>
+							</BasculeOnPoints>
+						</ModeBascule>
+					</BasculeOrientation>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+			</EtapeCompensation>
+			<EtapeCompensation>
+				<SectionObservations>
+					<ObsLiaisons>
+						<NameRef> Id_Pastis_Hom </NameRef>
+						<Pond>
+							<EcartMesureIndiv>  Pastis_EcartMesureIndiv_E2 </EcartMesureIndiv>
+							<Show> eNSM_Paquet     </Show>
+							<NbMax>   100    </NbMax>
+							<ModePonderation>  eL1Secured </ModePonderation>
+							<SigmaPond> Pastis_SigmaPond_E2 </SigmaPond>
+							<EcartMax> Pastis_EcartMax_E2 </EcartMax>
+						</Pond>
+					</ObsLiaisons>
+					<ObsAppuisFlottant>
+						<NameRef> Id-Appui </NameRef>
+						<PondIm> 
+							<EcartMesureIndiv>  Appui_EcartMesureIndiv_E2 </EcartMesureIndiv>
+							<Show> eNSM_Paquet     </Show>
+							<NbMax>   100    </NbMax>
+							<ModePonderation>  eL1Secured </ModePonderation>
+							<SigmaPond> Appui_SigmaPond_E2 </SigmaPond>
+							<EcartMax> Appui_EcartMax_E2 </EcartMax>
+						</PondIm>
+						<PtsShowDet>  .* </PtsShowDet>
+						<DetShow3D >   0 </DetShow3D>
+						<ShowMax> true </ShowMax>
+						<ShowSom>  true</ShowSom>
+					</ObsAppuisFlottant>
+				</SectionObservations>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLiberte_DR1      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  DR1 </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLiberte_DR2      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  DR2 </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLiberte_DR3      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  DR3 </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLiberte_DR4      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  DR4 </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLiberte_DR5      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  DR5 </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLiberteFocale_1      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  FOCALE </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLib_PP_CD_01      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  CD </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eLib_PP_CD_10      </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+					<Messages>  LIB  PP </Messages>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation>
+					<SectionContraintes>
+						<ContraintesCamerasInc>
+							<Val> eAllParamLibres  </Val>
+						</ContraintesCamerasInc>
+					</SectionContraintes>
+				</IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<IterationsCompensation> </IterationsCompensation>
+				<SectionExport>
+					<ExportPose>
+						<PatternSel> (.*) </PatternSel>
+						<KeyAssoc> NKS-Assoc-Im2Orient@${AeroOut} </KeyAssoc>
+						<AddCalib>  true </AddCalib>
+						<FileExtern> ${OutCalib} </FileExtern>
+						<FileExternIsKey> false </FileExternIsKey>
+					</ExportPose>
+					<ExportCalib>
+						<KeyAssoc>  ${OutCalib} </KeyAssoc>
+						<KeyIsName> true </KeyIsName>
+					</ExportCalib>
+				</SectionExport>
+			</EtapeCompensation>
+		</SectionCompensation>
+	</ParamApero>
+</Global>
+
+
+

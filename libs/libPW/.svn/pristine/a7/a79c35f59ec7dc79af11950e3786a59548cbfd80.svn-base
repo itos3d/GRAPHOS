@@ -1,0 +1,51 @@
+#include <QString>
+#include <QFile>
+#include <QStringList>
+
+#include "AsiftMatchingIO.h"
+
+using namespace PW;
+
+AsiftMatchingIO::AsiftMatchingIO()
+{
+}
+
+void AsiftMatchingIO::read(QString url, QMap<QString, QPointF> *matching, QMap<QString, QPointF> *inverseMatching)
+{
+    QFile file(url);
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        file.readLine(); //first line: nº of matchings
+        while (!file.atEnd()) {
+            QString line = file.readLine();
+            QStringList splitedLine = line.simplified().split(" ");
+            if(splitedLine.count() == 4){
+                if(!matching->contains(splitedLine.at(0)+" "+splitedLine.at(1)) &&
+                        !inverseMatching->contains(splitedLine.at(2)+" "+splitedLine.at(3))){
+                    QPointF point(splitedLine.at(2).toFloat(),splitedLine.at(3).toFloat());
+                    matching->insert(splitedLine.at(0)+" "+splitedLine.at(1),point);
+
+                    QPointF inversePoint(splitedLine.at(0).toFloat(),splitedLine.at(1).toFloat());
+                    inverseMatching->insert(splitedLine.at(2)+" "+splitedLine.at(3),inversePoint);
+                }
+            }
+        }
+    }
+}
+
+void AsiftMatchingIO::read(QString url, QMap<QString, QPointF> *matching)
+{
+    QFile file(url);
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        file.readLine(); //first line: nº of matchings
+        while (!file.atEnd()) {
+            QString line = file.readLine();
+            QStringList splitedLine = line.simplified().split(" ");
+            if(splitedLine.count() == 4){
+                if(!matching->contains(splitedLine.at(0)+" "+splitedLine.at(1))){
+                    QPointF point(splitedLine.at(2).toFloat(),splitedLine.at(3).toFloat());
+                    matching->insert(splitedLine.at(0)+" "+splitedLine.at(1),point);
+                }
+            }
+        }
+    }
+}

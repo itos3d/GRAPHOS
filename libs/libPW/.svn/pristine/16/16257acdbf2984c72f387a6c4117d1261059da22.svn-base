@@ -1,0 +1,8 @@
+#include "CameraModelReader.h"
+
+using namespace PW;
+
+CameraModelReader::CameraModelReader()
+{
+}
+

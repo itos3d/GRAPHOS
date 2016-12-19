@@ -1,0 +1,25 @@
+#include "WriteMatchesProcess.h"
+
+using namespace PW;
+
+WriteMatchesProcess::WriteMatchesProcess(PersistenceManager *persistenceManager,
+                                         Project *project,
+                                         QString tiePointsMetadata,
+                                         QString tiePointsDescription,
+                                         QString timeCalculation,
+                                         QString tiePointsPath):
+    mProject(project),
+    mTiePointsMetadata(tiePointsMetadata),
+    mTiePointsDescription(tiePointsDescription),
+    mTimeCalculation(timeCalculation),
+    mTiePointsPath(tiePointsPath),
+    mPersistenceManager(persistenceManager)
+{
+}
+
+void WriteMatchesProcess::run()
+{
+
+    mPersistenceManager->writeMatches(mProject,mTiePointsMetadata,mTiePointsDescription,mTimeCalculation,mTiePointsPath);
+
+}

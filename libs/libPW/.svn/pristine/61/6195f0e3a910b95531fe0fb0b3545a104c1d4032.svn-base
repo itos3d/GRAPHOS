@@ -1,0 +1,19 @@
+#include "WriteProjectProcess.h"
+
+using namespace PW;
+
+WriteProjectProcess::WriteProjectProcess(PersistenceManager *persistenceManager,
+                                         PW::Project *project,
+                                         bool writeCams,
+                                         int previousProyectID):
+    mPersistenceManager(persistenceManager),
+    mProject(project),
+    mWriteCams(writeCams),
+    mPreviousProyectID(previousProyectID)
+{
+}
+
+void WriteProjectProcess::run()
+{
+    mPersistenceManager->writeProject(mProject, mWriteCams, mPreviousProyectID);
+}

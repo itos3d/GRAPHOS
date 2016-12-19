@@ -1,0 +1,29 @@
+#ifndef ASIFTUPROCESS_H
+#define ASIFTUPROCESS_H
+
+#include <QMap>
+#include "MultiProcess.h"
+#include "MSD/ProcessedImageData.h"
+#include "ASIFTUmatching.h"
+
+namespace PW {
+
+class LIBPWSHARED_EXPORT ASIFTUProcess : public MultiProcess
+{
+public:
+    ASIFTUProcess(QString projectBasePath, QStringList imagesPathList, QString outputPath,  QMap<QString, QString> ASIFTParameters);
+    ~ASIFTUProcess();
+
+private:
+    MultiProcess *mKPDProcess;
+    ASIFTUmatching *mMatchingProcess;
+    QString matchesFolder;
+    QStringList mImagesPathList;
+    QMap<QString, ProcessedImageData*> mImageMetadataMap;
+    QMap<QString, QString> mASIFTParameters;
+    bool removeDir(QString dirName);
+
+};
+}
+
+#endif // ASIFTUPROCESS_H

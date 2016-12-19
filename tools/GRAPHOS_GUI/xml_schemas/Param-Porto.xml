@@ -1,0 +1,61 @@
+<CreateOrtho>
+        <!-- Truc +ou- genreaux a ttes les applis -->
+        <DicoLoc >
+
+
+        </DicoLoc>
+        <WorkDir>  ThisDir  </WorkDir>
+
+        <SectionEntree>
+           <FileMNT> ../MM-Ter/Z_Num6_DeZoom2_LeChantier.xml   </FileMNT>
+           <KeySetIm>  NKS-Set-OfPattern@Ort_(.*)\.tif </KeySetIm>
+           <KeyAssocMetaData > NKS-Assoc-ChangPrefixAndExt@Ort_@tif@PC_@xml  </KeyAssocMetaData>
+           <KeyAssocNamePC >   NKS-Assoc-ChangPrefixAndExt@Ort_@tif@PC_@tif </KeyAssocNamePC>
+           <KeyAssocNameIncH>  NKS-Assoc-ChangPrefixAndExt@Ort_@tif@Incid_@tif </KeyAssocNameIncH>
+        </SectionEntree>
+
+        <SectionFiltrageIn>
+             <SzDilatPC >   1 </SzDilatPC>
+             <SzOuvPC >     2 </SzOuvPC>
+             <BoucheTrou>
+                <SeuilVisib > 50  </SeuilVisib>
+                <SeuilVisibBT > 10 </SeuilVisibBT>
+                <CoeffPondAngul > 3.14 </CoeffPondAngul>
+             </BoucheTrou>
+
+        </SectionFiltrageIn>
+
+        <SectionEgalisation Nb="?">
+              <PeriodEchant >  45  </PeriodEchant>
+               <SzVois >  20  </SzVois>
+               <NameFileMesures >  MesuresEgales.dat </NameFileMesures>
+               <UseFileMesure > false </UseFileMesure>
+
+               <DegresEgalVois>  0 0  </DegresEgalVois>
+               <DegresEgalVois>  1 1  </DegresEgalVois>
+               <EgaliseSomCh> false </EgaliseSomCh>
+               <PdsRappelInit>  0.001 </PdsRappelInit>
+
+               <GlobRappInit>
+                    <DoGlob> true </DoGlob>
+                    <Degres>  0 0   </Degres>
+                    <Degres>  1 1 </Degres>
+               </GlobRappInit>
+
+         </SectionEgalisation>
+<!--
+-->
+
+
+
+
+        <SectionSorties>
+           <SzDalle>    1000            </SzDalle>
+           <SzBrd>      100             </SzBrd>
+           <NameOrtho>  Ortho.tif </NameOrtho>
+           <NameLabels>  Label.tif</NameLabels>
+        </SectionSorties>
+
+
+</CreateOrtho>
+

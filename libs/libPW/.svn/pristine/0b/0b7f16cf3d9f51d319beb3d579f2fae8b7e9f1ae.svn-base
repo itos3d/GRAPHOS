@@ -1,0 +1,34 @@
+#ifndef TIEPOINT_H
+#define TIEPOINT_H
+
+#include <QMap>
+#include <QString>
+#include <QObject>
+
+#include "libPW_global.h"
+#include "ImagePoint.h"
+
+namespace PW{
+
+class TiePoint
+{
+public:
+    TiePoint(int id,
+             ImagePoint* firstImagePoint,
+             ImagePoint* secondImagePoint);
+    int getId(){return(mId);};
+    QMap<int,ImagePoint*>& getImagePoints(){return(mImagePoints);};
+    bool getIsValid(){return(mIsValid);};
+    bool addImagePoint(ImagePoint* imagePoint,QString& strError);
+    bool containsImagePoint(int imagePosition,
+                            int column,
+                            int row);
+    bool containsImage(int imagePosition);
+    void setInvalid(){mIsValid=false;};
+private:
+    int mId;
+    bool mIsValid;
+    QMap<int,ImagePoint*> mImagePoints;
+};
+}
+#endif // TIEPOINT_H

@@ -1,0 +1,18 @@
+#ifndef TESTCALCULATEIMAGEPOINTS_H
+#define TESTCALCULATEIMAGEPOINTS_H
+
+#include <QObject>
+
+class TestCalculateImagePoints : public QObject
+{
+    Q_OBJECT
+public:
+
+signals:
+
+private slots:
+    void calculate();
+
+};
+
+#endif // TESTCALCULATEIMAGEPOINTS_H

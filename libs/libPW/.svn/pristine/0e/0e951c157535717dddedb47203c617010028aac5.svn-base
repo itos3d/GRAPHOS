@@ -1,0 +1,49 @@
+#include "PBACalibrationModel.h"
+
+
+PBACalibrationModel::PBACalibrationModel(QString aperoId,
+                                         QString dgapId,
+                                         QString explanation,
+                                         QString id):
+    mAperoId(aperoId),
+    mDGAPId(dgapId),
+    mExplanation(explanation),
+    mId(id)
+{
+
+}
+
+bool PBACalibrationModel::getIsSDGAP()
+{
+    if(mId.compare(PBA_CALIBRATION_MODEL_ID_SDGAP_AUSTRALIS,Qt::CaseInsensitive)==0
+            ||mId.compare(PBA_CALIBRATION_MODEL_ID_SDGAP_IRD,Qt::CaseInsensitive)==0
+            ||mId.compare(PBA_CALIBRATION_MODEL_ID_SDGAP_AUSTRALIS_FIXED,Qt::CaseInsensitive)==0
+            ||mId.compare(PBA_CALIBRATION_MODEL_ID_SDGAP_IRD_FIXED,Qt::CaseInsensitive)==0)
+    {
+        return(true);
+    }
+    return(false);
+}
+
+bool PBACalibrationModel::getIsFixed()
+{
+    if(mId.compare(PBA_CALIBRATION_MODEL_ID_FIXED,Qt::CaseInsensitive)==0
+            ||mId.compare(PBA_CALIBRATION_MODEL_ID_SDGAP_AUSTRALIS_FIXED,Qt::CaseInsensitive)==0
+            ||mId.compare(PBA_CALIBRATION_MODEL_ID_SDGAP_IRD_FIXED,Qt::CaseInsensitive)==0)
+    {
+        return(true);
+    }
+    else
+        return(false);
+}
+
+QString PBACalibrationModel::getOrtoSkyType()
+{
+    QString type=PBA_CALIBRATION_ORTOSKY_TYPE_PREFIX;
+    type+=mId;
+//    if(mId.compare())
+//    {
+
+//    }
+    return(type);
+}

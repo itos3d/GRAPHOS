@@ -1,0 +1,29 @@
+#ifndef GCP_H
+#define GCP_H
+#include "libPW_global.h"
+#include <QtCore>
+namespace PW{
+class LIBPWSHARED_EXPORT GCP
+{
+public:
+    GCP();
+    GCP(int id, double x, double y,double z, QString desc);
+
+    void setId(int id);
+    void setX(double x);
+    void setY(double y);
+    void setZ(double z);
+    void setDesc(QString desc);
+    int getID();
+    double getX();
+    double getY();
+    double getZ();
+    QString getDesc();
+    ~GCP();
+private:
+    int ID;
+    double X,Y,Z;
+    QString mDesc;
+};
+}
+#endif // GCP_H

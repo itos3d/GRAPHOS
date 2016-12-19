@@ -1,0 +1,259 @@
+#include "ASIFTUkpd.h"
+#include "MSD/ProcessedImageData.h"
+#include "ASIFT_UNIBO/asiftdetector.h"
+#include <QFileInfo>
+#include <QDir>
+using namespace PW;
+using namespace cv;
+
+void writeDescsInAscii(std::string fileName,std::vector< KeyPoint > &keypoints, std::vector<std::vector<int>> &descriptors, float rsf){
+    FILE* fileOut;
+    errno_t err;
+
+    float irsf = 1 / rsf;
+
+    char ff[1024];
+    strncpy(ff, fileName.c_str(), sizeof(ff));
+    ff[sizeof(ff) - 1] = 0;
+
+    int rows = keypoints.size();
+    int cols = 128;
+
+    const char * fName = (const char *)ff;
+    err  = fopen_s( &fileOut, fName, "w" );
+
+    if (err==0){
+        fprintf(fileOut,"%d %d\n",rows,cols);
+
+        for(int i=0;i<rows;i++)
+        {
+            fprintf(fileOut,"%f %f %f %f\n",keypoints[i].pt.y * irsf,keypoints[i].pt.x * irsf,keypoints[i].size *irsf , keypoints[i].angle);
+            for(int j=0;j<cols;j++)
+            {
+                fprintf(fileOut,"%d ",descriptors.at(i).at(j));
+            }
+            fprintf(fileOut,"\n");
+
+        }
+        fclose(fileOut);
+    }
+}
+
+//Mat norm_0_255(const Mat& src) {
+//    // Create and return normalized image:
+//    Mat dst;
+//    switch(src.channels()) {
+//    case 1:
+//        cv::normalize(src, dst, 0, 255, NORM_MINMAX, CV_8UC1);
+//        break;
+//    case 3:
+//        cv::normalize(src, dst, 0, 255, NORM_MINMAX, CV_8UC3);
+//        break;
+//    default:
+//        src.copyTo(dst);
+//        break;
+//    }
+//    return dst;
+//}
+
+////
+//// Calculates the TanTriggs Preprocessing as described in:
+////
+////      Tan, X., and Triggs, B. "Enhanced local texture feature sets for face
+////      recognition under difficult lighting conditions.". IEEE Transactions
+////      on Image Processing 19 (2010), 1635–650.
+////
+//// Default parameters are taken from the paper.
+////
+//Mat tan_triggs_preprocessing(InputArray src,
+//        float alpha = 0.1, float tau = 10.0, float gamma = 0.2, int sigma0 = 1,
+//        int sigma1 = 2) {
+
+//    // Convert to floating point:
+//    Mat X = src.getMat();
+//    X.convertTo(X, CV_32FC1);
+//    // Start preprocessing:
+//    Mat I;
+//    pow(X, gamma, I);
+//    // Calculate the DOG Image:
+//    {
+//        Mat gaussian0, gaussian1;
+//        // Kernel Size:
+//        int kernel_sz0 = (3*sigma0);
+//        int kernel_sz1 = (3*sigma1);
+//        // Make them odd for OpenCV:
+//        kernel_sz0 += ((kernel_sz0 % 2) == 0) ? 1 : 0;
+//        kernel_sz1 += ((kernel_sz1 % 2) == 0) ? 1 : 0;
+//        GaussianBlur(I, gaussian0, Size(kernel_sz0,kernel_sz0), sigma0, sigma0, BORDER_REPLICATE);
+//        GaussianBlur(I, gaussian1, Size(kernel_sz1,kernel_sz1), sigma1, sigma1, BORDER_REPLICATE);
+//        subtract(gaussian0, gaussian1, I);
+//    }
+
+//    {
+//        double meanI = 0.0;
+//        {
+//            Mat tmp;
+//            pow(abs(I), alpha, tmp);
+//            meanI = mean(tmp).val[0];
+
+//        }
+//        I = I / pow(meanI, 1.0/alpha);
+//    }
+
+//    {
+//        double meanI = 0.0;
+//        {
+//            Mat tmp;
+//            pow(min(abs(I), tau), alpha, tmp);
+//            meanI = mean(tmp).val[0];
+//        }
+//        I = I / pow(meanI, 1.0/alpha);
+//    }
+
+//    // Squash into the tanh:
+//    {
+//        Mat exp_x, exp_negx;
+//    exp( I / tau, exp_x );
+//    exp( -I / tau, exp_negx );
+//    divide( exp_x - exp_negx, exp_x + exp_negx, I );
+//        I = tau * I;
+//    }
+//    return I;
+//}
+
+
+ASIFTUkpd::ASIFTUkpd(QString inputFile, QString outputDir, ProcessedImageData *metadata,int imageResizeValue,int peakTh,int edgeTh, int octaves,int levels):
+    mInputFile(inputFile),
+    mOtputDir(outputDir),
+    mImageMetadata(metadata),
+    ASIFTImageResizeValue(imageResizeValue),
+    mPeakTh(peakTh),
+    mEdgeTh(edgeTh),
+    mOctaves(octaves),
+    mLevels(levels)
+{
+
+}
+
+ASIFTUkpd::~ASIFTUkpd()
+{
+
+}
+
+void ASIFTUkpd::run(){
+    QFileInfo fileInfo(mInputFile);
+    QString *stdData = new QString();
+
+    stdData->clear();
+    stdData->append("Starting ASIFT keypoint detection for image:  ");
+    stdData->append(fileInfo.fileName());
+    emit newStdData(stdData->toAscii());
+
+    QString matchesFolder = mOtputDir;
+
+    QDir matchingMethodDir(matchesFolder+"/tapioca");
+    QString imageMatchings = matchesFolder+"/tapioca/Pastis"+mInputFile.split("/").last();
+    if(!matchingMethodDir.exists(imageMatchings))
+    {
+        matchingMethodDir.mkdir(imageMatchings);
+    }
+    cv::String cvImageFileName = mInputFile.toLatin1();
+
+    cv::Mat cvImg = cv::imread(cvImageFileName, CV_LOAD_IMAGE_COLOR);
+
+    if (ASIFTImageResizeValue!=-1 && (cvImg.size[1]> ASIFTImageResizeValue || cvImg.size[0]> ASIFTImageResizeValue)) {
+
+        if (cvImg.size[1]>cvImg.size[0] && cvImg.size[1]>ASIFTImageResizeValue) {
+            //Scale
+
+            int newImageHeight = (int)(cvImg.rows*ASIFTImageResizeValue/cvImg.cols);
+
+            Size newSize(ASIFTImageResizeValue,newImageHeight);
+
+            cv::resize(cvImg,cvImg,newSize,INTER_NEAREST   ); //resize image
+
+            stdData->clear();
+            stdData->append("Image ");
+            stdData->append(fileInfo.fileName());
+            stdData->append(" downsampled.");
+            emit newStdData(stdData->toAscii());
+        }else if (cvImg.size[0]>cvImg.size[1] && cvImg.size[0]>ASIFTImageResizeValue) {
+            //Scale
+
+            int newImageWidth = (int)(cvImg.cols*ASIFTImageResizeValue/cvImg.rows);
+
+            Size newSize(newImageWidth,ASIFTImageResizeValue);
+
+            cv::resize(cvImg,cvImg,newSize,INTER_NEAREST   ); //resize image
+
+            stdData->clear();
+            stdData->append("Image ");
+            stdData->append(fileInfo.fileName());
+            stdData->append(" downlampled.");
+            emit newStdData(stdData->toAscii());
+        }
+    }
+
+//    Mat preprocessed = tan_triggs_preprocessing(cvImg);
+//    QFileInfo inFile(mInputFile);
+//    QString outfileName;
+//    outfileName.append(inFile.absolutePath());
+//    outfileName.append("/");
+//    outfileName.append(inFile.baseName());
+//    outfileName.append("_proc.");
+//    outfileName.append(inFile.suffix());
+//    QFileInfo outFile(outfileName);
+//    cv::imwrite(outFile.absoluteFilePath().toUtf8().constData(),norm_0_255(preprocessed));
+
+    cv::Mat kpsImg;
+    cv::Mat auxImage;
+    std::vector<cv::KeyPoint> cvImg_keyPoints;
+    cvImg_keyPoints.clear();
+
+    stdData->clear();
+    stdData->append("Searching keypoints for image ");
+    stdData->append(fileInfo.fileName());
+    emit newStdData(stdData->toAscii());
+
+
+    std::vector< std::vector< int > > cvDescriptors;
+    ASiftDetector detector(mPeakTh,mEdgeTh,mOctaves,mLevels);
+
+//    detector.computeAsift(norm_0_255(preprocessed),cvImg_keyPoints,cvDescriptors);
+      detector.computeAsift(cvImg,cvImg_keyPoints,cvDescriptors);
+
+//    QString resultfile(mInputFile);
+//    resultfile.append("result");
+//    writeDescsInAscii(resultfile.toLocal8Bit().constData(),cvImg_keyPoints,cvDescriptors, 1);
+
+
+    //Convert vector of vectors to cv::Mat
+
+    cv::Mat cvDescriptorsConverted(cvDescriptors.size(), cvDescriptors.at(0).size(), CV_32F);
+    for(int i=0; i<cvDescriptorsConverted.rows; ++i)
+         for(int j=0; j<cvDescriptorsConverted.cols; ++j){
+             cvDescriptorsConverted.at<float>(i, j) = cvDescriptors.at(i).at(j);
+         }
+
+    emit statusChangedNext();
+
+    stdData->clear();
+    stdData->append(QString::number(cvImg_keyPoints.size()));
+    stdData->append(" keypoints found for image ");
+    stdData->append(fileInfo.fileName());
+    emit newStdData(stdData->toAscii());
+
+    emit statusChangedNext();
+
+    mImageMetadata->setTiepoints(cvImg_keyPoints);
+    mImageMetadata->setDescriptors(cvDescriptorsConverted);
+    QFileInfo inputFileInfo (mInputFile);
+    QString imageFileName = inputFileInfo.fileName();
+    mImageMetadata->setImageName(imageFileName);
+
+    stdData->clear();
+    stdData->append("Image ");
+    stdData->append(fileInfo.fileName());
+    stdData->append(" processed successfull.");
+    emit newStdData(stdData->toAscii());
+}

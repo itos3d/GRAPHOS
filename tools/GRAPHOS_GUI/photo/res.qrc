@@ -1,0 +1,17 @@
+<RCC>
+    <qresource prefix="/">
+        <file>img/about.png</file>
+        <file>img/interrupt.png</file>
+        <file>img/menu.png</file>
+        <file>img/open.png</file>
+        <file>img/quit.png</file>
+        <file>img/reload.png</file>
+        <file>img/setup.png</file>
+        <file>img/toggle.png</file>
+        <file>photo_de.qm</file>
+        <file>photo_el.qm</file>
+        <file>img/previous.png</file>
+        <file>img/next.png</file>
+        <file>photo_cz.qm</file>
+    </qresource>
+</RCC>

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ProjectPW>
+  
+  <InputImages>
+    <IMG> 
+      <Path> ./images/image1.jpg </Path>
+    </IMG>
+    <IMG> 
+      <Path> ./images/image2.jpg </Path>
+    </IMG>
+    <IMG> 
+      <Path> ./images/image3.jpg </Path>
+    </IMG>
+    <IMG> 
+      <Path> ./images/AnotherCam.jpg </Path>
+      <Calibration>
+	<PhotoScan>
+	  <calibration>
+	    <fx>2.1261457661928030e+003</fx>
+	    <fy>2.1261457661928030e+003</fy>
+	    <cx>9.1395114706588970e+002</cx>
+	    <cy>8.6269045958870504e+002</cy>
+	    <skew>0.0000000000000000e+000</skew>
+	    <k1>-1.7977649951388022e-001</k1>
+	    <k2>1.4602111153313432e-001</k2>
+	    <k3>1.4279012231416090e-002</k3>
+	    <p1>0.0000000000000000e+000</p1>
+	    <p2>0.0000000000000000e+000</p2>
+	    <date>2012-02-06T11:50:03Z</date>
+	  </calibration>
+	</PhotoScan>
+      </Calibration>
+    </IMG>
+  </InputImages>
+  
+  <Calibration>
+    <ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>2356.83390572916824 1570.39975314732555</PP>
+          <F>3860.91458848240245</F>
+          <SzIm>4752 3168</SzIm>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist>2363.77870344291478 1575.78337002877106</CDist>
+                    <CoeffDist>-8.85633795905322815e-09</CoeffDist>
+                    <CoeffDist>8.73509261511813767e-16</CoeffDist>
+                    <CoeffDist>-2.53986989866325579e-23</CoeffDist>
+                    <CoeffDist>-8.42844331440978057e-31</CoeffDist>
+                    <CoeffDist>1.96291570806529008e-37</CoeffDist>
+               </ModRad>
+          </CalibDistortion>
+     </CalibrationInternConique>
+    </ExportAPERO>
+  </Calibration>
+  
+  <SparseModels>
+    <Model> ./models/Apericloud1.ply </Model>
+  </SparseModels>
+  
+  <DenseModels>
+    <Model> ./models/dense.ply </Model>
+  </DenseModels>
+  
+</ProjectPW>
+ 

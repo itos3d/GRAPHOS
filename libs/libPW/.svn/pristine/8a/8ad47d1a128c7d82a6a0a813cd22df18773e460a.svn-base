@@ -1,0 +1,25 @@
+#include "C3DCProcess.h"
+#include <QFileInfo>
+#include <QDir>
+#include "libPW.h"
+using namespace  PW;
+
+C3DCProcess::C3DCProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + C3DC_COMMAND)
+{
+    setStartupMessage("Generating Dense Model...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+    addIntputs(QStringList() << "C3DC");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/C3DC.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/C3DC.log");
+}
+
+C3DCProcess::~C3DCProcess()
+{
+
+}
+

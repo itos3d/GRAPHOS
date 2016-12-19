@@ -1,0 +1,32 @@
+#include "ScaleProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+ScaleProcess::ScaleProcess(QString inputFile,float scalex,float scaley,float scalez):
+    ExternalProcess(LibPW::getToolsPath()+"/"+LASSCALE_COMMAND)
+{
+        QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+        workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+        if(workingDir.isEmpty())
+            workingDir = QDir::currentPath();
+    //    setWorkingDir(outputPath);
+
+        setStartupMessage("Scaling cloud...");
+        setStdOutputFilePath(LibPW::getStdErrorPath() + "/lasscale.log");
+        setStdErrorFilePath(LibPW::getStdErrorPath() + "/lasscale.log");
+
+        QFileInfo inputFileInfo(inputFile);
+        QStringList inputs;
+
+        inputs << inputFileInfo.absoluteFilePath() << "-scale_x" << QString::number(scalex)<<"-scale_y"<<QString::number(scaley) <<"-scale_z" << QString::number(scalez);
+
+        QFileInfo outputFile(inputFileInfo.absolutePath()+"/"+inputFileInfo.baseName()+"_scaled.las");
+        inputs << "-o" << outputFile.absoluteFilePath();
+        addIntputs(inputs);
+}
+
+ScaleProcess::~ScaleProcess()
+{
+
+}
+

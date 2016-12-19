@@ -1,0 +1,46 @@
+#ifndef WAITFORRESULTSPROCESS_H
+#define WAITFORRESULTSPROCESS_H
+
+#include <QFileSystemWatcher>
+
+#include "Process.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT WaitForResultsProcess : public Process
+{
+    Q_OBJECT
+
+public:
+    virtual void start();
+    virtual void setWaitForFinished(bool wait);
+    virtual bool isRunning();
+
+    enum WatcherModeFlag {
+        Create = 0x0000,
+        Change = 0x0001
+    };
+
+    WaitForResultsProcess(QStringList pathList, WatcherModeFlag watcherMode);
+
+    virtual QByteArray readStdout();
+    virtual QByteArray readStderr();
+
+protected:
+    void run();
+
+    QFileSystemWatcher *mFileWatcher;
+    QStringList mElementList;
+    QStringList mElementChanged;
+    long mOffset;
+    bool mStop;
+
+
+public slots:
+    virtual void onElementChange(QString path);
+
+
+};
+}
+
+#endif // WAITFORRESULTSPROCESS_H

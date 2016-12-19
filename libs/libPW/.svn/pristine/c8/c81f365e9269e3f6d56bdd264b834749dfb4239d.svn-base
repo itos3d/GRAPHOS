@@ -1,0 +1,49 @@
+#include "CustomSureProcess.h"
+#include "libPW.h"
+#include "Apero2SureProcess.h"
+#include "MicMac/DrunkProcess.h"
+#include "SURE/SUREProcess.h"
+#include "SURE/MergeLasResultsProcess.h"
+#include <QDir>
+
+using namespace PW;
+
+CustomSureProcess::CustomSureProcess(Project *project, int pyr,int fold, int maxModels):
+    mProject(project),
+    mPyr(pyr),
+    mFold(fold),
+    mMaxModels(maxModels)
+{
+    setStartupMessage("SURE densification...");
+    //apero2SURE
+    QDir aperoOriDir(mProject->getBasePath()+"/Ori-"+mProject->getCurrentOrientation());
+    appendProcess(new PW::Apero2SureProcess(aperoOriDir.absolutePath()));
+
+    //DRUNK
+    QString drunkInputRegExp = QString("(");
+    QString fileName;
+    for(int i=0; i< mProject->getImages().count(); i++){
+        fileName = mProject->getImages().at(i)->getFullPath();
+        fileName = fileName.right(fileName.length()-fileName.lastIndexOf(QRegExp("/"))-1);
+        drunkInputRegExp = drunkInputRegExp + fileName + QString("|");
+    }
+    drunkInputRegExp.replace(drunkInputRegExp.length()-1,1,")");
+    drunkInputRegExp =mProject->getBasePath()+"/"+drunkInputRegExp;
+    QDir drunkImagesPath =mProject->getBasePath()+"/DRUNK";
+    PW::DrunkProcess *mDrunkProcess = new PW::DrunkProcess(drunkInputRegExp,mProject->getCurrentOrientation());
+    mDrunkProcess->setWorkingDir(mProject->getBasePath());
+    appendProcess(mDrunkProcess);
+    //Sure prep process
+    QString prjPath =mProject->getBasePath()+"/Ori-"+ mProject->getCurrentOrientation()+"/conversion.prj";
+    QFileInfo prjFileInfo(prjPath);
+    SUREProcess *mSureProcess = new PW::SUREProcess(prjFileInfo.absoluteFilePath(),drunkImagesPath.absolutePath(),mPyr,mFold,mMaxModels);
+//    mSureProcess->setWorkingDir(LibPW::getSUREBinPath());
+    mSureProcess->setWorkingDir(mProject->getBasePath());
+    appendProcess(mSureProcess);
+}
+
+CustomSureProcess::~CustomSureProcess()
+{
+
+}
+

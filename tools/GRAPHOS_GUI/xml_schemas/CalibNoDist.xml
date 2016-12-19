@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+<ExportAPERO>
+     <CalibrationInternConique>
+          <KnownConv>eConvApero_DistM2C</KnownConv>
+          <PP>PW_PPX PW_PPY</PP>
+          <F>PW_F</F>
+          <SzIm>PW_SIZEX PW_SIZEY</SzIm>
+          <CalibDistortion>
+               <ModRad>
+                    <CDist>PW_PPX PW_PPY</CDist>
+                    <CoeffDist>0</CoeffDist>
+                    <CoeffDist>0</CoeffDist>
+                    <CoeffDist>0</CoeffDist>
+                    <CoeffDist>0</CoeffDist>
+                    <CoeffDist>0</CoeffDist>
+                    <PPaEqPPs>true</PPaEqPPs>
+               </ModRad>
+          </CalibDistortion>
+     </CalibrationInternConique>
+</ExportAPERO>

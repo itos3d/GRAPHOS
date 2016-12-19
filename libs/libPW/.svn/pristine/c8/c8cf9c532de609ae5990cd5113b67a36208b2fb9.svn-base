@@ -1,0 +1,40 @@
+#include "ASIFTmactching.h"
+#include "libPW.h"
+
+using namespace  PW;
+
+ASIFTmactching::ASIFTmactching(QString input1, QString input2,
+                               QString outputV, QString outputH,
+                               QString outputMatch,
+                               QString keys1, QString keys2, bool generateImages):
+     ExternalProcess(LibPW::getAsiftBinPath() + "/" + ASIFT_MATCHING_COMMAND)
+{
+    setStartupMessage("Computing ASIFT matching...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/AsiftMatching.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/AsiftMatchingError.log");
+
+    QStringList args;
+    args.append(input1);
+    args.append(input2);
+
+    args.append(outputV);
+
+    args.append(outputH);
+
+    args.append(outputMatch);
+    if(keys1.isEmpty())
+        args.append(input1 + ".keys");
+    else
+        args.append(keys1);
+    if(keys2.isEmpty())
+        args.append(input2 + ".keys");
+    else
+        args.append(keys2);
+
+    if(generateImages)
+        args.append("1");
+    else
+        args.append("0");
+
+    addIntputs(args);
+}

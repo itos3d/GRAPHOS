@@ -1,0 +1,31 @@
+#ifndef CAMERAMETADATAIO_H
+#define CAMERAMETADATAIO_H
+
+#include "Camera.h"
+#include "ImageMetadata/QImageMetaData.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT CameraMetadataIO
+{
+public:
+    CameraMetadataIO(QString imagePath = "");
+    ~CameraMetadataIO();
+
+    void setImagePath(QString imagePath);
+
+    void read(Camera *camera);
+    void write(Camera *camera);
+    void writeCameraName(QString name);
+    void writeLensName(QString lensName);
+    void writeFocalLegth(double focal);
+    void writeFocalLegth35(double focal35);
+
+private:
+    QString mImagePath;
+    QImageMetaData* mImageMetaData;
+
+};
+
+}
+#endif // CAMERAMETADATAIO_H

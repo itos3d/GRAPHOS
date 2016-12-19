@@ -1,0 +1,20 @@
+#ifndef OPENMVGKPPROCESS_H
+#define OPENMVGKPPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT OpenMVGKpProcess : public ExternalProcess
+{
+public:
+    OpenMVGKpProcess(QString imagesPath,
+                     QString outputPath,
+                     double peakThreshold);
+    OpenMVGKpProcess(QString imagesPath,
+                     QString outputPath,
+                     double peakThreshold,
+                     QString strListFile);
+};
+}
+#endif // OPENMVGKPPROCESS_H

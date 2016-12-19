@@ -1,0 +1,88 @@
+\hypertarget{classAperoDistReader}{
+\section{AperoDistReader Class Reference}
+\label{classAperoDistReader}\index{AperoDistReader@{AperoDistReader}}
+}
+
+
+Reader for Apero camera calibration files whit Radial Distortion model.  
+
+
+
+
+{\ttfamily \#include $<$AperoDistReader.h$>$}
+
+Inheritance diagram for AperoDistReader:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=2.000000cm]{classAperoDistReader}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classAperoDistReader_a7646a9aef07ed08f35dc45bbf8dd25d5}{
+\hyperlink{classAperoDistReader_a7646a9aef07ed08f35dc45bbf8dd25d5}{AperoDistReader} ()}
+\label{classAperoDistReader_a7646a9aef07ed08f35dc45bbf8dd25d5}
+
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+virtual bool \hyperlink{classAperoDistReader_a363a91dd1581e99985cb298afbc9d16d}{read} (QIODevice $\ast$device)
+\begin{DoxyCompactList}\small\item\em Reads a calibration file. \end{DoxyCompactList}\item 
+virtual \hyperlink{classCamDistortion}{CamDistortion} $\ast$ \hyperlink{classAperoDistReader_a9a04faa9a3277270f51d1163965ce2ab}{getDistortion} ()
+\begin{DoxyCompactList}\small\item\em Gets the camera distortion params, if it was read whith \char`\"{}read\char`\"{}. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Reader for Apero camera calibration files whit Radial Distortion model. 
+
+\subsection{Member Function Documentation}
+\hypertarget{classAperoDistReader_a9a04faa9a3277270f51d1163965ce2ab}{
+\index{AperoDistReader@{AperoDistReader}!getDistortion@{getDistortion}}
+\index{getDistortion@{getDistortion}!AperoDistReader@{AperoDistReader}}
+\subsubsection[{getDistortion}]{\setlength{\rightskip}{0pt plus 5cm}{\bf CamDistortion} $\ast$ AperoDistReader::getDistortion (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}
+\label{classAperoDistReader_a9a04faa9a3277270f51d1163965ce2ab}
+
+
+Gets the camera distortion params, if it was read whith \char`\"{}read\char`\"{}. 
+
+\begin{DoxyReturn}{Returns}
+\hyperlink{classCamDistortion}{CamDistortion} $\ast$ camera distortion params 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classDistortionReader}{DistortionReader}.
+
+\hypertarget{classAperoDistReader_a363a91dd1581e99985cb298afbc9d16d}{
+\index{AperoDistReader@{AperoDistReader}!read@{read}}
+\index{read@{read}!AperoDistReader@{AperoDistReader}}
+\subsubsection[{read}]{\setlength{\rightskip}{0pt plus 5cm}bool AperoDistReader::read (
+\begin{DoxyParamCaption}
+\item[{QIODevice $\ast$}]{device}
+\end{DoxyParamCaption}
+)\hspace{0.3cm}{\ttfamily  \mbox{[}virtual\mbox{]}}}}
+\label{classAperoDistReader_a363a91dd1581e99985cb298afbc9d16d}
+
+
+Reads a calibration file. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em device} & The input device (ie QFile $\ast$). \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+bool True if device is a valid Apero calibration file (Radial Distortion Model). 
+\end{DoxyReturn}
+
+
+Implements \hyperlink{classDistortionReader}{DistortionReader}.
+
+
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+AperoDistReader.h\item 
+AperoDistReader.cpp\end{DoxyCompactItemize}

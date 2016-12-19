@@ -1,0 +1,7 @@
+#include "ProjectMetadataIO.h"
+
+using namespace PW;
+
+ProjectMetadataIO::ProjectMetadataIO()
+{
+}

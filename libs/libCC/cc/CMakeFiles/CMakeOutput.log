@@ -1,0 +1,161 @@
+The system is: Windows - 6.1 - x86
+Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
+Compiler:  
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+Microsoft (R) Visual Studio Version 9.0.21022.8.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: CompilerIdC, Configuration: Debug Win32 ------
+1>Compiling...
+1>CMakeCCompilerId.c
+1>Linking...
+1>Embedding manifest...
+1>Performing Post-Build Event...
+1>CMAKE_C_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\cl.exe
+1>Build log was saved at "file://d:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\2.8.10.2\CompilerIdC\Debug\BuildLog.htm"
+1>CompilerIdC - 0 error(s), 0 warning(s)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.exe"
+
+Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "CompilerIdC.vcproj"
+
+The C compiler identification is MSVC, found in "D:/USAL/TIDOP_TOOLS/libs/libCC_2.5.2/cc/CMakeFiles/2.8.10.2/CompilerIdC/CompilerIdC.exe"
+
+Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+Compiler:  
+Build flags: 
+Id flags: 
+
+The output was:
+0
+
+Microsoft (R) Visual Studio Version 9.0.21022.8.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: CompilerIdCXX, Configuration: Debug Win32 ------
+1>Compiling...
+1>CMakeCXXCompilerId.cpp
+1>Linking...
+1>Embedding manifest...
+1>Performing Post-Build Event...
+1>CMAKE_CXX_COMPILER=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\bin\cl.exe
+1>Build log was saved at "file://d:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\2.8.10.2\CompilerIdCXX\Debug\BuildLog.htm"
+1>CompilerIdCXX - 0 error(s), 0 warning(s)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.exe"
+
+Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "CompilerIdCXX.vcproj"
+
+The CXX compiler identification is MSVC, found in "D:/USAL/TIDOP_TOOLS/libs/libCC_2.5.2/cc/CMakeFiles/2.8.10.2/CompilerIdCXX/CompilerIdCXX.exe"
+
+Determining if the C compiler works passed with the following output:
+Change Dir: D:/USAL/TIDOP_TOOLS/libs/libCC_2.5.2/cc/CMakeFiles/CMakeTmp
+
+Run Build Command:C:\PROGRA~2\MICROS~2.0\Common7\IDE\devenv.com CMAKE_TRY_COMPILE.sln /build Debug /project cmTryCompileExec3739573075
+
+Microsoft (R) Visual Studio Version 9.0.21022.8.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: cmTryCompileExec3739573075, Configuration: Debug Win32 ------
+1>Compiling...
+1>Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.30729.01 for 80x86
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>cl /Od /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "CMAKE_INTDIR=\"Debug\"" /D "_MBCS" /FD /RTC1 /MDd /Fo"cmTryCompileExec3739573075.dir\Debug\\" /Fd"D:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\Debug/cmTryCompileExec3739573075.pdb" /W3 /c /Zi /TC   /Zm1000
+1>   .\testCCompiler.c
+1>testCCompiler.c
+1>Compiling manifest to resources...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Linking...
+1>Embedding manifest...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Build log was saved at "file://d:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\cmTryCompileExec3739573075.dir\Debug\BuildLog.htm"
+1>cmTryCompileExec3739573075 - 0 error(s), 0 warning(s)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+
+
+Detecting C compiler ABI info compiled with the following output:
+Change Dir: D:/USAL/TIDOP_TOOLS/libs/libCC_2.5.2/cc/CMakeFiles/CMakeTmp
+
+Run Build Command:C:\PROGRA~2\MICROS~2.0\Common7\IDE\devenv.com CMAKE_TRY_COMPILE.sln /build Debug /project cmTryCompileExec1706919650
+
+Microsoft (R) Visual Studio Version 9.0.21022.8.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: cmTryCompileExec1706919650, Configuration: Debug Win32 ------
+1>Compiling...
+1>Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.30729.01 for 80x86
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>cl /Od /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "CMAKE_INTDIR=\"Debug\"" /D "_MBCS" /FD /RTC1 /MDd /Fo"cmTryCompileExec1706919650.dir\Debug\\" /Fd"D:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\Debug/cmTryCompileExec1706919650.pdb" /W3 /c /Zi /TC   /Zm1000
+1>   "C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCCompilerABI.c"
+1>CMakeCCompilerABI.c
+1>Compiling manifest to resources...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Linking...
+1>Embedding manifest...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Build log was saved at "file://d:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\cmTryCompileExec1706919650.dir\Debug\BuildLog.htm"
+1>cmTryCompileExec1706919650 - 0 error(s), 0 warning(s)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+
+
+Determining if the CXX compiler works passed with the following output:
+Change Dir: D:/USAL/TIDOP_TOOLS/libs/libCC_2.5.2/cc/CMakeFiles/CMakeTmp
+
+Run Build Command:C:\PROGRA~2\MICROS~2.0\Common7\IDE\devenv.com CMAKE_TRY_COMPILE.sln /build Debug /project cmTryCompileExec3454062470
+
+Microsoft (R) Visual Studio Version 9.0.21022.8.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: cmTryCompileExec3454062470, Configuration: Debug Win32 ------
+1>Compiling...
+1>Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.30729.01 for 80x86
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>cl /Od /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "CMAKE_INTDIR=\"Debug\"" /D "_MBCS" /FD /EHsc /RTC1 /MDd /Fo"cmTryCompileExec3454062470.dir\Debug\\" /Fd"D:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\Debug/cmTryCompileExec3454062470.pdb" /W3 /c /Zi /TP   /Zm1000
+1>   .\testCXXCompiler.cxx
+1>testCXXCompiler.cxx
+1>Compiling manifest to resources...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Linking...
+1>Embedding manifest...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Build log was saved at "file://d:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\cmTryCompileExec3454062470.dir\Debug\BuildLog.htm"
+1>cmTryCompileExec3454062470 - 0 error(s), 0 warning(s)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+
+
+Detecting CXX compiler ABI info compiled with the following output:
+Change Dir: D:/USAL/TIDOP_TOOLS/libs/libCC_2.5.2/cc/CMakeFiles/CMakeTmp
+
+Run Build Command:C:\PROGRA~2\MICROS~2.0\Common7\IDE\devenv.com CMAKE_TRY_COMPILE.sln /build Debug /project cmTryCompileExec3077579609
+
+Microsoft (R) Visual Studio Version 9.0.21022.8.
+Copyright (C) Microsoft Corp. All rights reserved.
+1>------ Build started: Project: cmTryCompileExec3077579609, Configuration: Debug Win32 ------
+1>Compiling...
+1>Microsoft (R) 32-bit C/C++ Optimizing Compiler Version 15.00.30729.01 for 80x86
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>cl /Od /D "WIN32" /D "_WINDOWS" /D "_DEBUG" /D "CMAKE_INTDIR=\"Debug\"" /D "_MBCS" /FD /EHsc /RTC1 /MDd /Fo"cmTryCompileExec3077579609.dir\Debug\\" /Fd"D:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\Debug/cmTryCompileExec3077579609.pdb" /W3 /c /Zi /TP   /Zm1000
+1>   "C:\Program Files (x86)\CMake 2.8\share\cmake-2.8\Modules\CMakeCXXCompilerABI.cpp"
+1>CMakeCXXCompilerABI.cpp
+1>Compiling manifest to resources...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Linking...
+1>Embedding manifest...
+1>Microsoft (R) Windows (R) Resource Compiler Version 6.0.5724.0
+1>Copyright (C) Microsoft Corporation.  All rights reserved.
+1>Build log was saved at "file://d:\USAL\TIDOP_TOOLS\libs\libCC_2.5.2\cc\CMakeFiles\CMakeTmp\cmTryCompileExec3077579609.dir\Debug\BuildLog.htm"
+1>cmTryCompileExec3077579609 - 0 error(s), 0 warning(s)
+========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
+
+

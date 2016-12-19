@@ -1,0 +1,24 @@
+#include "WallisBatchProcess.h"
+#include "WallisProcess.h"
+
+using namespace PW;
+
+
+WallisBatchProcess::WallisBatchProcess(QStringList imagesPaths,
+                                       QString outputPath,
+                                       float wallisParameterA,
+                                       float wallisParameterB,
+                                       unsigned short int kernelSize,
+                                       unsigned short int imposedAverage,
+                                       unsigned short int imposedStDeviation)
+{
+    foreach (QString image,imagesPaths){
+        appendProcess(new WallisProcess(image,
+                                        outputPath,
+                                        wallisParameterA,
+                                        wallisParameterB,
+                                        kernelSize,
+                                        imposedAverage,
+                                        imposedStDeviation));
+    }
+}

@@ -1,0 +1,24 @@
+#ifndef APEROMATCHINGIO_H
+#define APEROMATCHINGIO_H
+
+#include <QMap>
+#include "ImageMatching.h"
+#include "PW2dPoint.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT  TapiocaIO
+{
+public:
+    TapiocaIO();
+
+    int write(QMap<QString, QPointF> *matching, QString url);
+    int writeFromControlPoints(QList<PW2dPoint *> *pointListA, QList<PW2dPoint *> *pointListB, QString url);
+
+    int readImagePairs(QString homolPath, QMap<QString, QVector<QString> > &imagePairs);
+
+};
+
+}
+
+#endif // APEROMATCHINGIO_H

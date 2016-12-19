@@ -1,0 +1,664 @@
+*** CloudCompare versions history ***
+
+v2.5.2 12/19/2013
+- GDAL library support added:
+	- CC can now load dozens of standard GIS 2D1/2 raster formats (Arc Grid, GeoTiff, etc.)
+- 'Height grid generation' tool enhancement:
+	- when selecting the 'min' or 'max height' projections, the user can now choose
+		to 'resample' the original cloud in order to produce a new cloud (instead
+		of generating a regularly sampled cloud using the grid cell's centers)
+	- the tool can now export the resulting grid as a true multiband raster (geotiff)
+	- menu entry renamed: "Tools > Projection > Rasterize (Height grid generation)"
+- It is now possible to compile CloudCompare with 64 bits floating point values
+	(i.e 64 bits 'doubles' instead of 32 bits 'floats') for coordinates and/or scalars.
+	It doubles the memory consumption but it increases a lot the accuracy.
+	Moreover there's absolutely no loss of information when importing/exporting clouds
+	with very big coordinates (however OpenGL still requires rather small coordinates
+	for a proper display, therefore the 'shift on load' mechanism might still be necessary)
+- New tool: 'Display > Adjust zoom'
+	- let the user set the current window zoom either directly or by specifying a pixel
+	size in the (implicit) units of the current entities.
+- New tool: Edit > Scalar fields > Set SF as coordinate(s)
+	- allows the user to map a scalar field to one or several dimensions (X,Y or Z)
+	- useful to convert a 2D raster with a scalar field (gray level, etc.) to a 2D1/2 point cloud
+- New method: File > Close all
+	- to remove all loaded entities
+- New formats:
+	- Autodesk(R) FBX (http://en.wikipedia.org/wiki/FBX)
+		* meshes only
+		* support for materials is planned but not finished yet
+	- Any geo-localized raster (geotiff, ArcGrid, etc.) thanks to GDAL library (http://www.gdal.org/)
+		* on input: use 'File > Open' (raster will be converted to a point cloud)
+		* on output: use the Height Grid Generation tool (this way, any cloud can be converted to raster)
+- New plugin: qSRA (Surface of Revolution Analysis)
+	- for comparison between a point cloud and a surface of revolution
+	- generates a map of deviations (with cylindrical or conical projection)
+	- exports resulting map as an image, a textured mesh or a point cloud
+	- can generate vertical and horizontal profiles in DXF format
+- Other enhancements:
+	- the qPoissonRecon plugin is now based on the latest version of PoissonRecon (5.5)
+		* see http://www.cs.jhu.edu/~misha/Code/PoissonRecon/Version5.5/
+		* new parameters dialog
+		* the input cloud colors can now be mapped on the resulting mesh (quick & dirty approach:
+			simply assigns to each mesh vertex the color of the nearest input point)
+	- the 'Edit > Transformation' tool now offers 3 different ways to input a transformation:
+		* classical 4x4 transformation matrix
+		* rotation axis, rotation angle and translation vector
+		* euler angles and translation vector
+	- if you paste a transformation matrix copied from the console, the 'Edit > Transformation' tool
+		will now automatically remove the timetsamp (between square brackets)
+	- when using 'Local models' when computing cloud-to-cloud distances, CC will now take the
+		smallest distance between each point and either the local model or the nearest neighbor
+		(in order to avoid clearly erroneous distances due to badly shaped local models).
+	- the 'facet' entity's normal vector can now be displayed or hidden via the facet properties
+	- BIN file loading/saving is now performed in a separate thread
+		* a progress dialog is now displayed during loading/saving
+		* multiple loading sessions can be done concurrently (use drag & drop on a 3D view
+			- note: only interesting when loading files from different drives)
+		* additional check addded to detect corrupted meshes
+	- Global rescaling applying at loading time is now properly handled
+		* works just like global shift
+		* appears in the entity properties as well
+		* dedicated menu entry (Edit > Edit global scale)
+	- pause button added to the "Graphical Transformation" tool (to allow rotating/panning the 3D view)
+	- new shortcuts added to the "Graphical Transformation" tool:
+		* space bar = pause/unpause
+		* return key = apply transformation (close the tool)
+		* escape key = cancel transformation (close the tool)
+	- new shortcuts added to the "Graphical Segmentation" tool:
+		* space bar = pause/unpause
+		* tab key = switch between polygonal and rectangular selection mode
+		* I key = segment points inside
+		* O key = segment points outside
+		* return key = apply segmentation (close the tool)
+		* delete key = apply segmentation and delete hidden points (close the tool)
+		* escape key = cancel transformation (close the tool)
+	- New types of entities can now be cloned:
+		* polylines
+		* facets
+	- Max coordinate absolute value lowered (100.000 instead of 1.000.000)
+		in order to avoid accuracy loss and display issues. However the user
+		still has the choice to ignore CC's warnings.
+	- For the sake of consistency and clarity:
+		* the 'Free scale parameter' option of the ICP registration dialog and the 'fixed scale' option
+			of the Point-pair based alignment dialog are both renamed 'Adjust scale'
+		* the 'Edit > Synchronize' tool is moved and renamed 'Tools > Registration > Match barycenters'
+		* the ICP registration tool now issues the same textual report as the Point-pair based alignment tool
+	- the Connected Components tool dialog now:
+		* displays the octree cell size as the currently selected level
+		* the components are automatically 'selected' in order to clearly identify them without random colors
+			(the 'random colors' checkbox is not selected by default anymore)
+		* the components are sorted by their size (starting from the biggest)
+	- new command lines options (see http://www.danielgm.net/cc/doc/wiki/index.php5?title=CommandLine):
+		* C2C_DIST: cloud to cloud distance computation
+		* C2M_DIST: cloud to mesh distance computation
+		* SAMPLE_MESH: to sample points on a mesh
+		* FILTER_SF: to filter a cloud based on its scalar values
+		* STAT_TEST: to apply the local statistical filter
+		* MERGE_CLOUDS: to merge all loaded clouds
+	- 'Edit > Fuse' entry renamed 'Edit > Merge'
+- Bug fixes:
+	- the 'dip' value (in "dip & dip direction" computation with e.g. the plane orientation tool)
+		was inversed from the currently accepted definition (i.e. 0° for horizontal and 90° for vertical planes)
+	- blank lines or commentaries were causing an infinite loop when importing ASCII files
+	- primitives (sphere, cylinder, etc.) were not correctly loaded from BIN files (CC would crash when loading them)
+	- sub-meshes' bounding boxes were not updated when a transformation was applied to their parent mesh or its
+		associated vertices
+	- at loading time when an entity was both too far and too big, the (optional) applied transformation to
+		recenter and rescale the entity was wrong.
+	- a call to the 'Zoom on selected entities' tool on entities not displayed in the active window would be ignored.
+	- the 'camera link' tool would sometimes make CC crash (windows were playing ping-pong ;).
+	- CloudCompare can now recover from errors encountered in OBJ normals or texture coordinates (normals or textures
+		are simply discarded)
+
+v2.5.1 10/19/2013
+- The 'Clipping-box' tool has a new feature: 'contour' extraction
+	* Contour extraction on the current slice
+	* Contour extraction on multiple slices (with the 'repeat' button)
+	* Early prototype: computes the concave hull of the slice's points
+		- one parameter: maximum edge length (if possible)
+		- the smaller the finer the contour (+ the slower)
+	* Exports result as one (or several) poyline(s)
+- The 'plane orientation' tool is replaced by two tools:
+	* Tools > Fit > Plane: same as the old tool
+	* Tools > Fit > 2D polygon: almost the same, but the fitted entity is a facet
+		(composite entity with a polyline corresponding to the contour and a mesh
+		corresponding to the 'inside')
+	* Both tools now output the orientation with the "dip direction / dip angle" convention
+		(see http://en.wikipedia.org/wiki/Structural_geology#Geometries)
+- 3D polylines can now be defined with the 'Point List Picking' tool
+	* select a list of points then 'export' it as a polyline
+	* the polyline displayed width is customizable
+	* the 'Tools > Other > Plane orientation' tool can be used on polylines
+- DXF (Autocad) support:
+	* only to output polylines for now
+	* warning: DXF can save 3D coordinates but Autocad doesn't seem to handle them properly.
+		The user is advised to save polyines in the (X,Y) plane only.
+- Other improvements:
+	* Mesh groups are replaced by standard meshes with 'sub-meshes' structures (simple subsets of faces)
+	* OBJ materials (and textures) export is now supported
+	* New option for Delaunay mesh computation:
+		* a max edge length can be specified to automatically remove elongated triangles
+	* New check-box in the LAS open dialog: apply same parameters to all files that will be opened next (current session)
+	* User can now choose whether overlay items (scale, trihedron, etc.) should be rendered or not by the
+		'Display > Render to file' tool
+	* the progress bar "Cancel" button has no "focus" anymore:
+		for instance, this allows the user to keep the "Enter" key pressed while loading multiple files with the default
+		loading parameters (i.e. manually "skipping" the opening dialog for ASCII files for instance)
+	* the 'Align camera' tool (right-click context menu for planes, 2D polygons, labels, etc.) now outputs the applied matrix
+		so that you can apply it with the 'Edit > Apply transformation' tool to actually rotate an entity the same way
+	* Polyline's length now appears automatically in the 'Properties' view
+- bug fixes:
+	* text was misplaced when rendering screen with a zoom factor greater than 1.
+		Other features were also badly reshaped (fonts, scale, color ramp, trihedron, etc.)
+	* the 'max distance' parameter for cloud/mesh distance computation was incorrectly squared before being used!
+	* materials where not associated to the base mesh when loading composite OBJ files (this could lead to crash when
+		saving the composite mesh as PLY for instance)
+	* curvature or normal computation would sometimes fail on perfectly flat axis-aligned clouds (division by zero).
+	* the 'multiple slices auto extraction' tool (clipping box mode) would crash if at least one 'repeat dimension'
+		was unchecked.
+	* Height Grid Generation tool would crash when generating a grid with SF interpolation and the 'leave empty'
+		option for empty cells.
+	* when cloning a cloud, the scalar field display options (color scales, steps, etc.) were not duplicated.
+	* when trying to save an entity which name made an invalid filename, the file saving dialog wouldn't open
+		(now a warning message is issued and the default 'project' name is used instead)
+	* Graphical segmentation area type selection icons would 'disappear' when toggled
+
+v2.5.0 07/12/2013
+- New version numbering scheme (build index appended instead of the release date)
+- New tool: "Cross section"
+	* accessible via 'Tools > Segmentation > Cross Section' or a dedicated icon in the main
+		toolbar (next to the scissors icon)
+	* manually scale, rotate and translate the clipping box
+	* extract the corresponding selection as a new cloud
+	* extract multiple slices in an automated way
+	* works only with clouds for the moment
+- New DB tree context menu options:
+	* right click on a plane primitive or a triangle label and choose 'Align camera' to make the camera look perpendicularly to it
+	* same thing with 'Align camera (reverse)' (to look in the opposite direction)
+- New option for ICP registration (thanks to Luca Penasa once again!):
+	* check "Free scale parameter" to register objects with different scales
+- New dialog for computing the octree:
+	* the user can specify the cell size at the maximum subdivision level
+	* or define a custom bounding box
+- "Height grid generation" dialog enhanced:
+	* the user can now define custom grid limits
+	* the tool spawns dialogs to let the user specify the output files (ascii grid and image)
+- New tool: "Convert RGB to scalar field"
+	* Edit > Colors
+- New option in ASCII file load/save dialogs:
+	* maximum number of points per cloud on load
+	* option to write the number of points as a dedicated header line on save
+- Menus modifications:
+	* "Primitive factory" menu entry has been moved to the "File" menu
+	* "Point picking" and "Point list picking" menu entries have been moved to the "Tools" menu
+	* "Edit" and "Tools" menus are now always enabled even if no entity is selected
+- The (old) limit of 128 million points per cloud has been removed on the 64 bits version
+	(new - theoretical - limit is 2 billions)
+- Global shift information can now be edited with the 'Edit > Edit global shift' menu entry
+- LAS import/export enhanced:
+	* new dialog to choose the fields to import
+	* all official fields are now properly imported/exported ("Intensity", "Return Number",
+		"Number of Returns", "Scan Direction", "Flightline Edge", "Classification",
+		"Scan Angle Rank", "User Data", "Point Source ID", "Red", "Green", "Blue", "Time")
+	* the 'classification' field can be split into its 'value' and the 3 associated
+		flags ("Synthetic", "Key-point" and "Withheld")
+	* a warning is issued if the user attempts to save a cloud with SFs having non "official"
+		names
+- Stippling (fake transparency) option has been added to meshes
+- ccViewer enhanced:
+	* GUI updated (pivot visibility options added, isometric default views, new icons, etc.)
+	* PDMS format support added
+	* 3D mouse support added
+- Misc. improvements:
+	* new icon for the 'clone' method (thanks to JF Hullo): two sheep instead of one!
+	* when computing local density, if two or more points are overlapping, the result density
+		will be 'NAN' and the point will appear in gray (in order to be hidden or removed easily)
+	* global shift information is now kept by qRansacSD plugin (shape detection)
+	* qHPR (Hidden Point Removal) plugin now generates a new cloud with the visible points only
+		(instead of hacking the points visibility) along with the corresponding viewport
+	* scaled transformation matrix are now properly inversed (i.e. scale is taken into account)
+	* point-pair based alignment tool outputs a summary on completion (RMS, scale, etc.)
+	* scale estimation during point-pair based alignment has been enhanced
+- Bug fixes:
+	* applying the interactive 'rotate/translate' tool to an entity and its parent at the
+		same time would make CC crash
+	* "Intensity", "Time" and "Return number" fields are now properly exported with LAS files
+	* "Height Grid Generation" tool accuracy fixed (when dealing with coordinates above 10^5)
+	* mesh with a single texture AND colors couldn't be saved properly in PLY format (CC would
+		refuse to save the texture)
+	* deleting a child object (e.g. labels) in ccViewer would make it crash!
+	* old viewports (prior to version 25) were wrongly imported (panning info)
+	* deleting groups containing clouds used by shared labels would make CC crash
+
+v2.4 04/25/2013
+- 3D mouses (3dConnexion devices) are now supported:
+	* OBJECT mode corresponds to ortho. and object-centered perspective
+	* CAMERA mode corresponds to viewer-centered perspective
+	* can be enabled/disabled via the 'File > 3D mouse' menu
+- Dynamic color lookup for displaying scalar fields greatly accelerated
+	* a dedicated shader is automatically activated if GPU supports it
+	* speed-up of scalar fields display of up to 300%!
+- Introducing the "Color Scale Manager":
+	* edit, copy and create custom color scales
+	* accessible via a button next to the 'current scale' combo-box in the properties view
+		or via the 'Edit > Scalar Field > Color Scale Manager' menu entry
+	* custom scalar scales are saved along with the entity (in BIN format)
+		and are automatically imported when loading the file (on another computer typically)
+	* color scales can be relative (to current scalar fields bounds) or absolute (the user
+		can specify custom bounds and steps, which can be useful to apply the same color ramp
+		to multiple clouds)
+- New Scalar Field Properties dialog
+	* most color ramp parameters are now saved per-scalar field, and not per-cloud anymore
+- New color ramp (with histogram)
+	* color ramp is "smarter"
+- New entity picking mechanism:
+	* press ALT + left mouse button to define a rectangular selection area to select multiple
+		entities at once
+	* picking speed enhanced
+- 3D camera management enhanced:
+	* transitions between perspective modes are smoother
+	* custom light appears and can be interactively moved (with CTRL+right click) in all modes
+	* interactive transformation can be performed in all modes
+	* 3D rotation center symbol added (can be 'always visible', 'only when moving' or 'hidden')
+	* default views (top, bottom, left, etc.) are more 'intuitive'
+	* new default views added: front and back 'isometric' views
+	* default FOV (field of view) is now 30 degrees for perspective mode
+- New method:
+	* 'Edit > Mesh > Export materials/textures to RGB' (per-vertex color)
+- New pop-menus added to the 'View' toolbar:
+	* selection of the current rotation center visibility (see above)
+	* selection of the current view mode (orthographic, object-based and viewer-based perspective)
+- New context menu entry for the DB tree: 'Information (recursive)'
+	* recursively gather various information (number of points, triangles, colors, etc.)
+- Local Statistical Test now works on signed scalar fields!
+- No more distinction between (antiquated) 'positive' scalar fields and the standard ones
+- New dialog for saving ASCII files
+	* choose output numerical precisions, separator, order, etc.
+- STL and PLY files can now be saved in both BINARY and ASCII formats
+- PLY files can now save texture coordinates (and the texture in a separated file) if only one
+	texture is associated to the mesh (otherwise CC will suggest to convert materials/textures to RGB)
+- Default materials and lights have been updated
+- Bug fixes:
+	* BIN files saved with labels would make CC crash when re-opened!
+	* Closing the 'About' dialog would make CC crash!
+	* ccViewer no longer displays the colorbar if the scalar field is hidden!
+	* The cloud/cloud distance with the 'Height Function' model refinement was giving weird results!
+	* The cones produced with the Primitive Factory were upside down
+	* The following methods were broken:
+		- Edit > Normals > Resolve direction
+		- Tools > Projection > Unroll (on cone)
+		- Tools > Statistics > Local Statistical Test
+
+v2.4 03/10/2013
+- Points size can now be independently set for each cloud
+	* see the 'Point size' combo-box in the cloud's properties
+- The 'Align with point pairs' tool can now be used with only one cloud selected	
+	(in which case reference points must be manually added with the 'pencil' icon)
+- Point picking mechanism enhanced:
+	- point marker is now a (selectable) 3D sphere
+	- point marker default size is customizable via display options dialog
+	- mesh triangles can now be picked (early version: creates a 3-points label)
+	- "Point list picking" tool
+		* automatically pastes last picked point in clipboard
+		* string format: " CC_POINT_#i(x,y,z) " (where i is the index in the current list)
+	- "Point picking" tool:
+		* when picking 3 successive points ('triplet' mode), the 3 corresponding angles are displayed
+- New tool: 'primitive factory'
+	* lets you create custom primitives (plane, box, sphere, cylinder, cone, torus or dish)
+	* accessible via the 'Tools > Primitive factory' menu entry or a dedicated icon in the main toolbar
+- 'Height grid generation' tool enhanced:
+	* the number of points per cell can now be saved as a scalar field ('save per-cell count as SF' checkbox)
+- qRansacSD ('Ransac Shape Detection') plugin enhanced:
+	* proper handling of cone and torus primitives (display in 3D, etc.)
+	* the expected primitive types can now be selected (with checkboxes)
+- qKinect plugin enhanced:
+	* continuous display of video/3D flow
+	* multiple acquisitions are now possible without closing the dialog each time
+- Manual transformation tool enhanced:
+	* user can constrain rotation around a given axis and translation along custom dimension(s)
+- New option "Show 3D name" for 3D entities:
+	* display the name of the entity in the 3D view (in the middle of its bounding-box by default)
+	* can be (recursively) toggled with 'Edit > Toggle > 3D name' (shortcut: D)
+	* with the dedicated checkbox in the properties dialog of each entity
+	* with a right click on the entity entry in the DB tree	
+- "Toggle materials/textures" entry added to the DB tree context menu (and in the 'Edit > Toggle' sub-menu)
+- New display options (display dialog):
+	* point marker size (see above)
+	* histogram background color
+	* label color
+- New option for computing normals (CC's way, not qPCL's)
+	* +/-barycenter: normals are oriented by pointing outwards or towards the barycenter 
+- Limits for auto-decimation are now:
+	* 10M. points for a cloud
+	* 2.5M. faces for a mesh
+- New command lines for ccViewer:
+	* '-top' to make the window 'always on top'
+	* '-win [X] [Y] [W] [H]' to set the position (X,Y) and size (W,H) of the window
+- New icons for CloudCompare and ccViewer
+- PCL (Point Cloud Library) 'PCD' files can now be opened without the qPCL plugin
+	* only works with ascii and uncompressed binary versions for the moment
+- Bug fixes:
+	* in the 'Point list picking' tool, when exporting a list of picked points THEN canceling the picking process, CC will crash
+	* SF scale is now rendered by the 'Render to file' tool
+	* qPCL's MLS tool would crash if the input cloud has no displayed scalar field! (+ dependency to Luca's PCL patch is now optional)
+	* 'shift on load' information is now preserved when sampling points on a mesh (and during several other operations)
+	* a group of labels could be freely displaced, eventually leading to a crash (under some circumstances) if the destination is not
+		one of the label's associated clouds. On the contrary, labels can now be regrouped and displaced as long as they stay below one
+		of their associated clouds.
+	* applying an interactive transformation to an entity with an octree could make CC crash (octree was deleted but not removed from DB tree)
+	* CC would refuse to open an OBJ file declaring using a material while not defining texture coordinates
+
+v2.4 01/21/2013
+- New tool: 'Edit > Mesh > Subdivide' (recursive subdivision)
+	* interpolates mesh original colors (if any)
+	* only works with single meshes for the moment (not with mesh groups)
+	(+ 'Edit > Mesh > Measure surface' now also outputs the mean triangle surface)
+- 'Set color' and 'Colorize' can now be applied to groups
+
+v2.4 01/13/2013
+- LAZ files support (with laszip - thanks to Ingo Maindorfer)
+- STL files support (certainly the ugliest mesh file format ever created, but definitely a largely used one...)
+- New tool: export clouds coordinates (X, Y or Z) as scalar fields
+	* you'll find it in 'Tools > Projection > Export coordinate(s) to scalar field(s)'
+	* very useful to display heights with a color scale or to segment out points depending on their height
+- New shortcut: 'Z' to zoom and center camera on selected entities (magnifier icon)
+- Toggle shortcuts are now applied RECURSIVELY to any kind of object (even a group for instance)
+	(reminder: 'N' for normals, 'C' for colors, 'S' for active scalar field and 'V' for visibility)
+- Enhancements:
+	* primitives don't loose their attributes (colors, SF, etc.) when cloned
+		(they still loose them if display precision is changed however...)
+	* CC will only display one global progress bar when loading E57 files with many scans (>10)
+- Bug fixes:
+	* a space character was missing when exporting a cloud with normals in ASCII format!
+	* texture files associated to PLY files should be vertically inverted (at least when the files come from PhotoScan?)
+	* e57 scan names were ignored on import
+	* OBJ (sub)meshes names were ignored on import
+	* a selection composed of parents and (some of their) siblings would produce a corrupted BIN file on export
+	* in some cases users could freely segment mesh vertices causing a crash
+	* in some cases mesh cloning would fail for no (good) reason
+	* when loading primitives from a BIN V2 file, a supplementary (empty) 'vertices' cloud was created
+	* mesh groups normals are now correctly handled (they can be safely deleted, exported, etc.)
+
+v2.4 12/16/2012	
+- Introducing a new alignment/registration method: "Align (point pairs picking)"
+	* aligns clouds by interactively picking 'equivalent' points in both clouds (3 pairs at least)
+	* replaces the old "Align (auto)" research tool in the main toolbar (same icon)
+	* more information on the wiki: http://www.danielgm.net/cc/doc/wiki/index.php5?title=Alignment_and_Registration
+- Perspective mode and lights activation state are now automatically saved and restored (on the creation of a new 3D view or when CC restarts)
+- Overlay dialogs (manual segmentation and transformation, point picking, etc.) don't prevent CC from being closed anymore
+- 'Height grid generation' tool now gives more choice for the management of empty cells
+	+ all types of output (cloud, ASCII grid file, image) behave the same way
+- On-screen message display mechanism upgraded
+- Meshes without normals are now displayed with the 'diffuse front' material color (this allows one to change the default color of blank meshes)
+- New function: "Add constant SF" ("Edit > Scalar Fields" menu)
+	* simple way to add new scalar fields (with a constant unique value)
+	* very useful in conjunction with "SF Arithmetic" (to add, subtract, multiply or divide another SF by a constant)
+- SF Arithmetic ("Edit > Scalar Fields > Arithmetic") has a new icon (a calculator, instead of the 'diff' text with a colorbar)
+- PLY files associated with a texture file (comment with 'TextureFile' keyword - generated by PhotoScan for instance) are now supported
+- LAS import filter improved:
+	* 'time' and 'return number' fields are now supported (i.e. imported as scalar fields)
+	* color coding (8 bits or 16 bits) is automatically detected (see associated bug below)
+	* importer is more clever (fields with a unique value are automatically ignored - in case you really need them, they can be created 
+		afterwards with the "Add constant SF" method - see above)
+- ASCII export filter:
+	* adaptive precision when writing point coordinates (typically if the cloud has been shifted at loading time due to too large coordinates)
+	* if the file extension is 'PTS', color components will be written after the scalar field value(s) so as to be readable by Autocad
+- Bug fixes:
+	* color from LAS point clouds were badly imported/exported (treated as 8 bits integers instead of 16 bits!).
+	* 'Height grid generation' tool was generating badly shaped scalar fields that wouldn't be correctly saved in BIN files (corrupted files)
+	* the plane primitive generated by the 'plane orientation' tool was not automatically added to DB tree
+	* per-triangle normals are removed with 'Edit > Normals > Clear'
+	* the mesh sampling method was not sampling normals in specific cases
+	* custom light materials were wrongly set (in practical, custom light wasn't working at all!)
+	* a bug in the display mechanism of meshes with textures (coordinates) could make CC crash... randomly
+	* segmenting a cloud with labels would make CC crash (for the moment labels are simply removed... we need to be more clever!)
+	* OS X portage --> lots of associated bugs... almost all solved ;)
+
+v2.4 11/06/2012
+- Bug fixes:
+	* plane orientation tool was always returning a wrong plane normal ( N(0,0,1) by default )
+	* segmenting a primitive or an entity with associated primitives would make CC crash
+		(primitive segmentation is disabled for the moment!)
+
+v2.4 10/31/2012
+- New primitive objects: cone, torus, dish, box, snout and profile extrusion
+- New format handled (and the first 'CAD' one): Aveva PDMS '.mac' scripts
+	(support for all above primitives + already existing ones: cylinder, planes and spheres)
+- Height grid generation (=rasterization) upgraded:
+	* source cloud's scalar field(s) can now be projected as well (+ various options to interpolate the SF values in each cell)
+	* main projection dimension can be set (X, Y or Z)
+- Points sampling on a mesh upgraded:
+	* source mesh per-triangle or per-vertices normals are now taken into account
+	* user can choose to interpolate colors and/or textures
+- New filters available in qPCL plugin (thanks to Luca):
+	* remove outliers using statistical approach (SIFT keypoints)
+	* smooth (and optionally upsample) a point cloud using MLS estimators
+- New button added in the graphical segmentation tool: "confirm and delete hidden points".
+	It's a shortcut: hidden points are automatically be deleted and the original cloud is not split in two.
+- New entries in the DB tree context menu: "Expand branch" and "Collapse branch" (to fully expand/collapse a branch)
+- Bug fixes:
+	* the normal index for each face vertex was missing when saving a mesh with per-vertex normals to an OBJ file.
+	(this would typically make Meshlab crash ;). Just open them with this new version of CC and overwrite them to fix them.
+	* potential crash when using the research option 'enable furthest points removal' during registration (ICP)
+- PLY files saved by CloudCompare have (once again) field names "compatible" with MeshLab.
+	The 'vertex_indices' field has changed to 'vertex_indexes' in the last versions of CC ... and this make Meshlab crash...
+	(I've already ranted about that before: the PLY format doesn't impose any particular field name and it's the responsibility
+	of the loader to handle that... Paraview do this wonderfully for instance ;)
+
+v2.4 09/22/2012
+- Cloud-cloud distance computation with local models enhanced/fixed: the user can now choose either a number of neighbors or a sphere
+	radius that will be used to compute local models. One can also choose to compute a model for every points or, as an approximation,
+	to "share" local models between neighbors (faster... but noisier - in fact this was done by default before!).
+- New tools accessible in command line mode: density, roughness, curvature and SF gradient.
+	(see wiki: http://www.danielgm.net/cc/doc/wiki/index.php5?title=CommandLine)
+- When exporting a cloud to a LAS file, any scalar field named 'LAS classification' will now be handled as a proper LAS classification
+	field.
+- PCV plugin (ShadeVis-like global illumination algorithm) can now take a point cloud with normals as input. The normals will be used
+	as lighting directions (instead of the default directions randomly sampled on a hemisphere or a sphere). Note that only the normals
+	are taken into account as the lighting direction is simulated in orthographic mode (no perspective, i.e. the relative position of
+	the light source has no effect on the result).
+
+v2.4 07/28/2012
+- Shift applied to clouds with too large coordinates can now be applied to all opened files (in case of multiple selection):
+	* "Apply all" button added to dialog
+	* shift information is stored in BIN files and is now 'reverted' with ASCII, OBJ, MA, VTK, PLY, LAS & E57 formats (i.e. ASCII or 64 bits formats)
+- New menu entry "Display > Active scalar field" (this menu is active if a unique cloud or mesh is selected):
+	* Toggle color scale: show or hide color scale (shortcut: SHIFT+C)
+	* Show previous SF: show previous scalar field (shortcut: SHIFT + up arrow)
+	* Show next SF: show next scalar field (shortcut: SHIFT + down arrow)
+- First (skipped) line of ASCII files can now be used to read out 'headers' for columns
+	* a new checkbox is available at the bottom of the ASCII import wizard.
+	* the header line must have as much blocks as columns in the file (so be sure not to use space characters in names if the file delimiter is also the space character!)
+	* for the moment, only the scalar fields names are used by the ASCII importer 
+- Bugs fixed:
+	* 2D Viewport objects can now be dragged and dropped, and can be loaded properly from BIN files
+	* centered perspective mode could behave strangely when zooming in close to objects with large coordinates
+	* render to file based on FBO (frame buffer object) with a zoom different than 1 was done without depth component!
+	* distance computation timing displayed in Console was in microseconds instead of seconds!
+
+v2.4 07/18/2012
+- qRansac_SD plugin is back! (Ransac Shape Detection by Schnabel et. al)
+- Bilateral gaussian filter for scalar fields added (Thanks Luca)
+- Ranges computation from a sensor added (Thanks Luca)
+- Scattering angles computation from a sensor added (Thanks Luca)
+- Loaded mesh vertices that are not shared by multiple sub-meshes are not 'locked' by default anymore
+- No more system console on Windows
+- Bugs fixed:
+	* under certain circumstances, when two clouds with different scalar fields were fused, 
+		random values would be set to the points that hadn't any before (instead of NaN).
+	* a bug with the internal timer was preventing CC from properly updating mesh bounding-boxes
+		(after a transformation typically) or the messages in 3D views from disappearing
+	* PLY files with comment lines before the format line (in header) would be rejected by
+		the new version of RPLY (RPLY has been patched to accept this again).
+
+v2.4 07/03/2012
+- LAS file import now handles intensity and classification fields
+- The 2D part of labels is no longer displayed in 2D in the 'Point list picking' tool (to mimic the old version)
+- New type of label: rectangular area labels can be defined on screen to annotate a particular zone
+	(they can be created with the Point Picking tool - don't forget to "save" the label once created)
+- Test in progress: weighted ICP with associated scalar field(s) values
+- Bugs fixed:
+	* some algorithms applied on multiple entities at the same time could make CC crash
+	* E57 reading crashed since last version!
+
+v2.4 06/27/2012
+- 64 bits version is now compiled with Visual 2010 (should avoid issues with the Visual 2008 redistributable pack on Seven & Vista)
+- normals are now supported with E57 format
+- shortcut added: 'Pick rotation center' icon added to the left 'view' tool bar (let the user pick a point to be used as rotation center for its hosting 3D view)
+- bugs fixed:
+	* point list picking now displays proper labels in the 3D view (+ all points are stored in a separate group)
+	* Bundler '.out' file containing keypoints without associated color are now correctly handled
+	* Bundler v0.4 files are now correctly handled
+
+v2.4 06/24/2012
+- CloudCompare 64 bits version available (Windows & Linux) 
+- Introducing BIN "V2" format (highly enhanced):
+	* almost any type of entity and their display option can be saved (all selected elements with their siblings)
+	* this format can freely evolve while keeping backward compatibility (integrated version management)
+	* loading time is much faster
+	* 32/64 bits compatible
+- Point picking now spawns labels
+	* labels can simply be created anytime by holding the SHIFT key and clicking on a 3D point
+	* labels are independent objects that can be moved on screen, hidden, saved (BIN V2), etc.
+	* labels can be collapsed with a right click
+	* point list picking and point/segment/triplet picking dialogs have been updated accordingly
+- ccViewer upgraded:
+	* ccViewer also supports labels (loading and creating with SHIFT+click)
+	* selected entities can now be deleted with the DEL key (or Menu > Options > Selected entity > Delete)
+- New format supported: E57 point clouds (ASTM E2807 standard) thanks to libE57 (http://www.libe57.org)
+- New plugin: 'qPCL' a wrapper to the PCL library (http://pointclouds.org).
+	For the moment, it only allows for loading and saving PCD files and computing normals on a point cloud.
+	But many filters will follow! (thanks to Luca Penasa)
+- New method: conversion from cloud normals to HSV colors (Edit > Normals > Convert to HSV)
+- Scalar fields boundaries can now be set by user (check the 'release boundaries' checkbox in the scalar field properties and manually set the desired values in the min and max 'displayed' values spinboxes)
+- Distance computation tool can now split the result along each dimension (X,Y and Z) in the case of cloud-cloud distance
+	(very useful to get only the vertical displacement for instance)
+- DB tree elements now have a context menu (right click) to enable/disable standard features (visibility, color, normals, scalar field) or delete the selected element(s), etc.
+- Entities in the DB tree can now be moved manually (with drag & drop) or sorted alphabetically (via the context menu)
+- New (empty) groups can be added in the DB tree (via the context menu)
+- Graphical segmentation tool has been enhanced (rectangular selection with CTRL key + right mouse button pressed, constant feedback, etc.)
+- Display properties dialog has been reorganized
+- Histogram labels are now using the color scale 'precision' parameter value (see Display > Display Settings)
+- Image ortho-rectification enhanced (Bundler import filter):
+  * bug fix: the previous version was generating ortho-rectified images with a non constant pixel scale!
+  * a 'ortho_rectification_log.txt' file is now generated along the images with relative position for each (in pixels, relatively to the first image)
+  * images are now processed sequentially, and the user can choose whether they should be kept in memory or not
+  * ortho-rectification as images (on disk) is now available through command line arguments (see wiki: http://www.danielgm.net/cc/doc/wiki/index.php5?title=CommandLine)
+- Multiple clouds can now be automatically saved in multiple ASCII files
+	* select several clouds then 'Save' them as ASCII files
+	* enter a base name with an extension (hint: any occurrence of the string 'cloudname' will be replaced by each cloud name)
+	* CC will generate one file per cloud, with an automatic suffix ('basename_000001.asc', etc.)
+
+v2.4 04/24/2012
+- Bug fix: crash when displaying the histogram after computing statistical parameters
+- Bug fix: once loaded, a VTK mesh couldn't be manually transformed and its vertices didn't appear in the DB tree
+- Bug fix: when computing distances between two clouds with a 'maximum distance' threshold fixed, this maximum distance value was assigned to points with zero distance!
+- Bug fix: when saving PLY files with scalar fields having spaces characters in their name, reloading was not possible (hack: even for binary PLY files, the header is in ASCII mode and can manually be edited --> replace all spaces in the SF name by underscores)
+- Bug fix: when checking/unchecking an item in the DB tree, its properties were displayed even if the item was not selected
+- Snavely's Bundler file import tool can now generate 2D orthorectified images (directly saved alongside original images)
+
+v2.4 01/04/2012
+- Simple Laplacian smoothing algorithm for mesh added (see Edit > Mesh > Smooth (Laplacian))
+- VTK cloud/mesh filter added (import & export - early version!)
+- The 'Plane orientation' tool now outputs in the console a matrix that can be used to make the resulting plane horizontal (it can be applied to the input cloud with the new 'Apply transformation' tool)
+- qPCV plugin slightly optimized
+- qHPR plugin now uses qHull V2012.1
+- qPoissonRecon now uses PoissonRecon V3 (http://www.cs.jhu.edu/~misha/Code/PoissonRecon). Works also on Linux now.
+- PLY files saved by CloudCompare now use 'properties' names compatible with MeshLab (to cope with the lack of flexibility of this - however great - tool ;)
+- All scalar fields associated to a cloud are now saved in PLY files (with their name as property name + prefix 'SCALAR_')
+- Bug in Delaunay 2D triangulation on least square best fitting plane fixed.
+- Crash during OBJ files loading fixed (the crash occurred when the file was referring to materials but no material file was declared)
+- The Windows release has been compiled with Visual Studio 2008. You may have to install Visual C++ 2008 Redistributable Package (x86) to launch CloudCompare.
+- Project can/should now be compiled with CMake (www.cmake.org). See http://www.danielgm.net/cc/doc/wiki/index.php5?title=Compilation_CMake
+
+v2.3 02/14/2012
+- Noah Snavely's Bundler import filter is now able to use an alternative cloud (or mesh) as keypoints source.
+	If it's a mesh, it can also be used as DTM for generating colored pseudo-DTM vertices
+- Transformation matrix is now properly output in console (either after registration process, or after interactive editing).
+	This transformation can be copied & pasted in the new 'Edit > Apply transformation' dialog that replaces 'Edit > Translate'.
+- A bug in connected components extraction with octree has been fixed (in rare cases, the process could make CC crash)
+
+v2.3 01/28/2012
+- Height function (quadric) fitting fixed and enhanced
+- Noah Snavely's Bundler import filter is now able to ortho-recitfy images, undistort them and generate a colored pseudo-DTM
+- (calibrated) images can now be saved as standard images
+- Distance computation between a point cloud and a mesh has been optimized (new multi-threaded version + the old version is slightly faster & needs less memory)
+- Bug in scalar field arithmetic fixed (difference between two positive scalar field is not necessarily positive!)
+- the 'Render to file' tool with a zoom factor (different from 1) now works properly when based on FBO
+
+v2.3 01/18/2012
+- Noah Snavely's Bundler output file (with 'out' extension - see http://phototour.cs.washington.edu/bundler/) can now be opened in CloudCompare.
+  CloudCompare will extract the point cloud as well as calibrated cameras information and will then try to load associated pictures.
+- This version should fix an issue with distance computation on Windows 7 (crash)
+
+v2.3 01/07/2012
+- new shortcuts added (see wiki)
+- points and faces count in properties view are now displayed with thousands separator
+- 'plane orientation' tool now creates semi transparent planes (polygon stippling in fact)
+- color scale now takes 'text color' parameter into account!
+- EDL filter has been slightly updated (isolated points appear no more black)
+
+v2.3 12/13/2011
+- scalar fields loading bug fixed
+- color ramp type and number of steps are now per-scalar field and not per-cloud
+
+v2.3 12/11/2011
+- resampling algorithms are now accessible in command line (see the wiki for more information)
+- algorithms based on local neighbors extraction (such as roughness, curvature, etc.) can now handle much bigger point clouds (> 20 M. points)
+- memory shortage is less likely to make CC crash
+- scalar field colors can now be displayed with a logarithmic scale
+- precision of color scale displayed values can now be setup with the 'display options' dialog
+- bug corrected in ASCII file loading wizard when skipping lines
+- various display artifacts or minor bugs removed
+
+v2.3 11/22/2011
+- A bug in CCLib (ReferenceCloud) has been corrected. It may have impacted ICP registration for clouds below 20000 points.
+- the code has been cleaned-up with 'cppcheck' (http://cppcheck.sourceforge.net/ - great tool!)
+- the multi-core octree-based computations mechanism is back! (seems that it has mistakenly been disabled a while ago... hum hum)
+- ASCII file loading changed: from now on, only one cloud can be loaded at a time, but the fields order doesn't matter any more
+(a scalar field can be set before points coordinates, etc.) and loading is also slightly faster.
+- if available, FBO (Frame Buffer Object) is systematically used to store the last displayed 3D scene. This allows very fast redraw
+of the 3D view when viewpoint and cloud properties are not changed (i.e. during interactive graphical segmentation, or anytime the
+application window needs to be redrawn when requested by the OS or Qt - when a menu overlaps the 3D view, or the window is moved, etc.).
+
+v2.3 10/16/2011
+- Point cloud fusion tool improved (much less buggy!)
+- Light colors and materials: default colors changed + user can now specify default specular material for mesh
+- Mesh per-triangle normals are now correctly handled during interactive transformation
+- Console automatically raises when a warning message appears
+
+V2.3 09/18/2011
+- Major speed up in point cloud display (2 to 3 times faster!) as well as mesh (up to 30% faster in some cases)
+- Major improvement of the point picking mechanism (faster, more robust)
+- Excel "CSV" files now automatically recognized as ASCII files
+- Minor bug corrections and GUI modifications
+
+V2.3 09/04/2011
+- Color scale improvements:
+	- user can set multiple settings (square size, font size, whether to always display '0' or not)
+	- user can now choose now for signed scalar fields whether saturation is absolute (former default) or signed (new default)
+- Scalar field(s) name(s) are now editable (Edit > Scalar Field > Rename)
+- Scalar field(s) name(s) are now saved in BIN files
+
+v2.3 07/07/2011
+- clouds names are now saved in BIN files
+- points number was missing in cloud description since 06/22/2011
+- qEDL plugin (Eye Dome Lighting) is now less sensitive to zoom extent ONLY IN NON PERSPECTIVE MODE!
+
+v2.3 07/06/2011
+- qEDL plugin (Eye Dome Lighting) is now less sensitive to zoom extent
+- Number of randomly sampled points in ICP registration can now be specified by user (default was 20000)
+- Bug correction: CC crashed when ICP registration's result was the identity matrix!
+- Bug correction: "Edit > Bounding-box > Fit principal components" corrected and warning message displayed when called
+
+v2.3 06/28/2011
+- Handling of mesh materials & textures during segmentation
+- Storage of cloud center and restoration on save (ASCII only) when cloud has huge coordinates
+
+v2.3 06/22/2011
+- Method 'Height Grid Generation' corrected
+- Method 'Plane orientation' enhanced (strike plane name contains now strike AND dip information)
+
+v2.3 06/18/2011
+- Method 'Plane orientation' enhanced (display of strike plane, etc.)

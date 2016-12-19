@@ -1,0 +1,34 @@
+#include "processedImageData.h"
+
+processedImageData::processedImageData()
+{
+
+}
+
+processedImageData::~processedImageData()
+{
+
+}
+
+cv::Mat processedImageData::getDescriptors(){
+    return mDescriptors;
+}
+
+std::vector<cv::KeyPoint> processedImageData::getTiepoints(){
+    return mTiePoints;
+}
+
+QString processedImageData::getImageName(){
+    return  mImageName;
+}
+
+void processedImageData::setImageName(QString imagename){
+    mImageName=imagename;
+}
+void processedImageData::setDescriptors(cv::Mat descriptors){
+    mDescriptors=descriptors;
+}
+
+void processedImageData::setTiepoints(std::vector<cv::KeyPoint> tiePoints){
+    mTiePoints=tiePoints;
+}

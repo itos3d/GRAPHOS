@@ -1,0 +1,32 @@
+#ifndef MICMACEOREADER_H
+#define MICMACEOREADER_H
+
+#include <QString>
+#include <QDomElement>
+
+#include "ExternalOrientation.h"
+
+namespace PW{
+
+/*!
+ \brief The class MicMacEOReader provides reading functions for MICMAC External Orientation files.
+
+*/
+class LIBPWSHARED_EXPORT MicMacEOReader: public QObject
+{
+public:
+/*!
+ \brief
+
+*/
+    MicMacEOReader();
+    ExteriorOrientation * read(QString filePath);
+    ExteriorOrientation * read(QDomElement& root);
+
+
+private:
+
+
+};
+}
+#endif // MICMACEOREADER_H

@@ -1,0 +1,23 @@
+#include "WaitProcess.h"
+
+using namespace PW;
+
+WaitProcess::WaitProcess(int msec):
+    mInterval(msec),
+    mStop(false)
+{
+    this->setStartupMessage(tr("Wait..."));
+    connect(&mTimer, SIGNAL(timeout()), this, SLOT(onTimeOut()));
+}
+
+void PW::WaitProcess::run()
+{
+//    QTimer::singleShot(mInterval, this, SLOT(onTimeOut()));
+    mTimer.start(mInterval);
+    while(!mStop);
+}
+
+void PW::WaitProcess::onTimeOut()
+{
+    mStop = true;
+}

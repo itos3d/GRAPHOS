@@ -1,0 +1,37 @@
+#include "imgPoint.h"
+using namespace PW;
+imgPoint::imgPoint()
+{
+
+}
+imgPoint::imgPoint(int id, double x, double y,QString desc):ID(id),X(x),Y(y),mDesc(desc){}
+
+void imgPoint::setId(int id){
+    ID=id;
+}
+void imgPoint::setX(double x){
+    X=x;
+}
+void imgPoint::setY(double y){
+    Y=y;
+}
+void imgPoint::setDesc(QString desc){
+    mDesc=desc;
+}
+int imgPoint::getID(){
+    return ID;
+}
+double imgPoint::getX(){
+    return X;
+}
+double imgPoint::getY(){
+    return Y;
+}
+QString imgPoint::getDesc(){
+    return mDesc;
+}
+imgPoint::~imgPoint()
+{
+
+}
+

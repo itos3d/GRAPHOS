@@ -1,0 +1,14 @@
+#ifndef NUAGE2PLYPROCESS_H
+#define NUAGE2PLYPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT Nuage2PlyProcess : public ExternalProcess
+{
+public:
+    Nuage2PlyProcess();
+};
+}
+#endif // NUAGE2PLYPROCESS_H

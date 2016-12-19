@@ -1,0 +1,19 @@
+#ifndef ASIFTMACTCHING_H
+#define ASIFTMACTCHING_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ASIFTmactching : public ExternalProcess
+{
+public:
+    ASIFTmactching(QString input1, QString input2,
+                   QString outputV, QString outputH,
+                   QString outputMatch,
+                   QString keys1="", QString keys2="",
+                   bool generateImages = false);
+};
+
+}
+#endif // ASIFTMACTCHING_H

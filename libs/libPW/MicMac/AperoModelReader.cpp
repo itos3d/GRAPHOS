@@ -1,0 +1,408 @@
+/**
+*-------------------------------------------------
+*  Copyright 2016 by Tidop Research Group <daguilera@usal.se>
+*
+* This file is part of GRAPHOS - inteGRAted PHOtogrammetric Suite.
+*
+* GRAPHOS - inteGRAted PHOtogrammetric Suite is free software: you can redistribute
+* it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either
+* version 3 of the License, or (at your option) any later version.
+*
+* GRAPHOS - inteGRAted PHOtogrammetric Suite is distributed in the hope that it will
+* be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*
+* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
+*-------------------------------------------------
+*/
+#include <QDebug>
+#include <QtXmlPatterns/QXmlSchema>
+#include <QtXmlPatterns/QXmlSchemaValidator>
+#include <QFile>
+#include <QDir>
+
+#include "AperoModelReader.h"
+#include "RadialExtended.h"
+#include "RadialBasic.h"
+#include "FraserModel.h"
+#include "FishEyeModel.h"
+
+using namespace PW;
+
+AperoModelReader::AperoModelReader(Camera * camera):
+    mCamera(camera)
+{
+}
+
+PhotogrammetricModel * AperoModelReader::read(QString filePath)
+{
+    PhotogrammetricModel *pm = new PhotogrammetricModel();
+
+    QString errorStr;
+    int errorLine;
+    int errorColumn;
+
+    QFile file(filePath);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qCritical() << tr("Error opening file %1")
+                    .arg(filePath);
+        return NULL;
+    }
+    if (!mDomDocument.setContent(&file, true, &errorStr, &errorLine,
+                                 &errorColumn)) {
+        qCritical() << tr("Parse error at line %1, column %2:\n%3")
+                       .arg(errorLine)
+                       .arg(errorColumn)
+                       .arg(errorStr);
+        file.close();
+        return NULL;
+    }
+    file.close();
+
+    QDomElement root = mDomDocument.documentElement();
+
+    if (root.tagName() != "ExportAPERO") {
+        qCritical() << tr("The file is not an Apero calibration file 1");
+        return NULL;
+    }
+
+    root = root.firstChildElement("CalibrationInternConique");
+    if (root.tagName() != "CalibrationInternConique") {
+        qCritical() << tr("The file is not an Apero calibration file 2");
+        return NULL;
+    }
+
+    QDomElement child = root.firstChildElement("SzIm");
+    if (child.tagName() != "SzIm") {
+        qCritical() << tr("The file is not an Apero calibration file 3");
+        return NULL;
+    }
+
+    //Pixel size in mm:
+    double pixSizeX = mCamera->getSensorWidth()/child.text().split(" ").at(0).toDouble();
+    double pixSizeY = mCamera->getSensorHeight()/child.text().split(" ").at(1).toDouble();
+
+    child = root.firstChildElement("PP");
+    if (child.tagName() != "PP") {
+        qCritical() << tr("The file is not an Apero calibration file 4");
+        return NULL;
+    }
+//    pm->setXp(child.text().split(" ").at(0).toDouble()*pixSizeX);
+//    pm->setYp(child.text().split(" ").at(1).toDouble()*pixSizeY);
+
+    //********** TODO:  PROVISIONALMENTE USAMOS VALORES EN PIXELES ******************
+    pm->setXp(child.text().split(" ").at(0).toDouble());
+    pm->setYp(child.text().split(" ").at(1).toDouble());
+
+    child = root.firstChildElement("F");
+    if (child.tagName() != "F") {
+        qCritical() << tr("The file is not an Apero calibration file 5");
+        return NULL;
+    }
+//    pm->setFocal(child.text().toDouble() * (pixSizeX+pixSizeY)/2);
+
+    //PROVISIONALMENTE USAMOS VALORES EN PIXELES
+    pm->setFocal(child.text().toDouble());
+
+//    mRadialDistortion->setFocal(child.firstChild().nodeValue().toFloat());
+
+    QString imageSize = child.firstChild().nodeValue();
+
+    child = root.firstChildElement("CalibDistortion");
+    if (child.tagName() != "CalibDistortion") {
+        qCritical() << tr("The file is not an Apero calibration file 6");
+        return NULL;
+    }
+
+    QDomElement distortionRoot = child.firstChildElement("ModRad");
+    if (distortionRoot.tagName() == "ModRad") {
+
+        child = distortionRoot.firstChildElement("PPaEqPPs");
+        if(child.isNull()){
+
+            child = distortionRoot.firstChildElement("CDist");
+            if (child.tagName() != "CDist") {
+                qCritical() << tr("The file is not an Apero calibration file 8");
+                return NULL;
+            }
+
+            RadialExtended *distortion = new RadialExtended();
+
+            //    distortion->setXcd(child.text().split(" ").at(0).toDouble()*pixSizeX);
+            //    distortion->setYcd(child.text().split(" ").at(1).toDouble()*pixSizeY);
+
+            //PROVISIONALMENTE USAMOS VALORES EN PIXELES
+            distortion->setXcd(child.text().split(" ").at(0).toDouble());
+            distortion->setYcd(child.text().split(" ").at(1).toDouble());
+
+            child = distortionRoot.firstChildElement("CoeffDist");
+
+            distortion->setK1(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK2(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK3(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK4(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK5(child.text().toDouble());
+
+            pm->setDistortionModel(distortion);
+        }
+        else{
+            RadialBasic *distortion = new RadialBasic();
+
+            //    distortion->setXcd(child.text().split(" ").at(0).toDouble()*pixSizeX);
+            //    distortion->setYcd(child.text().split(" ").at(1).toDouble()*pixSizeY);
+
+            //PROVISIONALMENTE USAMOS VALORES EN PIXELES
+            child = distortionRoot.firstChildElement("CoeffDist");
+            distortion->setK1(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK2(child.text().toDouble());
+
+            pm->setDistortionModel(distortion);
+        }
+    }
+    else {
+        distortionRoot = child.firstChildElement("ModPhgrStd");
+        if (distortionRoot.tagName() == "ModPhgrStd") {
+            //**************** Fraser or FraserBasic:
+            QDomElement radialePart = distortionRoot.firstChildElement("RadialePart");
+            if(radialePart.isNull()){
+                qCritical() << tr("The file is not an Apero calibration file 9");
+                return NULL;
+            }
+            FraserModel *fraserModel = new FraserModel();
+            child = radialePart.firstChildElement("PPaEqPPs");
+            if(!child.isNull())
+                //*************** Fraser Basic:
+                fraserModel->setBasic(true);
+
+            child = radialePart.firstChildElement("CDist");
+            if (child.tagName() != "CDist") {
+                qCritical() << tr("The file is not an Apero calibration file 8");
+                return NULL;
+            }
+
+            fraserModel->setXcd(child.text().split(" ").at(0).toDouble());
+            fraserModel->setYcd(child.text().split(" ").at(1).toDouble());
+
+            child = radialePart.firstChildElement("CoeffDist");
+            fraserModel->setK1(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            fraserModel->setK2(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            fraserModel->setK3(child.text().toDouble());
+
+            child = distortionRoot.firstChildElement("P1");
+            fraserModel->setP1(child.text().toDouble());
+            child = distortionRoot.firstChildElement("P2");
+            fraserModel->setP2(child.text().toDouble());
+            child = distortionRoot.firstChildElement("b1");
+            fraserModel->setB1(child.text().toDouble());
+            child = distortionRoot.firstChildElement("b2");
+            fraserModel->setB2(child.text().toDouble());
+            pm->setDistortionModel(fraserModel);
+        }
+        else{
+            distortionRoot = child.firstChildElement("ModUnif");
+            if (distortionRoot.tagName() == "ModUnif") {
+                FishEyeModel *distortion = new FishEyeModel();
+
+                QDomNodeList paramNodes = distortionRoot.elementsByTagName("Params");
+                distortion->setXcd(paramNodes.at(0).toElement().text().toDouble());
+                distortion->setYcd(paramNodes.at(1).toElement().text().toDouble());
+                for(int i=2; i< paramNodes.count(); i++){
+                    distortion->addParam(paramNodes.at(i).toElement().text().toDouble());
+                }
+
+                pm->setDistortionModel(distortion);
+            }
+            else{
+                        qCritical() << tr("The file is not an Apero calibration file 7");
+                        return NULL;
+                    }
+        }
+    }
+    return pm;
+}
+
+PhotogrammetricModel *AperoModelReader::read(QDomElement &root)
+{
+    PhotogrammetricModel *pm = new PhotogrammetricModel();
+
+    QString strTagName=root.tagName();
+    if (root.tagName() != "ExportAPERO") {
+        qCritical() << tr("The file is not an Apero calibration file 1");
+        return NULL;
+    }
+
+    root = root.firstChildElement("CalibrationInternConique");
+    if (root.tagName() != "CalibrationInternConique") {
+        qCritical() << tr("The file is not an Apero calibration file 2");
+        return NULL;
+    }
+
+    QDomElement child = root.firstChildElement("SzIm");
+    if (child.tagName() != "SzIm") {
+        qCritical() << tr("The file is not an Apero calibration file 3");
+        return NULL;
+    }
+
+    //Pixel size in mm:
+    double pixSizeX = mCamera->getSensorWidth()/child.text().split(" ").at(0).toDouble();
+    double pixSizeY = mCamera->getSensorHeight()/child.text().split(" ").at(1).toDouble();
+
+    child = root.firstChildElement("PP");
+    if (child.tagName() != "PP") {
+        qCritical() << tr("The file is not an Apero calibration file 4");
+        return NULL;
+    }
+//    pm->setXp(child.text().split(" ").at(0).toDouble()*pixSizeX);
+//    pm->setYp(child.text().split(" ").at(1).toDouble()*pixSizeY);
+
+    //********** TODO:  PROVISIONALMENTE USAMOS VALORES EN PIXELES ******************
+    pm->setXp(child.text().split(" ").at(0).toDouble());
+    pm->setYp(child.text().split(" ").at(1).toDouble());
+
+    child = root.firstChildElement("F");
+    if (child.tagName() != "F") {
+        qCritical() << tr("The file is not an Apero calibration file 5");
+        return NULL;
+    }
+//    pm->setFocal(child.text().toDouble() * (pixSizeX+pixSizeY)/2);
+
+    //PROVISIONALMENTE USAMOS VALORES EN PIXELES
+    pm->setFocal(child.text().toDouble());
+
+//    mRadialDistortion->setFocal(child.firstChild().nodeValue().toFloat());
+
+    QString imageSize = child.firstChild().nodeValue();
+
+    child = root.firstChildElement("CalibDistortion");
+    if (child.tagName() != "CalibDistortion") {
+        qCritical() << tr("The file is not an Apero calibration file 6");
+        return NULL;
+    }
+
+    QDomElement distortionRoot = child.firstChildElement("ModRad");
+    if (distortionRoot.tagName() == "ModRad") {
+
+        child = distortionRoot.firstChildElement("PPaEqPPs");
+        if(child.isNull()){
+
+            child = distortionRoot.firstChildElement("CDist");
+            if (child.tagName() != "CDist") {
+                qCritical() << tr("The file is not an Apero calibration file 8");
+                return NULL;
+            }
+
+            RadialExtended *distortion = new RadialExtended();
+
+            //    distortion->setXcd(child.text().split(" ").at(0).toDouble()*pixSizeX);
+            //    distortion->setYcd(child.text().split(" ").at(1).toDouble()*pixSizeY);
+
+            //PROVISIONALMENTE USAMOS VALORES EN PIXELES
+            distortion->setXcd(child.text().split(" ").at(0).toDouble());
+            distortion->setYcd(child.text().split(" ").at(1).toDouble());
+
+            child = distortionRoot.firstChildElement("CoeffDist");
+
+            distortion->setK1(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK2(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK3(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK4(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK5(child.text().toDouble());
+
+            pm->setDistortionModel(distortion);
+        }
+        else{
+            RadialBasic *distortion = new RadialBasic();
+
+            //    distortion->setXcd(child.text().split(" ").at(0).toDouble()*pixSizeX);
+            //    distortion->setYcd(child.text().split(" ").at(1).toDouble()*pixSizeY);
+
+            //PROVISIONALMENTE USAMOS VALORES EN PIXELES
+            child = distortionRoot.firstChildElement("CoeffDist");
+            distortion->setK1(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            distortion->setK2(child.text().toDouble());
+
+            pm->setDistortionModel(distortion);
+        }
+    }
+    else {
+        distortionRoot = child.firstChildElement("ModPhgrStd");
+        if (distortionRoot.tagName() == "ModPhgrStd") {
+            //**************** Fraser or FraserBasic:
+            QDomElement radialePart = distortionRoot.firstChildElement("RadialePart");
+            if(radialePart.isNull()){
+                qCritical() << tr("The file is not an Apero calibration file 9");
+                return NULL;
+            }
+            FraserModel *fraserModel = new FraserModel();
+            child = radialePart.firstChildElement("PPaEqPPs");
+            if(!child.isNull())
+                //*************** Fraser Basic:
+                fraserModel->setBasic(true);
+
+            child = radialePart.firstChildElement("CDist");
+            if (child.tagName() != "CDist") {
+                qCritical() << tr("The file is not an Apero calibration file 8");
+                return NULL;
+            }
+
+            fraserModel->setXcd(child.text().split(" ").at(0).toDouble());
+            fraserModel->setYcd(child.text().split(" ").at(1).toDouble());
+
+            child = radialePart.firstChildElement("CoeffDist");
+            fraserModel->setK1(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            fraserModel->setK2(child.text().toDouble());
+            child = child.nextSiblingElement("CoeffDist");
+            fraserModel->setK3(child.text().toDouble());
+
+            child = distortionRoot.firstChildElement("P1");
+            fraserModel->setP1(child.text().toDouble());
+            child = distortionRoot.firstChildElement("P2");
+            fraserModel->setP2(child.text().toDouble());
+            child = distortionRoot.firstChildElement("b1");
+            fraserModel->setB1(child.text().toDouble());
+            child = distortionRoot.firstChildElement("b2");
+            fraserModel->setB2(child.text().toDouble());
+            pm->setDistortionModel(fraserModel);
+        }
+        else{
+            distortionRoot = child.firstChildElement("ModUnif");
+            if (distortionRoot.tagName() == "ModUnif") {
+                FishEyeModel *distortion = new FishEyeModel();
+
+                QDomNodeList paramNodes = distortionRoot.elementsByTagName("Params");
+                distortion->setXcd(paramNodes.at(0).toElement().text().toDouble());
+                distortion->setYcd(paramNodes.at(1).toElement().text().toDouble());
+                for(int i=2; i< paramNodes.count(); i++){
+                    distortion->addParam(paramNodes.at(i).toElement().text().toDouble());
+                }
+
+                pm->setDistortionModel(distortion);
+            }
+            else{
+                        qCritical() << tr("The file is not an Apero calibration file 7");
+                        return NULL;
+                    }
+        }
+    }
+    return pm;
+}
+

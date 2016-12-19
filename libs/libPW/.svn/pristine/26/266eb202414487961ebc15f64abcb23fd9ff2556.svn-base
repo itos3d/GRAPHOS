@@ -1,0 +1,14 @@
+#include "SQLiteProjectWriter.h"
+
+using namespace PW;
+
+SQLiteProjectWriter::SQLiteProjectWriter(Project * project, QString dbUrl):
+    ProjectWriter(project),
+    mDBUrl(dbUrl)
+{
+}
+
+int PW::SQLiteProjectWriter::write(QString url)
+{
+    return 1;
+}

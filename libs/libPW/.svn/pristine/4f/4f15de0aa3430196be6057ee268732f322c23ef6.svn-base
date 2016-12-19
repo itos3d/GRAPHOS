@@ -1,0 +1,116 @@
+#ifndef EXTERNALINTERFACEPROCESSMONITOR_H
+#define EXTERNALINTERFACEPROCESSMONITOR_H
+
+#include <QObject>
+#include <QTextStream>
+#include <QList>
+#include <QVector>
+#include <QtXml>
+
+#include "OrtoSkyXMLDefinitions.h"
+#include "libPW.h"
+
+#define EXTERNALINTERFACEPROCESSMONITOR_PIXEL_PRECISION                                    12
+#define EXTERNALINTERFACEPROCESSMONITOR_TERRAIN_PRECISION                                  4
+#define EXTERNALINTERFACEPROCESSMONITOR_ROTATION_MATRIX_PRECISION                          20
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ExternalInterfaceProcessMonitor : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ExternalInterfaceProcessMonitor(QObject *parent = 0);
+
+signals:
+
+public slots:
+    void addPathToRemove(QString path);
+    void addFileToRemove(QString file);
+    void getImages(QList<PW::PWImage*>& images){images=mImages;};
+    void getImagesFileNamesByName(QMap<QString,QString>& imageFileNamesByName){imageFileNamesByName=mImageFileNamesByName;};
+    void getImagesFileNameWithoutPathsByName(QMap<QString,QString>& imageFileNameWithoutPathsByName){imageFileNameWithoutPathsByName=mImageFileNameWithoutPathsByName;};
+    void getImagesByName(QMap<QString,PWImage *>& imagesByName){imagesByName=mImagesByName;};
+    QString getImagesPath(){return(mImagesPath);};
+    int getNumberOfImages(){return(mImages.size());};
+    QString getProjectPath(){return(mProjectPath);};
+    QString getTmpFolder(){return(mTmpFolder);};
+    void manageProccesStdOutput(QString data);
+    void manageProccesErrorOutput(QString data);
+    bool readOrtoSkyXmlProjectFile(QString fileName,
+                                   QString sessionName,
+                                   bool removeExistsMatches,
+                                   QString& strError);
+    bool readOrtoSkyXmlProjectFile_v20150217(QString fileName,
+                                             QString& strError);
+//    bool readOrtoSkyXmlProjectFile_v2014(QString fileName,
+//                                         QString& strError);
+    bool removeDir(QString dirName);
+    int replace(QFile *inputFile, QFile *outputFile, QString from, QString to);
+    bool removeRubbish(QString& strError);
+
+protected:
+    bool copyDir(QString sourceFolder, QString destFolder, bool move = true);
+    QString mSourceFolder;
+    QTextStream *mStdOut;
+    QString mImagesPath;
+    QString mXmlFileName;
+    QList<QString> mPathsToRemove;
+    QList<QString> mFilesToRemove;
+    QDomDocument mDoc;
+    int mNumberOfImagePairs;
+    bool mRemoveDuplicated;
+    bool mIsInitialized;
+    QString mProjectPath;
+    QString mTmpFolder;
+
+    // Cameras
+    QVector<QString> mCameraNames;
+    QMap<QString,float> mSensorWidths;
+    QMap<QString,float> mSensorHeights;
+    QMap<QString,float> mFocals;
+    QMap<QString,double> mXPixelSize_mms;
+    QMap<QString,double> mYPixelSize_mms;
+    QMap<QString,QString> mImageCoordinatesOrigins;
+    QMap<QString,int> mImageCoordinatesPrecisions;
+    QMap<QString,QSize> mSensorSizes;
+
+    // Images
+    QVector<QString> mImageNames;
+    QList<QString> mImagesFileName;
+    QMap<QString,QString> mImageFileNamesByName;
+    QMap<QString,QString> mImageFileNameWithoutPathsByName;
+    QMap<QString,QString> mImageCamerasByName;
+    QMap<QString,PWImage *> mImagesByName;
+    QString mCameraName; // solo se permite una en las imágenes
+
+    // ImagePairs
+    QMap<QString,QVector<QString> > mImagePairsByName;
+
+    // Por compatibilidad, susceptibles de mantener
+    QList<PW::PWImage *> mImages;
+    QMap<QString,QVector<QString> > mImagePairs;
+    int mImageCoordinatesPrecision;
+    QString mImageCoordinatesOrigin;
+    float mSensorWidth;
+    float mSensorHeight;
+    float mFocal;
+    double mXPixelSize_mm;
+    double mYPixelSize_mm;
+    QSize mSensorSize;
+    QMap<QString,int> mImagesIds; // Por TiePointsManager
+
+    QString mSessionName;
+    bool mRemoveExistsMatches;
+
+    int mCrsEpsgCode;
+    QString mCrsZUnit;
+    QVector<QString> mCrsToWgs84Parameters;
+    QDomNode mCrsNode;
+
+    // Que habría que eliminar
+    //QString imagesPath;
+
+};
+}
+#endif // EXTERNALINTERFACEPROCESSMONITOR_H

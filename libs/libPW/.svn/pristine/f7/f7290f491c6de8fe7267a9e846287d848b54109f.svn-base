@@ -1,0 +1,244 @@
+#ifndef ORIENTATIONPROCESSMONITOR_H
+#define ORIENTATIONPROCESSMONITOR_H
+
+#include <QObject>
+#include <QTextStream>
+#include <QList>
+#include <QVector>
+#include <QMap>
+#include <QString>
+#include <QTextStream>
+#include <QtXml>
+#include <QMap>
+
+#include "libPW.h"
+#include "TiePointsManager.h"
+#include "ExternalInterfaceProcessMonitor.h"
+#include "PBACalibrationModel.h"
+#include "../libSDGAP/libSDGAP.h"
+#include "OrtoSkyXMLDefinitions.h"
+
+#define ORIENTATIONPROCESSMONITOR_MICMAC_CHANTIER_FILE_NAME                    "MicMac-LocalChantierDescripteur.xml"
+#define ORIENTATIONPROCESSMONITOR_APERO_PARAMS_FILE_FRASER_BASIC               "AperoFraserBasic_GC.xml"
+
+#define ORIENTATIONPROCESSMONITOR_GCPS_COORDINATES_FILE_NAME                                        "Dico-Appuis.xml"
+#define ORIENTATIONPROCESSMONITOR_GCPS_IMAGE_MEASUREMENTS_FILE_NAME                                 "Mesure-Appuis.xml"
+
+#define ORIENTATIONPROCESSMONITOR_NO_SOURCE_ORIENTATION_NULL_VALUE                                  "Null"
+#define ORIENTATIONPROCESSMONITOR_USE_ALL_IMAGES                                                    "All"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT OrientationProcessMonitor : public ExternalInterfaceProcessMonitor
+{
+    Q_OBJECT
+public:
+    explicit OrientationProcessMonitor(QString &strError,
+                                       QObject *parent = 0);
+
+signals:
+
+public slots:
+    bool createTiePointsManager(QString& strError,
+                                int gridSize=TIEPOINTSMANAGER_GRID_SIZE_DEFAULT);
+    void distort_sdgap(double diff_xPPA,
+                       double diff_yPPA,
+                       double diff_focal,
+                       double k1,
+                       double k2,
+                       double k3,
+                       double p1,
+                       double p2,
+                       double b1,
+                       double b2,
+                       double& pho_c_x,
+                       double& pho_c_y,
+                       double pho_c_z);
+    bool getGCPsFromOrtoSkyXmlFile(QString& strError);
+    bool getGroundControlDataForSDGAP(bool setGroundControlFixed,
+                                      QVector<QString> &includedImages,
+                                      bool writeSDGAPInputFiles,
+                                      QString& strError);
+    void getImagesIdsTiePoints(QMap<QString,QVector<QString> >& imagesIdsTiePoints);
+    bool getInputOrientationDataForSDGAP(QVector<QString> &includedImages,
+                                         bool writeSDGAPInputFiles,
+                                         QString& strError);
+    bool getIsDGAPEngine(){return(mIsDGAPEngine);};
+    bool getMeasurementDataForSDGAP_m(bool matches_indiv_sdev,
+                                      float stdThreshold,
+                                      int numberOfTiePoints,
+                                      int gridSize,
+                                      QVector<QString>& includedImages,
+                                      bool writeSDGAPInputFiles,
+                                      QString& strError);
+    bool getMeasurementDataForSDGAP_t(bool matches_indiv_sdev,
+                                      QVector<QString>& includedImages,
+                                      bool writeSDGAPInputFiles,
+                                      QString& strError);
+    bool getMatchesFromOrtoSkyXmlFile(QVector<QString> &orientationImagesIds,
+                                      QString& strError);
+    bool getMatchesFromOrtoSkyXmlFile_201501(QMap<QString,int>& orientationImagesIds,
+                                             QString& strError);
+    int getNumberOfImagesToUse(){return(mNumberOfImagesToUse);};
+    QString getResultsFileName(){return(mResultsFileName);};
+    QString getSourceOrientationId(){return(mSourceOrientation);};
+    QString getTapasDistModel(){return(mTapasDistModel);};
+    bool getWithGroundControl(){return mUseGroundControl;};
+    bool getWithSourceOrientation();
+    bool getWritePly(){return(mCreatePly);};
+    void image_to_photo_sdgap(double focal_m,
+                              double xPPAFromCenter_m,
+                              double yPPAFromCenter_m,
+                              double& pho_c_x,
+                              double& pho_c_y,
+                              double& pho_c_z);
+    void image_to_sensor_sdgap(int columns,
+                               int rows,
+                               double xPixelSize_mc,
+                               double yPixelSize_mc,
+                               double& img_c_x,
+                               double& img_c_y);
+    bool initializeCalibrationModels(QString& strError);
+    bool initializeSDGAP(QString sdgapPath,
+                         bool writeSDGAPInputFiles,
+                         QString& strError);
+    void onProcessFinished();
+    void onProcessSDGAPPBAFinished(int &step,
+                                   bool printImageMaster);
+    void photo_to_image_sdgap(double xPPAFromCenter_m,
+                              double yPPAFromCenter_m,
+                              double& pho_c_x,
+                              double& pho_c_y);
+    bool processSDGAPPBA(QString& strError);
+    bool readOrientations(QDomElement &cameraModelXmlElement,
+                          QMap<QString,QDomElement> &exteriorOrientationXmlElements,
+                          QString& strError);
+    bool readOrientations_201501(QDomElement &cameraModelXmlElement,
+                                 QMap<QString,QDomElement> &exteriorOrientationXmlElements,
+                                 QString& strError);
+    bool readOrientationsSDGAP(QDomElement& cameraModelXmlElement,
+                               QDomElement &imageOrientationsElement,
+                               QString& strError);
+    bool readOrientationsSDGAPFromOrtoSkyXml(QDomElement& cameraModelXmlElement,
+                                             QMap<QString, QDomElement> &imageOrientationsElements,
+                                             QString& strError);
+    void sensor_to_image_sdgap(int columns,
+                               int rows,
+                               double xPixelSize_mc,
+                               double yPixelSize_mc,
+                               double& img_c_x,
+                               double& img_c_y);
+    bool setBundleAdjustmentParametersFromOrtoSkyXmlProjectFile(QString pbaName,
+                                                                QString& strError);
+    bool setBundleAdjustmentParametersFromOrtoSkyXmlProjectFile_201501(QString& strError);
+    bool setBundleAdjustmentParametersWithSDAG(bool writeSDGAPInputFiles,
+                                               QString& strError);
+    void setOrientationIsFixed(bool value){mOrientationIsFixed=value;};
+    void setStep(int value){mStep=value;};
+    void setUpdateAccuracies(bool value){mUpdateAccuracies=value;};
+    bool solveInitialImagesProblem(QString& strError);
+    bool solveInitialImagesProblemOrtoSky(QString& strError);
+    void undistort_sdgap(double diff_xPPA,
+                         double diff_yPPA,
+                         double diff_focal,
+                         double k1,
+                         double k2,
+                         double k3,
+                         double p1,
+                         double p2,
+                         double b1,
+                         double b2,
+                         double& pho_c_x,
+                         double& pho_c_y,
+                         double pho_c_z);
+    bool updateGCPPointsAccuracySDGAP(QString& strError);
+    bool updateTiePointsAccuracySDGAP(QString& strError);
+    bool writeAperoParamsFile(QString calibrationModel,
+                              QString inputRegExp,
+                              QString inputCalibrationId,
+                              QString micmacPath,
+                              QString& aperoParamsFileName,
+                              QString& strError);
+    bool writeAperoParamsFileOrtoSkyXml(QString calibrationModel,
+                                        QString inputRegExp,
+                                        QString inputCalibrationId,
+                                        QString micmacPath,
+                                        QString& aperoParamsFileName,
+                                        QString& strError);
+    bool writeChantierBaseFile(QString micmacPath,
+                               QString& strError);
+    bool writeChantierBaseFileOrtoSkyXml(QString micmacPath,
+                               QString& strError);
+    bool writeDicoAppuis(QString& strError);
+    bool writeGCPsDataInAperoFormat(QString& strError);
+    bool writeGCPsDataInAperoFormatFromXmlOrtoSky(QString& strError);
+    bool writeHomol(QString &strError);
+    bool writeImageMasterImageCoordinates(QDomElement &cameraModelXmlElement, QString& strError);
+    bool writeSourceOrientation(QString& strError);
+    bool writeMesureAppuis(QString& strError);
+    bool writeSDGAPSolutionToOrtoSkyXmlFile(QDomElement &calibrationElement,
+                                            QMap<QString,QDomElement> &exteriorOrientationXmlElements,
+                                            QString& strError);
+    bool writeSolutionToOrtoSkyXmlFile(QDomElement &cameraModelXmlElement,
+                                       QMap<QString,QDomElement> &exteriorOrientationXmlElements,
+                                       QString& strError);
+private:
+    bool convertInFirstImage(QString &noFirstImage,
+                             QVector<QString> &noFirstImages,
+                             QMap<QString, QVector<QString> > &imagesIdsTiePoints);
+    QTextStream* mStdOut;
+    //QVector<QString> mCalibrationEngines;  -> mPBAEngine
+    //QVector<QString> mCalibrationIds;  -> mTargetOrientation
+    //QVector<QString> mCalibrationModels;  -> mTapasDistModel
+
+//    QMap<QString,int> mImagesIds;
+//    QMap<int,QString> mImagesFileNameByPos;
+
+    QMap<QString,QVector<QString> > mImagesIdsTiePoints; // indexado por el name, no filename
+    QMap<QString,QMap<QString,QVector<float> > > mImagesFirstColumnsTiePoints; // indexado por el name, no filename
+    QMap<QString,QMap<QString,QVector<float> > > mImagesFirstRowsTiePoints; // indexado por el name, no filename
+    QMap<QString,QMap<QString,QVector<float> > > mImagesSecondColumnsTiePoints; // indexado por el name, no filename
+    QMap<QString,QMap<QString,QVector<float> > > mImagesSecondRowsTiePoints; // indexado por el name, no filename
+    QMap<QString,QMap<QString,QVector<int> > > mMatchesIds; // indexado por el name, no filename
+    QMap<QString,QMap<QString,QVector<float> > > mMatchesAccuracies; // indexado por el name, no filename
+    QMap<int,float> mAccuraciesByMatchId;
+    QMap<int,QVector<float> > mMatchesTerrainCoordinates;
+    QMap<int,QVector<float> > mMatchesAccuraciesTerrainCoordinates;
+    QString mCalibrationFileName;
+    QMap<QString,QVector<float> > mGeometryGCPs; // (x,y,z,sx,sy,sz)
+    QMap<QString,bool> mIsControlGCPs; // a falso será de chequeo
+    QMap<QString,QMap<QString,QVector<float> > > mImageCoordinatesGCPs; // (x,y,std)
+    bool mOrientationIsFixed;
+    int mStep;
+    TiePointsManager* mTiePointsManager;
+    LibSDGAP* mLibSDGAP;
+    QDomElement mInputCalibrationXmlElement;
+    QDomElement mImageOrientationXmlElement;
+    bool mUpdateAccuracies;
+    QMap<QString,PBACalibrationModel*> mPBACalibrationModels;   
+    int mNumberOfImagesToUse; // -1 = todas
+    QString mSourceOrientation;
+    QString mTargetOrientation;
+    QString mSourceCalibration;
+    QString mTargetCalibration;
+    QString mCalibrationModelId;
+    bool mCreatePly;
+    bool mUseGroundControl;
+    QString mResultsFileName;
+    double mStandardDesviationThreshold;
+    int mColumnsCcdGridSize;
+    int mRowsCcdGridSize;
+    int mNumberOfTiePointsInEachImage;
+    double mPrioriStandardDeviationOfUnitWeight;
+    int mMaximumNumberOfIterations;
+    PBACalibrationModel* mPBACalibrationModel;
+    QString mTapasDistModel;
+    bool mIsDGAPEngine;
+    QString mPBAEngine;
+    bool mPrintTiePointsAccuracies;
+    QString mPbaName;
+    bool mCalibrationIsFixed;
+    QMap<QString,QDomElement> mSourceImageOrientationsXmlElements;
+};
+}
+#endif // ORIENTATIONPROCESSMONITOR_H

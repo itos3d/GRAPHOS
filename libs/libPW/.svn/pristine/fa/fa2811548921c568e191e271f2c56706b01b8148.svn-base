@@ -1,0 +1,27 @@
+#ifndef OPENMVGKPMPROCESS_H
+#define OPENMVGKPMPROCESS_H
+
+#include "MultiProcess.h"
+#include "PWImage.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT OpenMVGKpmProcessConcurrent : public MultiProcess
+{
+public:
+    OpenMVGKpmProcessConcurrent(QList<PWImage *>& inputImages,
+                                QString pairsFileName,
+                                QString tiePointsDensity);
+    OpenMVGKpmProcessConcurrent(QMap<QString, PWImage *> & imagesByName,
+                                QMap<QString,QString>& imageFileNamesByName,
+                                QString pairsFileName,
+                                QString tiePointsDensity);
+
+private:
+    QList<PWImage *> mInputImages;
+    //bool mFromXmlFile;
+};
+
+}
+
+#endif // OPENMVGPROCESS_H

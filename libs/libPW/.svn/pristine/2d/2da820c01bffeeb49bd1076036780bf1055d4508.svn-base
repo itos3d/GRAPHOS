@@ -1,0 +1,23 @@
+#include "ImageMatching.h"
+
+using namespace PW;
+
+ImageMatching::ImageMatching()
+{
+
+}
+
+void ImageMatching::insert(QString key, QPointF value)
+{
+    mMatching.insert(key, value);
+}
+
+QPointF ImageMatching::value(QString key)
+{
+    return mMatching.value(key);
+}
+
+bool ImageMatching::contains(QString key)
+{
+    return mMatching.contains(key);
+}

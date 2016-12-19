@@ -1,0 +1,19 @@
+#ifndef PROJECTMETADATAIO_H
+#define PROJECTMETADATAIO_H
+
+#include "Project.h"
+
+namespace PW{
+
+/*!
+ \brief Reader and Writter for project metadata xml file.
+
+*/
+class LIBPWSHARED_EXPORT ProjectMetadataIO
+{
+public:
+    ProjectMetadataIO();
+};
+}
+
+#endif // PROJECTMETADATAIO_H

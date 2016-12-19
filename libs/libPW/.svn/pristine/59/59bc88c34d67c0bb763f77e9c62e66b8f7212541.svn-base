@@ -1,0 +1,76 @@
+#include "FishEyeModel.h"
+#include <QVector>
+#include <math.h>
+
+using namespace PW;
+
+FishEyeModel::FishEyeModel()
+{
+}
+
+int FishEyeModel::getID()
+{
+    return APERO_MODEL_FISHEYE;
+}
+
+double FishEyeModel::getXcd()
+{
+    return mXcd;
+}
+
+double FishEyeModel::getYcd()
+{
+    return mYcd;
+}
+
+double FishEyeModel::getParam(int index)
+{
+    return mParams.at(index);
+}
+
+int FishEyeModel::getParamsCount()
+{
+    return mParams.count();
+}
+
+void FishEyeModel::setXcd(double xcd)
+{
+    mXcd = xcd;
+}
+
+void FishEyeModel::setYcd(double ycd)
+{
+    mYcd = ycd;
+}
+
+void FishEyeModel::setParam(int index, double value)
+{
+    mParams[index]=value;
+}
+
+void FishEyeModel::addParam(double value)
+{
+    mParams.append(value);
+}
+
+QString FishEyeModel::undistort(QString inputImage, float focal, float xpp, float ypp)
+{
+    QString outputPath;
+
+    return outputPath;
+}
+
+bool FishEyeModel::canUnistort()
+{
+    return false;
+}
+
+void FishEyeModel::undistort(float xpp, float ypp, float &x, float &y)
+{
+
+}
+
+void FishEyeModel::distort(float xpp, float ypp, float &x, float &y)
+{
+
+}

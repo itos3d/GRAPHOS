@@ -1,0 +1,18 @@
+#ifndef GCPWRITER_H
+#define GCPWRITER_H
+#include "ProcessConcurrent.h"
+#include "GeorefMicMac/GCP.h"
+namespace PW {
+class LIBPWSHARED_EXPORT GCPWriter : public ProcessConcurrent
+{
+public:
+    GCPWriter(QVector<GCP> *GCPs,QString outputPath);
+    ~GCPWriter();
+protected:
+    virtual void run();
+private:
+    QVector<GCP> *mGCPs;
+    QString mOutputPath;
+};
+}
+#endif // GCPWRITER_H

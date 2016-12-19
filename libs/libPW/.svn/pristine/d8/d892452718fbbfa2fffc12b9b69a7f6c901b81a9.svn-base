@@ -1,0 +1,8 @@
+#include "ProjectReader.h"
+
+using namespace PW;
+
+ProjectReader::ProjectReader(QObject *parent) :
+    QObject(parent)
+{
+}

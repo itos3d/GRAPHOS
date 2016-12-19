@@ -1,0 +1,23 @@
+#ifndef APEROMODELWRITER_H
+#define APEROMODELWRITER_H
+
+#include <QString>
+#include <PWImage.h>
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AperoModelWriter
+{
+public:
+    AperoModelWriter();
+    /*!
+     \brief Writes basic no-distortion Apero calibration file.
+
+     \return QString
+    */
+    int write(PWImage image, QString url);
+    int write(CameraModel *cameraModel, int width, int height, QString url);
+};
+
+}
+#endif // APEROMODELWRITER_H

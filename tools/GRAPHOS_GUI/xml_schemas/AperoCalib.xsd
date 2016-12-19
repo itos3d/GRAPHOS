@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:element name="ExportAPERO">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="CalibrationInternConique"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CalibrationInternConique">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="KnownConv"/>
+        <xs:element ref="PP"/>
+        <xs:element ref="F"/>
+        <xs:element ref="SzIm"/>
+        <xs:element ref="CalibDistortion"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="KnownConv" type="xs:NCName"/>
+  <xs:element name="PP" type="xs:string"/>
+  <xs:element name="F" type="xs:decimal"/>
+  <xs:element name="SzIm" type="xs:string"/>
+  <xs:element name="CalibDistortion">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="ModRad"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="ModRad">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="CDist"/>
+        <xs:element maxOccurs="unbounded" ref="CoeffDist"/>
+	<xs:element minOccurs="0" ref="PPaEqPPs"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="CDist" type="xs:string"/>
+  <xs:element name="CoeffDist" type="xs:double"/>
+  <xs:element name="PPaEqPPs" type="xs:string"/>
+</xs:schema>

@@ -1,0 +1,18 @@
+#ifndef ASIFTFINISHEDPROCESS_H
+#define ASIFTFINISHEDPROCESS_H
+
+#include "ProcessConcurrent.h"
+#include "libPW.h"
+namespace PW{
+class LIBPWSHARED_EXPORT ASIFTFinishedProcess : public ProcessConcurrent
+{
+public:
+    ASIFTFinishedProcess(PW::Project *project,QString tiepointsMetadata);
+    ~ASIFTFinishedProcess();
+    virtual void run();
+private:
+    PW::Project *mProject;
+    QString mTiepointsMetadata;
+};
+}
+#endif // ASIFTFINISHEDPROCESS_H

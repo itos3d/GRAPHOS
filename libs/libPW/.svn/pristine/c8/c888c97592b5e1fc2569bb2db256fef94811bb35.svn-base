@@ -1,0 +1,19 @@
+#ifndef ASIFTMATCHINGIO_H
+#define ASIFTMATCHINGIO_H
+
+#include "ImageMatching.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AsiftMatchingIO
+{
+public:
+    AsiftMatchingIO();
+
+    void read(QString url, QMap<QString, QPointF> *matching);
+    void read(QString url, QMap<QString, QPointF> *matching, QMap<QString, QPointF> *inverseMatching);
+};
+
+}
+
+#endif // ASIFTMATCHINGIO_H

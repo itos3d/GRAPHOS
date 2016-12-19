@@ -1,0 +1,233 @@
+#include "FraserModel.h"
+#include <QVector>
+#include <math.h>
+
+using namespace PW;
+
+FraserModel::FraserModel():
+    mBasic(false),
+    mK1(0),
+    mK2(0),
+    mK3(0),
+    mP1(0),
+    mP2(0),
+    mB1(0),
+    mB2(0)
+{
+}
+
+int FraserModel::getID()
+{
+    if(isBasic())
+        return APERO_MODEL_FRASER_BASIC;
+    else
+        return APERO_MODEL_FRASER_BASIC;
+}
+
+double FraserModel::getK1()
+{
+    return mK1;
+}
+
+double FraserModel::getK2()
+{
+    return mK2;
+}
+
+double FraserModel::getK3()
+{
+    return mK3;
+}
+
+double FraserModel::getP1()
+{
+    return mP1;
+}
+
+double FraserModel::getP2()
+{
+    return mP2;
+}
+
+double FraserModel::getB1()
+{
+    return mB1;
+}
+
+double FraserModel::getB2()
+{
+    return mB2;
+}
+
+void FraserModel::setK1(double k1)
+{
+    mK1=k1;
+}
+
+void FraserModel::setK2(double k2)
+{
+    mK2=k2;
+}
+
+void FraserModel::setK3(double k3)
+{
+    mK3=k3;
+}
+
+void FraserModel::setP1(double p1)
+{
+    mP1=p1;
+}
+
+void FraserModel::setP2(double p2)
+{
+    mP2=p2;
+}
+
+void FraserModel::setB1(double b1)
+{
+    mB1=b1;
+}
+
+void FraserModel::setB2(double b2)
+{
+    mB2=b2;
+}
+
+double FraserModel::getXcd()
+{
+    return mXcd;
+}
+
+double FraserModel::getYcd()
+{
+    return mYcd;
+}
+
+void FraserModel::setXcd(double xcd)
+{
+    mXcd = xcd;
+}
+
+void FraserModel::setYcd(double ycd)
+{
+    mYcd = ycd;
+}
+
+bool FraserModel::isBasic()
+{
+    return mBasic;
+}
+
+void FraserModel::setBasic(bool basic)
+{
+    mBasic = basic;
+}
+
+QString FraserModel::undistort(QString inputImage, double focal, double xpp, double ypp)
+{
+    QString outputPath;
+
+    return outputPath;
+}
+
+bool FraserModel::canUnistort()
+{
+    return true;
+}
+
+void FraserModel::undistort(double xpp, double ypp, double &x, double &y)
+{
+    double du_pp=x-xpp;
+    double dv_pp=y-ypp;
+    double rho2_pp=(du_pp*du_pp+dv_pp*dv_pp);
+    double cx_p1=mP1*(2.0*du_pp*du_pp+rho2_pp);
+    double cy_p1=mP1*2.0*du_pp*dv_pp;
+    double cx_p2=mP2*2.0*du_pp*dv_pp;
+    double cy_p2=mP2*(2.0*dv_pp*dv_pp+rho2_pp);
+    double cx_b1=mB1*du_pp;
+    double cy_b1=0.0;
+    double cx_b2=mB2*dv_pp;
+    double cy_b2=0.0;
+    double xcd=xpp;
+    double ycd=ypp;
+    if(!mBasic)
+    {
+        xcd=mXcd;
+        ycd=mYcd;
+    }
+    double du_cd=x-xcd;
+    double dv_cd=y-ycd;
+    double rho2_cd=(du_cd*du_cd+dv_cd*dv_cd);
+    double cx_dr=0.0;
+    double cy_dr=0.0;
+    double cx_dr_before=-100000.0;
+    double cy_dr_before=-100000.0;
+    bool control=true;
+    QVector<double> coeffsDist;
+    coeffsDist.push_back(mK1);
+    coeffsDist.push_back(mK2);
+    coeffsDist.push_back(mK3);
+    while(control)
+    {
+        for(int nCoef=1;nCoef<=coeffsDist.size();nCoef++)
+        {
+            double coeffDist=coeffsDist[nCoef-1];
+            cx_dr=cx_dr+du_cd*(pow(rho2_cd,nCoef))*coeffDist;
+            cy_dr=cy_dr+dv_cd*(pow(rho2_cd,nCoef))*coeffDist;
+        }
+        if(fabs(cx_dr-cx_dr_before)<0.001&&abs(cy_dr-cy_dr_before)<0.001)
+            control=false;
+        else
+        {
+            cx_dr_before=cx_dr;
+            cy_dr_before=cy_dr;
+            du_cd=x-xcd-cx_dr;
+            dv_cd=y-ycd-cy_dr;
+            rho2_cd=(du_cd*du_cd+dv_cd*dv_cd);
+            cx_dr=0.0;
+            cy_dr=0.0;
+        }
+    }
+    x=du_pp-cx_p1-cx_p2-cx_b1-cx_b2-cx_dr;
+    y=dv_pp-cy_p1-cy_p2-cy_b1-cy_b2-cy_dr;
+}
+
+void FraserModel::distort(double xpp, double ypp, double &x, double &y)
+{
+    double du_pp=x-xpp;
+    double dv_pp=y-ypp;
+    double rho2_pp=(du_pp*du_pp+dv_pp*dv_pp);
+    double cx_p1=mP1*(2.0*du_pp*du_pp+rho2_pp);
+    double cy_p1=mP1*2.0*du_pp*dv_pp;
+    double cx_p2=mP2*2.0*du_pp*dv_pp;
+    double cy_p2=mP2*(2.0*dv_pp*dv_pp+rho2_pp);
+    double cx_b1=mB1*du_pp;
+    double cy_b1=0.0;
+    double cx_b2=mB2*dv_pp;
+    double cy_b2=0.0;
+    double xcd=xpp;
+    double ycd=ypp;
+    if(!mBasic)
+    {
+        xcd=mXcd;
+        ycd=mYcd;
+    }
+    double du_cd=x-xcd;
+    double dv_cd=y-ycd;
+    double rho2_cd=(du_cd*du_cd+dv_cd*dv_cd);
+    double cx_dr=0.0;
+    double cy_dr=0.0;
+    QVector<double> coeffsDist;
+    coeffsDist.push_back(mK1);
+    coeffsDist.push_back(mK2);
+    coeffsDist.push_back(mK3);
+    for(int nCoef=1;nCoef<=coeffsDist.size();nCoef++)
+    {
+        double coeffDist=coeffsDist[nCoef-1];
+        cx_dr=cx_dr+du_cd*(pow(rho2_cd,nCoef))*coeffDist;
+        cy_dr=cy_dr+dv_cd*(pow(rho2_cd,nCoef))*coeffDist;
+    }
+    x=du_pp+cx_p1+cx_p2+cx_b1+cx_b2+cx_dr;
+    y=dv_pp+cy_p1+cy_p2+cy_b1+cy_b2+cy_dr;
+}

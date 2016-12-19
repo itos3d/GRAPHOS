@@ -1,0 +1,1855 @@
+#include <QCoreApplication>
+#include <QDir>
+#include <QtXml>
+
+#include "../OpenMVG/OpenMVGParametersDefinitions.h"
+#include "libPW.h"
+#include "ExternalInterfaceProcessMonitor.h"
+
+using namespace PW;
+
+ExternalInterfaceProcessMonitor::ExternalInterfaceProcessMonitor(QObject *parent) :
+    QObject(parent)
+{
+    mRemoveDuplicated=true;
+    mIsInitialized=false;
+    mXPixelSize_mm=-1;
+    mYPixelSize_mm=-1;
+    //    mStdOut = new QTextStream(stdout);
+}
+
+void ExternalInterfaceProcessMonitor::addPathToRemove(QString path)
+{
+    if(!mPathsToRemove.contains(path))
+    {
+        mPathsToRemove.append(path);
+    }
+}
+
+void ExternalInterfaceProcessMonitor::addFileToRemove(QString file)
+{
+    if(!mFilesToRemove.contains(file))
+    {
+        mFilesToRemove.append(file);
+    }
+}
+
+bool ExternalInterfaceProcessMonitor::copyDir(QString sourceFolder, QString destFolder, bool move)
+{
+    QDir auxDir=QDir::currentPath();
+    if(!auxDir.exists(sourceFolder))
+        return(false);
+    QDir sourceDir(sourceFolder);
+    if(!auxDir.exists(destFolder))
+    {
+        auxDir.mkdir(destFolder);
+    }
+    QStringList files = sourceDir.entryList(QDir::Files);
+    for(int i = 0; i< files.count(); i++)
+    {
+        QString srcName = sourceFolder + "/" + files[i];
+        QString destName = destFolder + "/" + files[i];
+        QFile::copy(srcName, destName);
+        if (move)
+            QFile::remove(srcName);
+    }
+    files.clear();
+    files = sourceDir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
+    for(int i = 0; i< files.count(); i++)
+    {
+        QString srcName = sourceFolder + "/" + files[i];
+        QString destName = destFolder + "/" + files[i];
+        copyDir(srcName, destName, move);
+        //auxDir.rmdir(srcName);
+    }
+    if(move)
+        auxDir.rmdir(sourceFolder);
+}
+
+void ExternalInterfaceProcessMonitor::manageProccesStdOutput(QString data)
+{
+    //*mStdOut<<data;
+    fprintf(stdout, data.toAscii());
+}
+
+void ExternalInterfaceProcessMonitor::manageProccesErrorOutput(QString data)
+{
+//   *mStdOut<<data;
+    fprintf(stdout, data.toAscii());
+}
+
+bool ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile(QString fileName,
+                                                                QString sessionName,
+                                                                bool removeExistsMatches,
+                                                                QString& strError)
+{
+    mSessionName=sessionName;
+    mRemoveExistsMatches=removeExistsMatches;
+    mIsInitialized=false;
+    mNumberOfImagePairs=0;
+    mImagePairs.clear();
+    mImagesFileName.clear();
+    mImageCoordinatesOrigin=ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT;
+    mImageCoordinatesPrecision=LIBPW_IMAGE_COORDINATES_PRECISION;
+    mSensorSize=QSize(-1,-1);
+    mImages.clear();
+    mTmpFolder="";
+    mImagesPath="";
+    mImageFileNameWithoutPathsByName.clear();
+    mImageFileNamesByName.clear();
+    mImageCamerasByName.clear();
+    mImagesByName.clear();
+    mCameraName="";
+    mImagesIds.clear();
+
+    if(!QFile::exists(fileName))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, xml file not exists:\n%1").arg(fileName);
+        return(false);
+    }
+
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error opening file:\n%1").arg(fileName);
+        return(false);
+    }
+    QString errorStr;
+    QString noStr;
+    int errorLine;
+    int errorColumn;
+    if (!mDoc.setContent(&file,true,&errorStr,&errorLine,&errorColumn))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nError: %1 in line %2 in column %3").arg(errorStr).arg(QString::number(errorLine)).arg(QString::number(errorColumn));
+        return(false);
+    }
+    file.close();
+    mXmlFileName=fileName;
+    QFileInfo fileInfo(mXmlFileName);
+    mProjectPath=fileInfo.absolutePath();
+
+    // Lectura del nodo general
+    QDomNodeList generalNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_GENERAL_TAG);
+    if(generalNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag %1 in the file").arg(ORTOSKYXMLMATCHESFILE_GENERAL_TAG);
+        return(false);
+    }
+    if(generalNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one %1 node").arg(ORTOSKYXMLMATCHESFILE_GENERAL_TAG);
+        return(false);
+    }
+    QDomElement generalElement=generalNodes.at(0).toElement();
+
+    // Lectura del nodo CRS
+    QDomNodeList crsNodes=generalElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_CRS_TAG);
+    if(crsNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag %1 in the file").arg(ORTOSKYXMLMATCHESFILE_CRS_TAG);
+        return(false);
+    }
+    if(crsNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one %1 node").arg(ORTOSKYXMLMATCHESFILE_CRS_TAG);
+        return(false);
+    }
+    mCrsNode=crsNodes.at(0).cloneNode();
+    QDomElement crslElement=crsNodes.at(0).toElement();
+    QDomNodeList crsEpsgNodes=crslElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_CRS_EPSGCODE_TAG);
+    if(crsEpsgNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag %1 in the file").arg(ORTOSKYXMLMATCHESFILE_CRS_EPSGCODE_TAG);
+        return(false);
+    }
+    if(crsEpsgNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one %1 node").arg(ORTOSKYXMLMATCHESFILE_CRS_EPSGCODE_TAG);
+        return(false);
+    }
+    QString strCrsEpsgCode=crsEpsgNodes.at(0).toElement().text().trimmed();
+    bool okToInt=false;
+    int crsEpsgCode=strCrsEpsgCode.toInt(&okToInt);
+    if(!okToInt)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn node %1 value not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_EPSGCODE_TAG)
+                .arg(strCrsEpsgCode);
+        return(false);
+    }
+    mCrsEpsgCode=crsEpsgCode;
+    QDomNodeList crsZUnitNodes=crslElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_CRS_ZUNIT_TAG);
+    if(crsZUnitNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag %1 in the file").arg(ORTOSKYXMLMATCHESFILE_CRS_ZUNIT_TAG);
+        return(false);
+    }
+    if(crsZUnitNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one %1 node").arg(ORTOSKYXMLMATCHESFILE_CRS_ZUNIT_TAG);
+        return(false);
+    }
+    QString strCrsZUnit=crsZUnitNodes.at(0).toElement().text().trimmed();
+    mCrsZUnit=strCrsZUnit;
+    QDomNodeList crsToWgs84ParametersNodes=crslElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG);
+    if(crsToWgs84ParametersNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag %1 in the file").arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG);
+        return(false);
+    }
+    if(crsToWgs84ParametersNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one %1 node").arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG);
+        return(false);
+    }
+    QString strToWgs84ParameterP0=crsToWgs84ParametersNodes.at(0).toElement().attribute(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P0).trimmed();
+    bool okToDouble=false;
+    double toWgs84ParameterP0=strToWgs84ParameterP0.toDouble(&okToDouble);
+    if(!okToDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn %1 node, value for node %2 is not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG)
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P0);
+        return(false);
+    }
+    mCrsToWgs84Parameters.push_back(strToWgs84ParameterP0);
+    QString strToWgs84ParameterP1=crsToWgs84ParametersNodes.at(0).toElement().attribute(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P1).trimmed();
+    okToDouble=false;
+    double toWgs84ParameterP1=strToWgs84ParameterP1.toDouble(&okToDouble);
+    if(!okToDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn %1 node, value for node %2 is not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG)
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P1);
+        return(false);
+    }
+    mCrsToWgs84Parameters.push_back(strToWgs84ParameterP1);
+    QString strToWgs84ParameterP2=crsToWgs84ParametersNodes.at(0).toElement().attribute(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P2).trimmed();
+    okToDouble=false;
+    double toWgs84ParameterP2=strToWgs84ParameterP2.toDouble(&okToDouble);
+    if(!okToDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn %1 node, value for node %2 is not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG)
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P2);
+        return(false);
+    }
+    mCrsToWgs84Parameters.push_back(strToWgs84ParameterP2);
+    QString strToWgs84ParameterP3=crsToWgs84ParametersNodes.at(0).toElement().attribute(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P3).trimmed();
+    okToDouble=false;
+    double toWgs84ParameterP3=strToWgs84ParameterP3.toDouble(&okToDouble);
+    if(!okToDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn %1 node, value for node %2 is not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG)
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P3);
+        return(false);
+    }
+    mCrsToWgs84Parameters.push_back(strToWgs84ParameterP3);
+    QString strToWgs84ParameterP4=crsToWgs84ParametersNodes.at(0).toElement().attribute(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P4).trimmed();
+    okToDouble=false;
+    double toWgs84ParameterP4=strToWgs84ParameterP4.toDouble(&okToDouble);
+    if(!okToDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn %1 node, value for node %2 is not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG)
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P4);
+        return(false);
+    }
+    mCrsToWgs84Parameters.push_back(strToWgs84ParameterP4);
+    QString strToWgs84ParameterP5=crsToWgs84ParametersNodes.at(0).toElement().attribute(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P5).trimmed();
+    okToDouble=false;
+    double toWgs84ParameterP5=strToWgs84ParameterP5.toDouble(&okToDouble);
+    if(!okToDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn %1 node, value for node %2 is not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG)
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P5);
+        return(false);
+    }
+    mCrsToWgs84Parameters.push_back(strToWgs84ParameterP5);
+    QString strToWgs84ParameterP6=crsToWgs84ParametersNodes.at(0).toElement().attribute(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P6).trimmed();
+    okToDouble=false;
+    double toWgs84ParameterP6=strToWgs84ParameterP6.toDouble(&okToDouble);
+    if(!okToDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn %1 node, value for node %2 is not valid")
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_TAG)
+                .arg(ORTOSKYXMLMATCHESFILE_CRS_TOWGS84_ATTRIBUTE_P6);
+        return(false);
+    }
+    mCrsToWgs84Parameters.push_back(strToWgs84ParameterP6);
+
+    // Lectura de la ruta temporal donde almacenar resultados intermedios
+    QDomNodeList tmpFolderNodes=generalElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_TMP_FOLDER_PATH);
+    if(tmpFolderNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag tmpFolder in the file");
+        return(false);
+    }
+    if(tmpFolderNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one tmpFolder node");
+        return(false);
+    }
+//    QString imagesPath=pathNodes.at(0).toElement().text().trimmed();
+    QString tmpFolder=tmpFolderNodes.at(0).toElement().text().trimmed();
+    QDir tmpDir(tmpFolder);
+    if(!tmpDir.exists())
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, tmpFolder not exists:\n%1").arg(tmpFolder);
+        return(false);
+    }
+//    mImagesPath=imagesPath;
+    mTmpFolder=tmpDir.absolutePath();
+
+    // Lectura del nodo photography
+    QDomNodeList photographyNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PHOTOGRAPHY);
+    if(photographyNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nShould be only one node photography");
+        return(false);
+    }
+    QDomNode photographyNode=photographyNodes.at(0);
+    QDomElement photographyElement=photographyNode.toElement();
+
+    QDomNodeList camerasNodes=photographyElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SOURCES);
+    if(camerasNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nShould be only one node sources");
+        return(false);
+    }
+    QDomNode camerasNode=camerasNodes.at(0);
+    QDomElement camerasElement=camerasNode.toElement();
+
+    // Lectura de la información de la cámara
+    QDomNodeList cameraNodes=camerasElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SOURCE);
+    if(cameraNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag source in the file");
+        return(false);
+    }
+//    if(cameraNodes.size()>1)
+//    {
+//        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+//        strError+=QObject::tr("\nThere are more than one camera node");
+//        return(false);
+//    }
+    for(int nCamera=0;nCamera<cameraNodes.size();nCamera++)
+    {
+        QDomNode cameraNode=cameraNodes.at(nCamera);
+        QDomElement cameraElement=cameraNode.toElement();
+
+        // Lectura del nombre de la cámara
+        QDomNodeList cameraNameNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_CAMERA_NAME);
+        if(cameraNameNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading source node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSource name node is not unique");
+            return(false);
+        }
+        QDomNode cameraNameNode=cameraNameNodes.at(0);
+        QString cameraName=cameraNameNode.toElement().text().trimmed();
+        if(mCameraNames.contains(cameraName))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading source node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSource name is repeat");
+            return(false);
+        }
+
+//        // Lectura de la focal
+//        QDomNodeList focalNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_FOCAL);
+//        if(focalNodes.size()!=1)
+//        {
+//            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+//            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+//            strError+=QObject::tr("\nFocal node is not unique");
+//            return(false);
+//        }
+//        bool toDouble=false;
+//        QDomNode focalNode=focalNodes.at(0);
+//        double focal=focalNode.toElement().text().toDouble(&toDouble);
+//        if(!toDouble)
+//        {
+//            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+//            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+//            strError+=QObject::tr("\nFocal node is not valid");
+//            return(false);
+//        }
+
+        // Lectura del ancho del sensor
+        QDomNodeList sensorWidthNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORWIDTH);
+        if(sensorWidthNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading source node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor width node is not unique");
+            return(false);
+        }
+        bool toDouble=false;
+        QDomNode sensorWidthNode=sensorWidthNodes.at(0);
+        double sensorWidth=sensorWidthNode.toElement().text().toDouble(&toDouble);
+        if(!toDouble)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading source node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor width node is not valid");
+            return(false);
+        }
+
+        // Lectura del alto del sensor
+        QDomNodeList sensorHeightNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORHEIGHT);
+        if(sensorHeightNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading source node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor height node is not unique");
+            return(false);
+        }
+        toDouble=false;
+        QDomNode sensorHeightNode=sensorHeightNodes.at(0);
+        double sensorHeight=sensorHeightNode.toElement().text().toDouble(&toDouble);
+        if(!toDouble)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading source node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor heigth node is not valid");
+            return(false);
+        }
+
+        mCameraNames.push_back(cameraName);
+        mSensorWidths[cameraName]=sensorWidth;
+        mSensorHeights[cameraName]=sensorHeight;
+//        mFocals[cameraName]=focal;
+////        mXPixelSize_mms[cameraName]=;
+////        mYPixelSize_mms[cameraName]=;
+//        mImageCoordinatesOrigins[cameraName]=imageCoordinatesOrigin;
+//        mImageCoordinatesPrecisions[cameraName]=imageCoordinatesPrecision;
+    }
+
+    // Lectura del nodo sessions
+    QDomNodeList sessionsNodes=photographyElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SESSIONS);
+    if(sessionsNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nShould be only one node sessions");
+        return(false);
+    }
+    QDomNode sessionsNode=sessionsNodes.at(0);
+    QDomElement sessionsElement=sessionsNode.toElement();
+
+    QDomElement sessionElement;
+    // Lectura del nodo session
+    QDomNodeList sessionNodes=sessionsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SESSION);
+    if(sessionsNodes.size()<1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo node session");
+        return(false);
+    }
+    bool findSession=false;
+    for(int nSessionNode=0;nSessionNode<sessionNodes.size();nSessionNode++)
+    {
+        QDomNode sessionNode=sessionNodes.at(nSessionNode);
+        QDomElement auxSessionElement=sessionNode.toElement();
+        QString sessionName=auxSessionElement.attribute(ORTOSKYXMLMATCHESFILE_TAG_SESSION_ATTRIBUTE_NAME).trimmed();
+        if(sessionName.compare(mSessionName,Qt::CaseInsensitive)==0)
+        {
+            if(findSession)
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nNode session with name %1 is repeat").arg(mSessionName);
+                return(false);
+            }
+            sessionElement=auxSessionElement;
+            findSession=true;
+        }
+    }
+    if(!findSession)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo node session with name %1").arg(mSessionName);
+        return(false);
+    }
+
+    // Lectura del origen de coordenadas imagen
+    QDomNodeList imageCoordinatesOriginNodes=sessionElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+    if(imageCoordinatesOriginNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+        strError+=QObject::tr("\nNo tag ICO in camera node in the file");
+        return(false);
+    }
+    QString imageCoordinatesOrigin;
+    if(imageCoordinatesOriginNodes.size()==1)
+    {
+        QString strValue=imageCoordinatesOriginNodes.at(0).toElement().text().trimmed().toLower();
+        if(strValue.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT,Qt::CaseInsensitive)!=0
+                &&strValue.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT,Qt::CaseInsensitive)!=0)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+            return(false);
+        }
+        imageCoordinatesOrigin=strValue;
+    }
+
+    // Lectura de la precisión de las coordenadas imagen
+    QDomNodeList imageCoordinatesPrecisionNodes=sessionElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+    if(imageCoordinatesOriginNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+        strError+=QObject::tr("\nNo tag ICP in camera node in the file");
+        return(false);
+    }
+    int imageCoordinatesPrecision=0;
+    if(imageCoordinatesPrecisionNodes.size()==1)
+    {
+        QString strValue=imageCoordinatesPrecisionNodes.at(0).toElement().text().trimmed();
+        bool toInt=false;
+        int value=strValue.toInt(&toInt);
+        if(!toInt||value<0)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+            return(false);
+        }
+        imageCoordinatesPrecision=value;
+    }
+    for(int nCamera=0;nCamera<mCameraNames.size();nCamera++)
+    {
+        QString cameraName=mCameraNames.at(nCamera);
+        mImageCoordinatesOrigins[cameraName]=imageCoordinatesOrigin;
+        mImageCoordinatesPrecisions[cameraName]=imageCoordinatesPrecision;
+    }
+
+    // Lectura de las imágenes
+    QDomNodeList imagesNodes=sessionElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGES);
+    if(imagesNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag images in the session name %1").arg(mSessionName);
+        return(false);
+    }
+    if(imagesNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one images node in session name %1").arg(mSessionName);
+        return(false);
+    }
+    QDomNode imagesNode=imagesNodes.at(0);
+    QDomElement imagesElement=imagesNode.toElement();
+    QDomNodeList imageNodes=imagesElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE);
+    if(imageNodes.size()<2)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+        strError+=QObject::tr("\nIn node images must be more than one image nodes");
+        return(false);
+    }
+    for(int nImageNode=0;nImageNode<imageNodes.size();nImageNode++)
+    {
+        QDomNode imageNode=imageNodes.at(nImageNode);
+        if(!imageNode.isElement())
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("Image node number %1 is not an element").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement imageElement=imageNode.toElement();
+
+        QDomNodeList imageNameNodes=imageElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_NAME);
+        if(imageNameNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, there is not a name node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement imageNameElement=imageNameNodes.at(0).toElement();
+        QString imageName=imageNameElement.text().trimmed();
+        if(mImageNames.contains(imageName))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, image name %2 is repeat").arg(QString::number(nImageNode+1)).arg(imageName);
+            return(false);
+        }
+
+        QDomNodeList imageSourceNodes=imageElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SOURCE);
+        if(imageSourceNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, there is not a source node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement imageSourceElement=imageSourceNodes.at(0).toElement();
+        QString imageSource=imageSourceElement.attribute(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SOURCE_ATTRIBUTE_NAME).trimmed();
+        if(!mCameraNames.contains(imageSource))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, source %2 is not exists").arg(QString::number(nImageNode+1)).arg(imageSource);
+            return(false);
+        }
+        if(mCameraName.isEmpty())
+        {
+            mCameraName=imageSource;
+        }
+        else
+        {
+            if(mCameraName.compare(imageSource,Qt::CaseInsensitive)!=0)
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+                strError+=QObject::tr("\nIn image node number %1, source %2 is different to previous images").arg(QString::number(nImageNode+1)).arg(imageSource);
+                return(false);
+            }
+        }
+
+        QDomNodeList shotNodes=imageElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SHOT);
+        if(shotNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, there is not a shot node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement shotElement=shotNodes.at(0).toElement();
+        QDomNodeList shotFocalValueNodes=shotElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_SHOT_FOCAL_VALUE);
+        if(shotFocalValueNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, in shot node there is not a focal value node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement shotFocalValueElement=shotFocalValueNodes.at(0).toElement();
+        QString shotFocalValue=shotFocalValueElement.text();
+        bool toDouble=false;
+        double focal=shotFocalValue.toDouble(&toDouble);
+        if(!toDouble)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, in shot node focal node is not valid");
+            return(false);
+        }
+        if(mFocals.contains(imageSource))
+        {
+            double previousFocal=mFocals[imageSource];
+            if(fabs(previousFocal-focal)>0.001)
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+                strError+=QObject::tr("\nFor source %1 there are different values for focal in images").arg(imageSource);
+                return(false);
+            }
+        }
+        else
+        {
+            mFocals[imageSource]=focal;
+        }
+
+        QDomNodeList resourceDataNodes=imageElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_DATASOURCE);
+        if(resourceDataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn image node number %1, there is not a resource data node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement resourceDataElement=resourceDataNodes.at(0).toElement();
+        QString imageFullPathFileName=resourceDataElement.text();
+        if(!mImagesFileName.contains(imageFullPathFileName))
+        {
+            if(!QFile::exists(imageFullPathFileName))
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 there is a image that not exists: \n %2").arg(fileName).arg(imageFullPathFileName);
+                return(false);
+            }
+            PW::PWImage* ptrImage=new PW::PWImage(imageFullPathFileName);
+            QSize sensorSize=ptrImage->getSize();
+            if(mSensorSizes.contains(imageSource))
+            {
+                if(mSensorSizes[imageSource]!=sensorSize)
+                {
+                    strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                    strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+                    strError+=QObject::tr("\nIn image node number %1, for camera %2").arg(QString::number(nImageNode+1)).arg(imageSource);
+                    strError+=QObject::tr("\nsensor size is different to previous");
+                    return(false);
+                }
+            }
+            else
+                mSensorSizes[imageSource]=sensorSize;
+            PW::Camera* ptrCamera=new PW::Camera(imageSource,"no lens",mSensorWidths[imageSource],mSensorHeights[imageSource],mFocals[imageSource]);
+            ptrImage->setCamera(ptrCamera);
+            mImages.append(ptrImage);
+            mImagesFileName.append(imageFullPathFileName);
+//            if(nPhotoNode==0||mXPixelSize_mm==-1)
+//            {
+                int columns=mSensorSizes[imageSource].width();
+                int rows=mSensorSizes[imageSource].height();
+                double xPixelSize_mm=ptrCamera->getSensorWidth()/((double)columns); // en mm
+                double yPixelSize_mm=ptrCamera->getSensorHeight()/((double)rows); // en mm
+                if(mXPixelSize_mms.contains(imageSource))
+                {
+                    if(fabs(mXPixelSize_mms[imageSource]-xPixelSize_mm)>0.0005)
+                    {
+                        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+                        strError+=QObject::tr("\nIn image node number %1, for camera %2").arg(QString::number(nImageNode+1)).arg(imageSource);
+                        strError+=QObject::tr("\nx pixel size is different to previous value greather than %1 mm").arg(QString::number(0.0005,'f',4));
+                        return(false);
+                    }
+                }
+                else
+                    mXPixelSize_mms[imageSource]=xPixelSize_mm;
+                if(mYPixelSize_mms.contains(imageSource))
+                {
+                    if(fabs(mYPixelSize_mms[imageSource]-yPixelSize_mm)>0.0005)
+                    {
+                        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+                        strError+=QObject::tr("\nIn image node number %1, for camera %2").arg(QString::number(nImageNode+1)).arg(imageSource);
+                        strError+=QObject::tr("\ny pixel size is different to previous value greather than %1 mm").arg(QString::number(0.0005,'f',4));
+                        return(false);
+                    }
+                }
+                else
+                    mYPixelSize_mms[imageSource]=yPixelSize_mm;
+//            }
+            mImageNames.push_back(imageName);
+            mImagesIds[imageName]=mImageNames.size()-1;
+            mImageCamerasByName[imageName]=imageSource;
+            mImageFileNamesByName[imageName]=imageFullPathFileName;
+            mImagesByName[imageName]=ptrImage;
+            QFileInfo fileInfo(imageFullPathFileName);
+            QString imageFileNameWithoutPath=fileInfo.fileName();
+            mImageFileNameWithoutPathsByName[imageName]=imageFileNameWithoutPath;
+        }
+        else
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 repeat image: \n %2").arg(fileName).arg(imageFullPathFileName);
+            return(false);
+        }
+    }
+    mImageCoordinatesOrigin=mImageCoordinatesOrigins[mCameraName];
+    mImageCoordinatesPrecision=mImageCoordinatesPrecisions[mCameraName];
+    mSensorWidth=mSensorWidths[mCameraName];
+    mSensorHeight=mSensorHeights[mCameraName];
+    mFocal=mFocals[mCameraName];
+    mXPixelSize_mm=mXPixelSize_mms[mCameraName];
+    mYPixelSize_mm=mYPixelSize_mms[mCameraName];
+    mSensorSize=mSensorSizes[mCameraName];
+
+    // Lectura de los pares a procesar
+    QMap<QString,QVector<QString> > noDuplictadedImagePairs;
+    QDomNodeList pairsNodes=sessionElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIRS);
+    if(pairsNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+        strError+=QObject::tr("\nNo tag pairs in the file");
+        return(false);
+    }
+    if(pairsNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+        strError+=QObject::tr("\nThere are more than one pairs node");
+        return(false);
+    }
+    QDomNode pairsNode=pairsNodes.at(0);
+    QDomElement pairsElement=pairsNode.toElement();
+    QDomNodeList pairNodes=pairsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()<1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+        strError+=QObject::tr("\nIn node pairs must be one pair node at least");
+        return(false);
+    }
+    for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+    {
+        QDomNode pairNode=pairNodes.at(nPairNode);
+        if(!pairNode.isElement())
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nPair node number %1 is not an element").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement pairElement=pairNode.toElement();
+
+        QDomNodeList image1DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE1);
+        if(image1DataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a image1 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement image1Element=image1DataNodes.at(0).toElement();
+        QString image1Name=image1Element.text().trimmed();
+        if(!mImageNames.contains(image1Name))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn pair node number %1, image1 value %1 is not exists").arg(QString::number(nPairNode+1)).arg(image1Name);
+            return(false);
+        }
+
+        QDomNodeList image2DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE2);
+        if(image2DataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a image2 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement image2Element=image2DataNodes.at(0).toElement();
+        QString image2Name=image2Element.text().trimmed();
+        if(!mImageNames.contains(image2Name))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+            strError+=QObject::tr("\nIn pair node number %1, image2 value %1 is not exists").arg(QString::number(nPairNode+1)).arg(image2Name);
+            return(false);
+        }
+
+//        QString image1FileName=mImages.at(photo1)->getFullPath();
+//        QString image1Id=mImages.at(photo1)->getFileName();
+//        QString image2FileName=mImages.at(photo2)->getFullPath();
+//        QString image2Id=mImages.at(photo2)->getFileName();
+        if(!noDuplictadedImagePairs.contains(image1Name))
+        {
+            QVector<QString> aux;
+            aux.push_back(image2Name);
+            noDuplictadedImagePairs[image1Name]=aux;
+            QVector<QString> strAux;
+            strAux.push_back(image2Name);
+            mImagePairsByName[image1Name]=strAux;
+        }
+        else
+        {
+            if(noDuplictadedImagePairs[image1Name].contains(image2Name))
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nReading session node name %1").arg(mSessionName);
+                strError+=QObject::tr("\nPair duplicated (%1,%2)").arg(image1Name).arg(image2Name);
+                return(false);
+            }
+            else
+            {
+                noDuplictadedImagePairs[image1Name].push_back(image2Name);
+                mImagePairsByName[image1Name].push_back(image2Name);
+            }
+        }
+        mNumberOfImagePairs++;
+    }
+    mIsInitialized=true;
+    return(true);
+}
+
+bool ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile_v20150217(QString fileName,
+                                                                          QString& strError)
+{
+    mIsInitialized=false;
+    mNumberOfImagePairs=0;
+    mImagePairs.clear();
+    mImagesFileName.clear();
+    mImageCoordinatesOrigin=ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT;
+    mImageCoordinatesPrecision=LIBPW_IMAGE_COORDINATES_PRECISION;
+    mSensorSize=QSize(-1,-1);
+    mImages.clear();
+    mTmpFolder="";
+    mImagesPath="";
+    mImageFileNameWithoutPathsByName.clear();
+    mImageFileNamesByName.clear();
+    mImageCamerasByName.clear();
+    mImagesByName.clear();
+    mCameraName="";
+    mImagesIds.clear();
+
+    if(!QFile::exists(fileName))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, xml file not exists:\n%1").arg(fileName);
+        return(false);
+    }
+
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error opening file:\n%1").arg(fileName);
+        return(false);
+    }
+    QString errorStr;
+    QString noStr;
+    int errorLine;
+    int errorColumn;
+    if (!mDoc.setContent(&file,true,&errorStr,&errorLine,&errorColumn))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nError: %1 in line %2 in column %3").arg(errorStr).arg(QString::number(errorLine)).arg(QString::number(errorColumn));
+        return(false);
+    }
+    file.close();
+    mXmlFileName=fileName;
+    QFileInfo fileInfo(mXmlFileName);
+    mProjectPath=fileInfo.absolutePath();
+
+    // Lectura de la ruta temporal donde almacenar resultados intermedios
+    QDomNodeList tmpFolderNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_TMP_FOLDER_PATH);
+    if(tmpFolderNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag tmpFolder in the file");
+        return(false);
+    }
+    if(tmpFolderNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one tmpFolder node");
+        return(false);
+    }
+//    QString imagesPath=pathNodes.at(0).toElement().text().trimmed();
+    QString tmpFolder=tmpFolderNodes.at(0).toElement().text().trimmed();
+    QDir tmpDir(tmpFolder);
+    if(!tmpDir.exists())
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, tmpFolder not exists:\n%1").arg(tmpFolder);
+        return(false);
+    }
+//    mImagesPath=imagesPath;
+    mTmpFolder=tmpDir.absolutePath();
+
+    // Lectura del nodo flights
+    QDomNodeList flightsNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_FLIGHTS);
+    if(flightsNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nShould be only one node flights");
+        return(false);
+    }
+    QDomNode flightsNode=flightsNodes.at(0);
+    QDomElement flightsElement=flightsNode.toElement();
+    QDomNodeList flightNodes=flightsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_FLIGHT);
+    if(flightNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nShould be only one node flight");
+        return(false);
+    }
+    QDomNode flightNode=flightsNodes.at(0);
+    QDomElement flightElement=flightNode.toElement();
+
+    QDomNodeList camerasNodes=flightElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_CAMERAS);
+    if(camerasNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nShould be only one node cameras");
+        return(false);
+    }
+    QDomNode camerasNode=camerasNodes.at(0);
+    QDomElement camerasElement=camerasNode.toElement();
+
+    // Lectura de la información de la cámara
+    QDomNodeList cameraNodes=camerasElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_CAMERA);
+    if(cameraNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag camera in the file");
+        return(false);
+    }
+//    if(cameraNodes.size()>1)
+//    {
+//        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+//        strError+=QObject::tr("\nThere are more than one camera node");
+//        return(false);
+//    }
+    for(int nCamera=0;nCamera<cameraNodes.size();nCamera++)
+    {
+        QDomNode cameraNode=cameraNodes.at(nCamera);
+        QDomElement cameraElement=cameraNode.toElement();
+
+        // Lectura del nombre de la cámara
+        QDomNodeList cameraNameNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_CAMERA_NAME);
+        if(cameraNameNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nCamera name node is not unique");
+            return(false);
+        }
+        QDomNode cameraNameNode=cameraNameNodes.at(0);
+        QString cameraName=cameraNameNode.toElement().text().trimmed();
+        if(mCameraNames.contains(cameraName))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nCamera name is repeat");
+            return(false);
+        }
+
+        // Lectura de la focal
+        QDomNodeList focalNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_FOCAL);
+        if(focalNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nFocal node is not unique");
+            return(false);
+        }
+        bool toDouble=false;
+        QDomNode focalNode=focalNodes.at(0);
+        double focal=focalNode.toElement().text().toDouble(&toDouble);
+        if(!toDouble)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nFocal node is not valid");
+            return(false);
+        }
+
+        // Lectura del ancho del sensor
+        QDomNodeList sensorWidthNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORWIDTH);
+        if(sensorWidthNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor width node is not unique");
+            return(false);
+        }
+        toDouble=false;
+        QDomNode sensorWidthNode=sensorWidthNodes.at(0);
+        double sensorWidth=sensorWidthNode.toElement().text().toDouble(&toDouble);
+        if(!toDouble)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor width node is not valid");
+            return(false);
+        }
+
+        // Lectura del alto del sensor
+        QDomNodeList sensorHeightNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORHEIGHT);
+        if(sensorHeightNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor height node is not unique");
+            return(false);
+        }
+        toDouble=false;
+        QDomNode sensorHeightNode=sensorHeightNodes.at(0);
+        double sensorHeight=sensorHeightNode.toElement().text().toDouble(&toDouble);
+        if(!toDouble)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nSensor heigth node is not valid");
+            return(false);
+        }
+
+        // Lectura del origen de coordenadas imagen
+        QDomNodeList imageCoordinatesOriginNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+        if(imageCoordinatesOriginNodes.size()==0)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nNo tag imageCoordinatesOrigin in camera node in the file");
+            return(false);
+        }
+        QString imageCoordinatesOrigin;
+        if(imageCoordinatesOriginNodes.size()==1)
+        {
+            QString strValue=imageCoordinatesOriginNodes.at(0).toElement().text().trimmed().toLower();
+            if(strValue.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT)!=0
+                    &&strValue.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT)!=0)
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+                strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+                return(false);
+            }
+            imageCoordinatesOrigin=strValue;
+        }
+
+        // Lectura de la precisión de las coordenadas imagen
+        QDomNodeList imageCoordinatesPrecisionNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+        if(imageCoordinatesOriginNodes.size()==0)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+            strError+=QObject::tr("\nNo tag imageCoordinatesPrecision in camera node in the file");
+            return(false);
+        }
+        int imageCoordinatesPrecision=0;
+        if(imageCoordinatesPrecisionNodes.size()==1)
+        {
+            QString strValue=imageCoordinatesPrecisionNodes.at(0).toElement().text().trimmed();
+            bool toInt=false;
+            int value=strValue.toInt(&toInt);
+            if(!toInt||value<0)
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nReading camera node number %1").arg(QString::number(nCamera+1));
+                strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+                return(false);
+            }
+            imageCoordinatesPrecision=value;
+        }
+
+        mCameraNames.push_back(cameraName);
+        mSensorWidths[cameraName]=sensorWidth;
+        mSensorHeights[cameraName]=sensorHeight;
+        mFocals[cameraName]=focal;
+//        mXPixelSize_mms[cameraName]=;
+//        mYPixelSize_mms[cameraName]=;
+        mImageCoordinatesOrigins[cameraName]=imageCoordinatesOrigin;
+        mImageCoordinatesPrecisions[cameraName]=imageCoordinatesPrecision;
+    }
+
+    // Lectura de las imágenes
+    QDomNodeList imagesNodes=flightElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGES);
+    if(imagesNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag images in the file");
+        return(false);
+    }
+    if(imagesNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one images node");
+        return(false);
+    }
+    QDomNode imagesNode=imagesNodes.at(0);
+    QDomElement imagesElement=imagesNode.toElement();
+    QDomNodeList imageNodes=imagesElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE);
+    if(imageNodes.size()<2)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn node images must be more than one image nodes");
+        return(false);
+    }
+    for(int nImageNode=0;nImageNode<imageNodes.size();nImageNode++)
+    {
+        QDomNode imageNode=imageNodes.at(nImageNode);
+        if(!imageNode.isElement())
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("Image node number %1 is not an element").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement imageElement=imageNode.toElement();
+
+        QDomNodeList imageNameNodes=imageElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_NAME);
+        if(imageNameNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn image node number %1, there is not a name node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement imageNameElement=imageNameNodes.at(0).toElement();
+        QString imageName=imageNameElement.text().trimmed();
+        if(mImageNames.contains(imageName))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn image node number %1, image name %2 is repeat").arg(QString::number(nImageNode+1)).arg(imageName);
+            return(false);
+        }
+
+        QDomNodeList imageCameraNodes=imageElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_CAMERA);
+        if(imageCameraNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn image node number %1, there is not a camera node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement imageCameraElement=imageCameraNodes.at(0).toElement();
+        QString imageCamera=imageCameraElement.text().trimmed();
+        if(!mCameraNames.contains(imageCamera))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn image node number %1, camera %2 is not exists").arg(QString::number(nImageNode+1)).arg(imageCamera);
+            return(false);
+        }
+        if(mCameraName.isEmpty())
+        {
+            mCameraName=imageCamera;
+        }
+        else
+        {
+            if(mCameraName.compare(imageCamera,Qt::CaseInsensitive)!=0)
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nIn image node number %1, camera %2 is different to previous images").arg(QString::number(nImageNode+1)).arg(imageCamera);
+                return(false);
+            }
+        }
+
+        QDomNodeList resourceDataNodes=imageElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_DATASOURCE);
+        if(resourceDataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn image node number %1, there is not a resource data node").arg(QString::number(nImageNode+1));
+            return(false);
+        }
+        QDomElement resourceDataElement=resourceDataNodes.at(0).toElement();
+        QString imageFullPathFileName=resourceDataElement.text();
+        if(!mImagesFileName.contains(imageFullPathFileName))
+        {
+            if(!QFile::exists(imageFullPathFileName))
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 there is a image that not exists: \n %2").arg(fileName).arg(imageFullPathFileName);
+                return(false);
+            }
+            PW::PWImage* ptrImage=new PW::PWImage(imageFullPathFileName);
+            QSize sensorSize=ptrImage->getSize();
+            if(mSensorSizes.contains(imageCamera))
+            {
+                if(mSensorSizes[imageCamera]!=sensorSize)
+                {
+                    strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                    strError+=QObject::tr("\nIn image node number %1, for camera %2").arg(QString::number(nImageNode+1)).arg(imageCamera);
+                    strError+=QObject::tr("\nsensor size is different to previous");
+                    return(false);
+                }
+            }
+            else
+                mSensorSizes[imageCamera]=sensorSize;
+            PW::Camera* ptrCamera=new PW::Camera(imageCamera,"no lens",mSensorWidths[imageCamera],mSensorHeights[imageCamera],mFocals[imageCamera]);
+            ptrImage->setCamera(ptrCamera);
+            mImages.append(ptrImage);
+            mImagesFileName.append(imageFullPathFileName);
+//            if(nPhotoNode==0||mXPixelSize_mm==-1)
+//            {
+                int columns=mSensorSizes[imageCamera].width();
+                int rows=mSensorSizes[imageCamera].height();
+                double xPixelSize_mm=ptrCamera->getSensorWidth()/((double)columns); // en mm
+                double yPixelSize_mm=ptrCamera->getSensorHeight()/((double)rows); // en mm
+                if(mXPixelSize_mms.contains(imageCamera))
+                {
+                    if(fabs(mXPixelSize_mms[imageCamera]-xPixelSize_mm)>0.0005)
+                    {
+                        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                        strError+=QObject::tr("\nIn image node number %1, for camera %2").arg(QString::number(nImageNode+1)).arg(imageCamera);
+                        strError+=QObject::tr("\nx pixel size is different to previous value greather than %1 mm").arg(QString::number(0.0005,'f',4));
+                        return(false);
+                    }
+                }
+                else
+                    mXPixelSize_mms[imageCamera]=xPixelSize_mm;
+                if(mYPixelSize_mms.contains(imageCamera))
+                {
+                    if(fabs(mYPixelSize_mms[imageCamera]-yPixelSize_mm)>0.0005)
+                    {
+                        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                        strError+=QObject::tr("\nIn image node number %1, for camera %2").arg(QString::number(nImageNode+1)).arg(imageCamera);
+                        strError+=QObject::tr("\ny pixel size is different to previous value greather than %1 mm").arg(QString::number(0.0005,'f',4));
+                        return(false);
+                    }
+                }
+                else
+                    mYPixelSize_mms[imageCamera]=yPixelSize_mm;
+//            }
+            mImageNames.push_back(imageName);
+            mImagesIds[imageName]=mImageNames.size()-1;
+            mImageCamerasByName[imageName]=imageCamera;
+            mImageFileNamesByName[imageName]=imageFullPathFileName;
+            mImagesByName[imageName]=ptrImage;
+            QFileInfo fileInfo(imageFullPathFileName);
+            QString imageFileNameWithoutPath=fileInfo.fileName();
+            mImageFileNameWithoutPathsByName[imageName]=imageFileNameWithoutPath;
+        }
+        else
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 repeat image: \n %2").arg(fileName).arg(imageFullPathFileName);
+            return(false);
+        }
+    }
+    mImageCoordinatesOrigin=mImageCoordinatesOrigins[mCameraName];
+    mImageCoordinatesPrecision=mImageCoordinatesPrecisions[mCameraName];
+    mSensorWidth=mSensorWidths[mCameraName];
+    mSensorHeight=mSensorHeights[mCameraName];
+    mFocal=mFocals[mCameraName];
+    mXPixelSize_mm=mXPixelSize_mms[mCameraName];
+    mYPixelSize_mm=mYPixelSize_mms[mCameraName];
+    mSensorSize=mSensorSizes[mCameraName];
+
+    // Lectura de los pares a procesar
+    QMap<QString,QVector<QString> > noDuplictadedImagePairs;
+    QDomNodeList pairsNodes=flightElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIRS);
+    if(pairsNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag pairs in the file");
+        return(false);
+    }
+    if(pairsNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one pairs node");
+        return(false);
+    }
+    QDomNode pairsNode=pairsNodes.at(0);
+    QDomElement pairsElement=pairsNode.toElement();
+    QDomNodeList pairNodes=pairsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()<1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn node pairs must be one pair node at least");
+        return(false);
+    }
+    for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+    {
+        QDomNode pairNode=pairNodes.at(nPairNode);
+        if(!pairNode.isElement())
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nPair node number %1 is not an element").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement pairElement=pairNode.toElement();
+
+        QDomNodeList image1DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE1);
+        if(image1DataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a image1 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement image1Element=image1DataNodes.at(0).toElement();
+        QString image1Name=image1Element.text().trimmed();
+        if(!mImageNames.contains(image1Name))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, image1 value %1 is not exists").arg(QString::number(nPairNode+1)).arg(image1Name);
+            return(false);
+        }
+
+        QDomNodeList image2DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE2);
+        if(image2DataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a image2 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement image2Element=image2DataNodes.at(0).toElement();
+        QString image2Name=image2Element.text().trimmed();
+        if(!mImageNames.contains(image2Name))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, image2 value %1 is not exists").arg(QString::number(nPairNode+1)).arg(image2Name);
+            return(false);
+        }
+
+//        QString image1FileName=mImages.at(photo1)->getFullPath();
+//        QString image1Id=mImages.at(photo1)->getFileName();
+//        QString image2FileName=mImages.at(photo2)->getFullPath();
+//        QString image2Id=mImages.at(photo2)->getFileName();
+        if(!noDuplictadedImagePairs.contains(image1Name))
+        {
+            QVector<QString> aux;
+            aux.push_back(image2Name);
+            noDuplictadedImagePairs[image1Name]=aux;
+            QVector<QString> strAux;
+            strAux.push_back(image2Name);
+            mImagePairsByName[image1Name]=strAux;
+        }
+        else
+        {
+            if(noDuplictadedImagePairs[image1Name].contains(image2Name))
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nPair duplicated (%1,%2)").arg(image1Name).arg(image2Name);
+                return(false);
+            }
+            else
+            {
+                noDuplictadedImagePairs[image1Name].push_back(image2Name);
+                mImagePairsByName[image1Name].push_back(image2Name);
+            }
+        }
+        mNumberOfImagePairs++;
+    }
+    mIsInitialized=true;
+    return(true);
+}
+/*
+bool ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile_v2014(QString fileName,
+                                                                      QString& strError)
+{
+    mIsInitialized=false;
+    mNumberOfImagePairs=0;
+    mImagePairs.clear();
+    mImagesFileName.clear();
+    mImageCoordinatesOrigin=ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT;
+    mImageCoordinatesPrecision=LIBPW_IMAGE_COORDINATES_PRECISION;
+    mSensorSize=QSize(-1,-1);
+    mImages.clear();
+
+    if(!QFile::exists(fileName))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, xml file not exists:\n%1").arg(fileName);
+        return(false);
+    }
+
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error opening file:\n%1").arg(fileName);
+        return(false);
+    }
+    QString errorStr;
+    QString noStr;
+    int errorLine;
+    int errorColumn;
+    if (!mDoc.setContent(&file,true,&errorStr,&errorLine,&errorColumn))
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nError: %1 in line %2 in column %3").arg(errorStr).arg(QString::number(errorLine)).arg(QString::number(errorColumn));
+        return(false);
+    }
+    file.close();
+    mXmlFileName=fileName;
+    QFileInfo fileInfo(mXmlFileName);
+    mProjectPath=fileInfo.absolutePath();
+
+    // Lectura de la ruta del proyecto, donde deben estar las imágenes
+    QDomNodeList pathNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PROJECT_PATH);
+    if(pathNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag projectPath in the file");
+        return(false);
+    }
+    if(pathNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one projectPath node");
+        return(false);
+    }
+    QString imagesPath=pathNodes.at(0).toElement().text().trimmed();
+    QDir imagesDir(imagesPath);
+    if(!imagesDir.exists())
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, imagesPath not exists:\n%1").arg(imagesPath);
+        return(false);
+    }
+    mImagesPath=imagesPath;
+
+    // Lectura de la información de la cámara
+    QDomNodeList cameraNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_CAMERA);
+    if(cameraNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag camera in the file");
+        return(false);
+    }
+    if(cameraNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one camera node");
+        return(false);
+    }
+    QDomNode cameraNode=cameraNodes.at(0);
+    QDomElement cameraElement=cameraNode.toElement();
+
+    // Lectura de la focal
+    QDomNodeList focalNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_FOCAL);
+    if(focalNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nFocal node is not unique");
+        return(false);
+    }
+    bool toDouble=false;
+    QDomNode focalNode=focalNodes.at(0);
+    mFocal=focalNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nFocal node is not valid");
+        return(false);
+    }
+
+    // Lectura del ancho del sensor
+    QDomNodeList sensorWidthNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORWIDTH);
+    if(sensorWidthNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor width node is not unique");
+        return(false);
+    }
+    toDouble=false;
+    QDomNode sensorWidthNode=sensorWidthNodes.at(0);
+    mSensorWidth=sensorWidthNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor width node is not valid");
+        return(false);
+    }
+
+    // Lectura del alto del sensor
+    QDomNodeList sensorHeightNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORHEIGHT);
+    if(sensorHeightNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor height node is not unique");
+        return(false);
+    }
+    toDouble=false;
+    QDomNode sensorHeightNode=sensorHeightNodes.at(0);
+    mSensorHeight=sensorHeightNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor heigth node is not valid");
+        return(false);
+    }
+
+    // Lectura del nombre de la cámara
+    QDomNodeList cameraNameNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_CAMERA_NAME);
+    if(cameraNameNodes.size()!=1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nCamera name node is not unique");
+        return(false);
+    }
+    QDomNode cameraNameNode=cameraNameNodes.at(0);
+    mCameraName=cameraNameNode.toElement().text();
+
+    // Lectura del origen de coordenadas imagen
+    QDomNodeList imageCoordinatesOriginNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+    if(imageCoordinatesOriginNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag imageCoordinatesOrigin in camera node in the file");
+        return(false);
+    }
+    if(imageCoordinatesOriginNodes.size()==1)
+    {
+        QString strValue=imageCoordinatesOriginNodes.at(0).toElement().text().trimmed();
+        if(strValue.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT)!=0
+                &&strValue.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT)!=0)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+            return(false);
+        }
+        mImageCoordinatesOrigin=strValue;
+    }
+
+    // Lectura de la precisión de las coordenadas imagen
+    QDomNodeList imageCoordinatesPrecisionNodes=cameraElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+    if(imageCoordinatesOriginNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag imageCoordinatesPrecision in camera node in the file");
+        return(false);
+    }
+    if(imageCoordinatesPrecisionNodes.size()==1)
+    {
+        QString strValue=imageCoordinatesPrecisionNodes.at(0).toElement().text().trimmed();
+        bool toInt=false;
+        int value=strValue.toInt(&toInt);
+        if(!toInt||value<0)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(ORTOSKYXMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+            return(false);
+        }
+        mImageCoordinatesPrecision=value;
+    }
+
+    // Lectura de las imágenes
+    QDomNodeList photosNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PHOTOS);
+    if(photosNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag photos in the file");
+        return(false);
+    }
+    if(photosNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one photos node");
+        return(false);
+    }
+    QDomNode photosNode=photosNodes.at(0);
+    QDomElement photosElement=photosNode.toElement();
+    QDomNodeList photoNodes=photosElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PHOTO);
+    if(photoNodes.size()<2)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn node photos must be more than one photo nodes");
+        return(false);
+    }
+    for(int nPhotoNode=0;nPhotoNode<photoNodes.size();nPhotoNode++)
+    {
+        QDomNode photoNode=photoNodes.at(nPhotoNode);
+        if(!photoNode.isElement())
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nPhoto node number %1 is not an element").arg(QString::number(nPhotoNode+1));
+            return(false);
+        }
+        QDomElement photoElement=photoNode.toElement();
+        QDomNodeList resourceDataNodes=photoElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_DATASOURCE);
+        if(resourceDataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn photo node number %1, there is not a resource data node").arg(QString::number(nPhotoNode+1));
+            return(false);
+        }
+        QDomElement resourceDataElement=resourceDataNodes.at(0).toElement();
+        QString imageFullPathFileName=resourceDataElement.text();
+        if(!mImagesFileName.contains(imageFullPathFileName))
+        {
+            if(!QFile::exists(imageFullPathFileName))
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 there is a image that not exists: \n %2").arg(fileName).arg(imageFullPathFileName);
+                return(false);
+            }
+            PW::PWImage* ptrImage=new PW::PWImage(imageFullPathFileName);
+            QSize sensorSize=ptrImage->getSize();
+            if(mSensorSize.height()==-1
+                    &&mSensorSize.width()==-1)
+            {
+                mSensorSize=sensorSize;
+            }
+            else
+            {
+                if(mSensorSize!=sensorSize)
+                {
+                    strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 there is a image with sensor size invalid: \n %2").arg(fileName).arg(imageFullPathFileName);
+                    return(false);
+                }
+            }
+            PW::Camera* ptrCamera=new PW::Camera(mCameraName,"no lens",mSensorWidth,mSensorHeight,mFocal);
+            ptrImage->setCamera(ptrCamera);
+            mImages.append(ptrImage);
+            mImagesFileName.append(imageFullPathFileName);
+            if(nPhotoNode==0||mXPixelSize_mm==-1)
+            {
+                int columns=mSensorSize.width();
+                int rows=mSensorSize.height();
+                mXPixelSize_mm=ptrCamera->getSensorWidth()/((double)columns); // en mm
+                mYPixelSize_mm=ptrCamera->getSensorHeight()/((double)rows); // en mm
+            }
+        }
+        else
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 repeat image: \n %2").arg(fileName).arg(imageFullPathFileName);
+            return(false);
+        }
+    }
+
+    // Lectura de los pares a procesar
+    QMap<int,QVector<int> > noDuplictadedImagePairs;
+    QDomNodeList pairsNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIRS);
+    if(pairsNodes.size()==0)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag pairs in the file");
+        return(false);
+    }
+    if(pairsNodes.size()>1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one pairs node");
+        return(false);
+    }
+    QDomNode pairsNode=pairsNodes.at(0);
+    QDomElement pairsElement=pairsNode.toElement();
+    QDomNodeList pairNodes=pairsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()<1)
+    {
+        strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn node pairs must be one pair node at least");
+        return(false);
+    }
+    for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+    {
+        QDomNode pairNode=pairNodes.at(nPairNode);
+        if(!pairNode.isElement())
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nPair node number %1 is not an element").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement pairElement=pairNode.toElement();
+
+        QDomNodeList photo1DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_PHOTO1);
+        if(photo1DataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a photo1 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement photo1Element=photo1DataNodes.at(0).toElement();
+        QString strPhoto1=photo1Element.text();
+        bool toInt=false;
+        int photo1=strPhoto1.toInt(&toInt);
+        if(!toInt||photo1<0||photo1>(mImages.size()-1))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, photo1 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(strPhoto1);
+            return(false);
+        }
+
+        QDomNodeList photo2DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_PHOTO2);
+        if(photo2DataNodes.size()!=1)
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a photo2 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement photo2Element=photo2DataNodes.at(0).toElement();
+        QString strPhoto2=photo2Element.text();
+        toInt=false;
+        int photo2=strPhoto2.toInt(&toInt);
+        if(!toInt||photo2<0||photo2>(mImages.size()-1))
+        {
+            strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, photo2 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(strPhoto2);
+            return(false);
+        }
+
+        QString image1FileName=mImages.at(photo1)->getFullPath();
+        QString image1Id=mImages.at(photo1)->getFileName();
+        QString image2FileName=mImages.at(photo2)->getFullPath();
+        QString image2Id=mImages.at(photo2)->getFileName();
+        if(!noDuplictadedImagePairs.contains(photo1))
+        {
+            QVector<int> aux;
+            aux.push_back(photo2);
+            noDuplictadedImagePairs[photo1]=aux;
+            QVector<QString> strAux;
+            strAux.push_back(image2Id);
+            mImagePairs[image1Id]=strAux;
+        }
+        else
+        {
+            if(noDuplictadedImagePairs[photo1].contains(photo2))
+            {
+                strError=QObject::tr("ExternalInterfaceProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nPair duplicated (%1,%2)").arg(QString::number(photo1)).arg(QString::number(photo2));
+                return(false);
+            }
+            else
+            {
+                noDuplictadedImagePairs[photo1].push_back(photo2);
+                mImagePairs[image1Id].push_back(image2Id);
+            }
+        }
+        mNumberOfImagePairs++;
+    }
+    mIsInitialized=true;
+    return(true);
+}
+*/
+bool ExternalInterfaceProcessMonitor::removeDir(QString dirName)
+{
+    bool result = true;
+    QDir dir(dirName);
+    if (dir.exists(dirName)) {
+        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+            if (info.isDir()) {
+                result = removeDir(info.absoluteFilePath());
+            }
+            else {
+                result = QFile::remove(info.absoluteFilePath());
+            }
+            if (!result) {
+                return result;
+            }
+        }
+        result = dir.rmdir(dirName);
+    }
+    return result;
+}
+
+int ExternalInterfaceProcessMonitor::replace(QFile *inputFile, QFile *outputFile, QString from, QString to)
+{
+    if (inputFile->open(QIODevice::ReadOnly)){
+        QString baseString(inputFile->readAll());
+        baseString.replace(QRegExp(from),to);
+        inputFile->close();
+
+        if(outputFile->open(QIODevice::WriteOnly)){
+            QTextStream outputStream(outputFile);
+            outputStream << baseString << "\n";
+
+            outputFile->close();
+        }
+    }
+    return true;
+}
+
+bool ExternalInterfaceProcessMonitor::removeRubbish(QString &strError)
+{
+    QDir auxDir=QDir::currentPath();
+    for(int i=0;i<mFilesToRemove.size();i++)
+    {
+        QString file=mFilesToRemove[i];
+        if(QFile::exists(file))
+        {
+            if(!QFile::remove(file))
+            {
+                strError=tr("Error removing file:\n %1\n").arg(file);
+                return(false);
+            }
+        }
+    }
+    for(int i=0;i<mPathsToRemove.size();i++)
+    {
+        QString path=mPathsToRemove[i];
+        if(auxDir.exists(path))
+        {
+            if(!removeDir(path))
+            {
+                strError=tr("Error removing directory:\n %1\n").arg(path);
+                return(false);
+            }
+        }
+    }
+    return(true);
+}

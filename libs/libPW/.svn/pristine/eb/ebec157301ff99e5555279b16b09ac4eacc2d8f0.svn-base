@@ -1,0 +1,549 @@
+#include <QString>
+#include <QStringList>
+#include <QVector>
+#include <QMap>
+#include <QObject>
+
+#include "PWGraphImages.h"
+
+using namespace PW;
+
+PWGraphImages::PWGraphImages()
+{
+}
+
+bool PWGraphImages::createGraph(QVector<QString> images,
+                                QMap<QString, QVector<QString> > &imagePairs)
+{
+    //mImagePairs=imagePairs;
+    // Lo creo siempre en los dos sentidos:
+    mImagePairs.clear();
+    mImages=images;
+    QMap<QString, QVector<QString> >::const_iterator iter=imagePairs.begin();
+    while(iter!=imagePairs.end())
+    {
+        QString firstImage=iter.key();
+        QVector<QString> secondImages=iter.value();
+        for(int nSi=0;nSi<secondImages.size();nSi++)
+        {
+            QString secondImage=secondImages.at(nSi);
+            if(mImagePairs.contains(firstImage))
+            {
+                if(!mImagePairs[firstImage].contains(secondImage))
+                {
+                    mImagePairs[firstImage].push_back(secondImage);
+                }
+            }
+            else
+            {
+                QVector<QString> aux;
+                aux.push_back(secondImage);
+                mImagePairs[firstImage]=aux;
+            }
+            if(mImagePairs.contains(secondImage))
+            {
+                if(!mImagePairs[secondImage].contains(firstImage))
+                {
+                    mImagePairs[secondImage].push_back(firstImage);
+                }
+            }
+            else
+            {
+                QVector<QString> aux;
+                aux.push_back(firstImage);
+                mImagePairs[secondImage]=aux;
+            }
+        }
+        iter++;
+    }
+
+    mOrderedImages.clear();
+    mUnorderedImages.clear();
+    mLevelImages.clear();
+    mLevels.clear();
+    mGraphIsConnected=false;
+
+    // 1. Determino el conjunto de subgrafos
+    QVector<QVector<QString> > unorderedImages;
+    QVector<QString> connectedImages;
+    for(int i=0;i<mImages.size();i++)
+    {
+        QString image=mImages.at(i);
+        if(connectedImages.contains(image))
+            continue;
+        QVector<QString> connections;
+        connections.push_back(image);
+        connectedImages.push_back(image);
+        int initialPos=0;
+        getConnections(initialPos,connections,connectedImages);
+        unorderedImages.push_back(connections);
+    }
+    QVector<bool> unorderedImagesOrdered;
+    for(int i=0;i<unorderedImages.size();i++)
+    {
+        unorderedImagesOrdered.push_back(false);
+    }
+    for(int i=0;i<unorderedImages.size();i++)
+    {
+        int max=0;
+        int posMax=-1;
+        for(int j=0;j<unorderedImages.size();j++)
+        {
+            if(!unorderedImagesOrdered[j]
+                    &&unorderedImages[j].size()>max)
+            {
+                posMax=j;
+                max=unorderedImages[j].size();
+            }
+        }
+        mUnorderedImages.push_back(unorderedImages[posMax]);
+        unorderedImagesOrdered[posMax]=true;
+    }
+    /*
+    QVector<QString> unorderedImages;
+    mUnorderedImages.push_back(unorderedImages);
+    iter=mImagePairs.begin();
+    while(iter!=mImagePairs.end())
+    {
+        QString firstImage=iter.key();
+        QVector<QString> secondImages=iter.value();
+        int posConnected=-1;
+        for(int nG=0;nG<mUnorderedImages.size();nG++)
+        {
+            if(mUnorderedImages[nG].contains(firstImage))
+            {
+                posConnected=nG;
+                break;
+            }
+        }
+        if(posConnected==-1)
+        {
+            for(int nSi=0;nSi<secondImages.size();nSi++)
+            {
+                QString secondImage=secondImages[nSi];
+                for(int nG=0;nG<mUnorderedImages.size();nG++)
+                {
+                    if(mUnorderedImages[nG].contains(secondImage))
+                    {
+                        posConnected=nG;
+                        break;
+                    }
+                }
+            }
+        }
+        if(posConnected==-1)
+        {
+            if(mUnorderedImages[mUnorderedImages.size()-1].size()>0)
+            {
+                QVector<QString> unorderedImages;
+                mUnorderedImages.push_back(unorderedImages);
+            }
+            posConnected=mUnorderedImages.size()-1;
+        }
+
+        if(!mUnorderedImages[posConnected].contains(firstImage))
+            mUnorderedImages[posConnected].push_back(firstImage);
+        for(int nSi=0;nSi<secondImages.size();nSi++)
+        {
+            QString secondImage=secondImages[nSi];
+            if(!mUnorderedImages[posConnected].contains(secondImage))
+            {
+                mUnorderedImages[posConnected].push_back(secondImage);
+            }
+        }
+        iter++;
+    }
+    */
+
+    // 2. Itero sobre cada subgrafo
+    for(int nG=0;nG<mUnorderedImages.size();nG++)
+    {
+        QVector<QString> orderedImages;
+        mOrderedImages.push_back(orderedImages);
+        QMap<QString,int> levelImages;
+        mLevelImages.push_back(levelImages);
+        QVector<QVector<QString> > levels;
+        mLevels.push_back(levels);
+
+        if(mUnorderedImages[nG].size()==1)
+        {
+            QString image=mUnorderedImages[nG][0];
+            QVector<QString> level;
+            mOrderedImages[nG].push_back(image);
+            mUnorderedImages[nG].remove(0);
+            level.push_back(image);
+            mLevelImages[nG][image]=mLevels[nG].size();
+            mLevels[nG].push_back(level);
+            continue;
+        }
+        bool control=true;
+        while(control)
+        {
+            QVector<QString> candidates;
+            if(!getCandidates(nG,candidates))
+                return(false);
+            QVector<QString> level;
+            if(candidates.size()==1)
+            {
+                QString image=candidates[0];
+                mOrderedImages[nG].push_back(image);
+                int pos=mUnorderedImages[nG].indexOf(image);
+                mUnorderedImages[nG].remove(pos);
+                level.push_back(image);
+                mLevelImages[nG][image]=mLevels[nG].size();
+                mLevels[nG].push_back(level);
+            }
+            else if(candidates.size()>1)
+            {
+                QVector<QString> level;
+                for(int nC=0;nC<candidates.size();nC++)
+                {
+                    QString image;
+                    if(!getCandidate(nG,candidates,image))
+                        return(false);
+                    mOrderedImages[nG].push_back(image);
+                    int pos=mUnorderedImages[nG].indexOf(image);
+                    mUnorderedImages[nG].remove(pos);
+                    level.push_back(image);
+                    mLevelImages[nG][image]=mLevels[nG].size();
+                }
+    //            QString image=candidates[candidates.size()-1];
+    //            level.push_back(image);
+    //            mLevelImages[image]=mLevels.size();
+                mLevels[nG].push_back(level);
+            }
+            else if(candidates.size()==0) // Hay que decidir que hacer
+            {
+                return(false);
+            }
+            if(mUnorderedImages[nG].size()==0)
+            {
+                control=false;
+            }
+        }
+    }
+    if(mUnorderedImages.size()==1)
+        mGraphIsConnected=true;
+    return(true);
+}
+
+void PWGraphImages::getImagePairs(QMap<QString, QVector<QString> > &imagePairs)
+{
+    imagePairs=mImagePairs;
+}
+
+bool PWGraphImages::getOrderedImages(int nGraph, QVector<QString> &orderedImages)
+{
+    if(nGraph>(mOrderedImages.size()-1))
+        return(false);
+    orderedImages=mOrderedImages[nGraph];
+    return(true);
+}
+
+bool PWGraphImages::getNthOrderedImages(int nImages, QVector<QString> &orderedImages)
+{
+    if(!mGraphIsConnected)
+        return(false);
+    if(nImages>mOrderedImages[0].size())
+        return(false);
+    for(int nImage=0;nImage<nImages;nImage++)
+    {
+        orderedImages.push_back(mOrderedImages[0][nImage]);
+    }
+    return(true);
+}
+
+void PWGraphImages::getInvalidMatchedCategoryExplanation(QString &title,
+                                                         QStringList &subgraphs)
+{
+    subgraphs.clear();
+    title=QObject::tr("Invalid TiePointsSet because its graph is disconnected.\n");
+    title+=QObject::tr("It has %1 subgraphs:").arg(QString::number(mOrderedImages.size()));
+    for(int i=0;i<mOrderedImages.size();i++)
+    {
+        QString subgraph=QObject::tr("Images in subGraph number %1:\n").arg(QString::number(i+1));
+        QVector<QString> images=mOrderedImages[i];
+        int columns=0;
+        for(int j=0;j<images.size();j++)
+        {
+            columns++;
+            if(columns==0)
+                subgraph+=QObject::tr("\t");
+            subgraph+=QObject::tr("%1").arg(images[j]);
+            if(columns<5)
+                subgraph+=QObject::tr("  ");
+            else
+            {
+                columns=0;
+                //subgraph+=QObject::tr("\n");
+            }
+        }
+        subgraphs.append(subgraph);
+    }
+}
+
+bool PWGraphImages::getCandidates(int nG,
+                                  QVector<QString> &candidates)
+{
+    if(mLevels[nG].size()==0)
+    {
+        QMap<QString, QVector<QString> >::const_iterator iter=mImagePairs.begin();
+        int max=0;
+        while(iter!=mImagePairs.end())
+        {
+            QString image=iter.key();
+            if(mUnorderedImages[nG].contains(image)
+                    ||mOrderedImages[nG].contains(image))
+            {
+                int sizeValue=iter.value().size();
+                if(!mOrderedImages[nG].contains(image))
+                {
+                    if(sizeValue>max)
+                    {
+                        max=sizeValue;
+                    }
+                }
+            }
+            iter++;
+        }
+        iter=mImagePairs.begin();
+        while(iter!=mImagePairs.end())
+        {
+            QString image=iter.key();
+            if(mUnorderedImages[nG].contains(image)
+                    ||mOrderedImages[nG].contains(image))
+            {
+                int sizeValue=iter.value().size();
+                if(!mOrderedImages[nG].contains(image))
+                {
+                    if(sizeValue==max)
+                    {
+                        candidates.push_back(image);
+                    }
+                }
+            }
+            iter++;
+        }
+    }
+    else
+    {
+        QVector<QString> previousLevelImages=mLevels[nG][mLevels[nG].size()-1];
+        for(int nI=0;nI<previousLevelImages.size();nI++)
+        {
+            QString image=previousLevelImages[nI];
+            if(mUnorderedImages[nG].contains(image)
+                    ||mOrderedImages[nG].contains(image))
+            {
+                QVector<QString> pairs=mImagePairs[image];
+                for(int nP=0;nP<pairs.size();nP++)
+                {
+                    if(!mOrderedImages[nG].contains(pairs[nP]))
+                    {
+                        if(!candidates.contains(pairs[nP]))
+                            candidates.push_back(pairs[nP]);
+                    }
+                }
+            }
+        }
+    }
+    return(true);
+}
+
+bool PWGraphImages::getCandidate(int nG,
+                                 QVector<QString> candidates,
+                                 QString &candidate)
+{
+    if(candidates.size()==1)
+    {
+        candidate=candidates[0];
+        return(true);
+    }
+
+    // Criterio 1: se elige el que más conexiones tenga con el nivel anterior
+    if(mLevels[nG].size()>0)
+    {
+        int max=0;
+        QVector<QString> previousImages=mLevels[nG][mLevels[nG].size()-1];
+        for(int nI=0;nI<candidates.size();nI++)
+        {
+            QString image=candidates[nI];
+            if(mUnorderedImages[nG].contains(image)
+                    ||mOrderedImages[nG].contains(image))
+            {
+                if(mOrderedImages[nG].contains(image))
+                    continue;
+                QVector<QString> pairs=mImagePairs[image];
+                int connections=0;
+                for(int nP=0;nP<pairs.size();nP++)
+                {
+                    QString pair=pairs[nP];
+                    for(int nIp=0;nIp<previousImages.size();nIp++)
+                    {
+                        if(previousImages[nIp].compare(pair)==0)
+                            connections++;
+                    }
+                }
+                if(connections>max)
+                    max=connections;
+            }
+        }
+        QVector<QString> newCandidates;
+        for(int nI=0;nI<candidates.size();nI++)
+        {
+            QString image=candidates[nI];
+            if(mUnorderedImages[nG].contains(image)
+                    ||mOrderedImages[nG].contains(image))
+            {
+                if(mOrderedImages[nG].contains(image))
+                    continue;
+                QVector<QString> pairs=mImagePairs[image];
+                int connections=0;
+                for(int nP=0;nP<pairs.size();nP++)
+                {
+                    QString pair=pairs[nP];
+                    for(int nIp=0;nIp<previousImages.size();nIp++)
+                    {
+                        if(previousImages[nIp].compare(pair)==0)
+                            connections++;
+                    }
+                }
+                if(connections==max)
+                    newCandidates.push_back(image);
+            }
+        }
+        candidates=newCandidates;
+        if(candidates.size()==1)
+        {
+            candidate=candidates[0];
+            return(true);
+        }
+    }
+
+    // Criterio 2: se elige el que más conexiones tenga con el resto de candidatos
+    {
+        int max=0;
+        for(int nI=0;nI<candidates.size();nI++)
+        {
+            QString image=candidates[nI];
+            if(mUnorderedImages[nG].contains(image)
+                    ||mOrderedImages[nG].contains(image))
+            {
+                if(mOrderedImages[nG].contains(image))
+                    continue;
+                QVector<QString> pairs=mImagePairs[image];
+                int connections=0;
+                for(int nP=0;nP<pairs.size();nP++)
+                {
+                    QString pair=pairs[nP];
+                    for(int nIc=0;nIc<candidates.size();nIc++)
+                    {
+                        if(nIc==nI)
+                            continue;
+                        if(candidates[nIc].compare(pair)==0)
+                        {
+                            connections++;
+                            break;
+                        }
+                    }
+                }
+                if(connections>max)
+                    max=connections;
+            }
+        }
+        QVector<QString> newCandidates;
+        for(int nI=0;nI<candidates.size();nI++)
+        {
+            QString image=candidates[nI];
+            if(mUnorderedImages[nG].contains(image)
+                    ||mOrderedImages[nG].contains(image))
+            {
+                if(mOrderedImages[nG].contains(image))
+                    continue;
+                QVector<QString> pairs=mImagePairs[image];
+                int connections=0;
+                for(int nP=0;nP<pairs.size();nP++)
+                {
+                    QString pair=pairs[nP];
+                    for(int nIc=0;nIc<candidates.size();nIc++)
+                    {
+                        if(nIc==nI)
+                            continue;
+                        if(candidates[nIc].compare(pair)==0)
+                        {
+                            connections++;
+                            break;
+                        }
+                    }
+                }
+                if(connections==max)
+                    newCandidates.push_back(image);
+            }
+        }
+        candidates=newCandidates;
+        if(candidates.size()==1)
+        {
+            candidate=candidates[0];
+            return(true);
+        }
+    }
+
+    // Si al final queda más de uno tomamos el primero
+    candidate=candidates[0];
+    return(true);
+}
+
+void PWGraphImages::getConnections(int& initialPos,
+                                   QVector<QString> &connections,
+                                   QVector<QString>& connectedImages)
+{
+    QString image=connections[initialPos];
+    QMap<QString, QVector<QString> >::const_iterator iter=mImagePairs.begin();
+    bool appendConnections=false;
+    while(iter!=mImagePairs.end())
+    {
+        bool connection=false;
+        QString firstImage=iter.key();
+        if(firstImage.compare(image,Qt::CaseInsensitive)==0)
+            connection=true;
+        else
+        {
+            QVector<QString> secondImages=iter.value();
+            for(int nSi=0;nSi<secondImages.size();nSi++)
+            {
+                QString secondImage=secondImages[nSi];
+                if(secondImage.compare(image,Qt::CaseInsensitive)==0)
+                {
+                    connection=true;
+                    break;
+                }
+            }
+        }
+        if(connection)
+        {
+            if(!connections.contains(firstImage))
+            {
+                connections.push_back(firstImage);
+                connectedImages.push_back(firstImage);
+                appendConnections=true;
+            }
+            QVector<QString> secondImages=iter.value();
+            for(int nSi=0;nSi<secondImages.size();nSi++)
+            {
+                QString secondImage=secondImages[nSi];
+                if(!connections.contains(secondImage))
+                {
+                    connections.push_back(secondImage);
+                    connectedImages.push_back(secondImage);
+                    appendConnections=true;
+                }
+            }
+        }
+        iter++;
+    }
+    if(appendConnections
+            ||(connections.size()-1)>initialPos)
+    {
+        initialPos++;
+        getConnections(initialPos,connections,connectedImages);
+    }
+}

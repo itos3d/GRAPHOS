@@ -1,0 +1,95 @@
+QMainWindow::separator {
+    background: transparent;
+}
+
+QMainWindow::separator:hover {
+    background: transparent;
+}
+/*QMainWindow {
+    background:#ffffff;
+}*/
+
+QDockWidget {
+    border: 0px solid lightgray;
+}
+
+QDockWidget::title {
+    text-align: left; /* align the text to the left */
+    background-color: #5f8dd3; /*qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1,stop: 0 #5d5d5d, stop: 1 #757070);*/
+    color: #ffffff;
+    padding-left: 5px;
+    border: 0px;
+}
+
+QMenuBar {
+    background-color: #3f3f3f;
+    border: 0px;
+}
+
+QMenuBar::item {
+    spacing: 3px; /* spacing between menu bar items */
+    padding: 1px 4px;
+    background: transparent;
+    border-radius: 4px;
+    color: #ffffff;
+}
+
+QMenuBar::item:selected { /* when selected using mouse or keyboard */
+    background: #a8a8a8;
+}
+
+QMenuBar::item:pressed {
+    background: #888888;
+}
+
+QMenu {
+    /*background-color: white;*/
+    margin: 2px; /* some spacing around the menu */
+}
+
+QMenu::item {
+    padding: 2px 25px 2px 20px;
+    border: 1px solid transparent; /* reserve space for selection border */
+}
+
+QMenu::item:selected {
+    border-color: #5f8dd3;
+    /*background: rgba(150, 150, 150, 150);*/
+    background: #a8a8a8;
+}
+
+QMenu::icon:checked { /* appearance of a 'checked' icon */
+    background: gray;
+    border: 1px inset gray;
+    position: absolute;
+    top: 1px;
+    right: 1px;
+    bottom: 1px;
+    left: 1px;
+}
+
+QMenu::separator {
+    height: 2px;
+    background: #5f8dd3;
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+QMenu::indicator {
+    width: 13px;
+    height: 13px;
+}
+
+QStatusBar {
+    background: #3f3f3f;
+}
+
+/*QProgressBar {
+    border: px solid grey;
+    border-radius: 5px;
+}*/
+
+QProgressBar::chunk {
+    background-color: #5f8dd3;
+    width: 20px;
+}

@@ -1,0 +1,78 @@
+#ifndef RADIALBASIC_H
+#define RADIALBASIC_H
+
+#include "DistortionModel.h"
+
+namespace PW{
+
+
+/*!
+ \brief Class Representing basic radial distortion model, with 5 degrees of freedom:
+1 for focal length , 2 for principal point and distorsion center, 2 for coefficients of
+radial distorsion (r3 and r5 );
+*/
+
+class LIBPWSHARED_EXPORT RadialBasic : public DistortionModel
+{
+public:
+/*!
+ \brief Constructor
+
+*/
+    RadialBasic();
+
+    int getID();
+
+    /*!
+     \brief Gets the first coefficient.
+
+     \return double coefficient
+    */
+    double getK1();
+    /*!
+     \brief Gets the second coefficient.
+
+     \return double coefficient
+    */
+    double getK2();
+    /*!
+     \brief Sets the first coefficient.
+
+     \param k1 coefficient
+    */
+    void setK1(double k1);
+    /*!
+     \brief Sets the second coefficient.
+
+     \param k2 coefficient
+    */
+    void setK2(double k2);
+
+    /*!
+     \brief Undistort a image according to distortion model.
+
+     \param inputImage image to undistort
+     \return PWImage undistorted image
+    */
+    virtual QString undistort(QString inputImage, float focal, float xpp, float ypp);
+
+    /*!
+     \brief
+
+     \return bool true if distortion model allows to undistort images.
+    */
+    virtual bool canUnistort();
+
+    virtual void undistort(float xpp, float ypp,float& x,float& y);
+
+    virtual void distort(float xpp, float ypp,float& x,float& y);
+
+protected:
+
+    double mK1;
+    double mK2;
+};
+
+}
+
+#endif // RADIALBASIC_H

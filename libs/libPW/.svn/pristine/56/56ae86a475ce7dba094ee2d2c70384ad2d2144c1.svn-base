@@ -1,0 +1,2126 @@
+#include <QCoreApplication>
+#include <QDir>
+#include <QtXml>
+
+#include "../OpenMVG/OpenMVGParametersDefinitions.h"
+#include "libPW.h"
+#include "KpMProcessMonitor.h"
+
+using namespace PW;
+
+KpMProcessMonitor::KpMProcessMonitor(QObject *parent) :
+    ExternalInterfaceProcessMonitor(parent)
+{
+    //    mStdOut = new QTextStream(stdout);
+}
+
+//void KpMProcessMonitor::addPathToRemove(QString path)
+//{
+//    if(!mPathsToRemove.contains(path))
+//    {
+//        mPathsToRemove.append(path);
+//    }
+//}
+
+//void KpMProcessMonitor::addFileToRemove(QString file)
+//{
+//    if(!mFilesToRemove.contains(file))
+//    {
+//        mFilesToRemove.append(file);
+//    }
+//}
+
+void KpMProcessMonitor::onProcessFinished()
+{
+    if(mIsTapioca)
+        onTapiocaProcessFinished();
+    else if(mIsAsift)
+        onASIFTProcessFinished();
+    else if(mIsOpenMVG)
+        onOpenMVGKpmFinished();
+//    QString logFileName=mImagesPath+"/"+TAPIOCA_COMMANDS_HISTORY_FILE_NAME;
+    QString logFileName=mTmpFolder+"/"+TAPIOCA_COMMANDS_HISTORY_FILE_NAME;
+    addFileToRemove(logFileName);
+//    QString aperoPairsFileName=mImagesPath+"/"+KPMPROCESSMONITOR_IMAGE_PAIRS_APERO_FILE_NAME;
+    QString aperoPairsFileName=mTmpFolder+"/"+KPMPROCESSMONITOR_IMAGE_PAIRS_APERO_FILE_NAME;
+    addFileToRemove(aperoPairsFileName);
+//    QString pairsFileName=mImagesPath+"/"+KPMPROCESSMONITOR_IMAGE_PAIRS_ASCII_FILE_NAME;
+    QString pairsFileName=mTmpFolder+"/"+KPMPROCESSMONITOR_IMAGE_PAIRS_ASCII_FILE_NAME;
+    addFileToRemove(pairsFileName);
+    QDir auxDir=QDir::currentPath();
+    for(int i=0;i<mFilesToRemove.size();i++)
+    {
+        QString file=mFilesToRemove[i];
+        if(QFile::exists(file))
+        {
+            if(!QFile::remove(file))
+            {
+                QString title="KpMProcessMonitor::onProcessFinished";
+                QString strError=tr("Error removing file:\n %1").arg(file);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+    }
+    for(int i=0;i<mPathsToRemove.size();i++)
+    {
+        QString path=mPathsToRemove[i];
+        if(auxDir.exists(path))
+        {
+            if(!removeDir(path))
+            {
+                QString title="KpMProcessMonitor::onProcessFinished";
+                QString strError=tr("Error removing directory:\n %1").arg(path);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+    }
+    QCoreApplication::exit();
+}
+
+void KpMProcessMonitor::setIsAsift()
+{
+    mIsAsift=true;
+    mIsTapioca=false;
+    mIsOpenMVG=false;
+}
+
+void KpMProcessMonitor::setIsAsift(QString imagesPath,
+                                QList<QString> imagesFileName,
+                                QString xmlMatchesFileName)
+{
+    mImagesPath=imagesPath;
+    mImagesFileName=imagesFileName;
+    mIsAsift=true;
+    mIsTapioca=false;
+    mIsOpenMVG=false;
+    mXmlFileName=xmlMatchesFileName;
+}
+
+void KpMProcessMonitor::setIsOpenMVG()
+{
+    mIsAsift=false;
+    mIsTapioca=false;
+    mIsOpenMVG=true;
+}
+
+void KpMProcessMonitor::setIsOpenMVG(QString imagesPath,
+                                  QList<QString> imagesFileName,
+                                  QString xmlFileName)
+{
+    mImagesPath=imagesPath;
+    mImagesFileName=imagesFileName;
+    mIsAsift=false;
+    mIsTapioca=false;
+    mIsOpenMVG=true;
+    mXmlFileName=xmlFileName;
+}
+
+void KpMProcessMonitor::setIsTapioca(QString sourceFolder,
+                                  QString matchesFolder,
+                                  QString tapiocaMatchesFolder,
+                                  QString pastisFolder,
+                                  QString tmpMMFolder)
+{
+    mIsAsift=false;
+    mIsOpenMVG=false;
+    mIsTapioca=true;
+    mSourceFolder=sourceFolder;
+    mMatchesFolder=matchesFolder;
+    mTapiocaMatchesFolder=tapiocaMatchesFolder;
+    mPastisFolder=pastisFolder;
+    mTmpMMFolder=tmpMMFolder;
+}
+
+void KpMProcessMonitor::setIsTapioca(QString sourceFolder,
+                                  QString matchesFolder,
+                                  QString tapiocaMatchesFolder,
+                                  QString pastisFolder,
+                                  QString tmpMMFolder,
+                                  QString xmlFileName)
+{
+    mIsAsift=false;
+    mIsOpenMVG=false;
+    mIsTapioca=true;
+    mSourceFolder=sourceFolder;
+    mMatchesFolder=matchesFolder;
+    mTapiocaMatchesFolder=tapiocaMatchesFolder;
+    mPastisFolder=pastisFolder;
+    mTmpMMFolder=tmpMMFolder;
+    mXmlFileName=xmlFileName;
+}
+
+void KpMProcessMonitor::setMatchesPath(QString path)
+{
+    mMatchesFolder=path;
+    addPathToRemove(path);
+}
+
+void KpMProcessMonitor::onTapiocaProcessFinished()
+{
+    QString sourceFolder=mSourceFolder;
+    QString matchesFolder=mMatchesFolder;
+    QString tapiocaMatchesFolder=mTapiocaMatchesFolder;
+    QString pastisFolder=mPastisFolder;
+    QString tmpMMFolder=mTmpMMFolder;
+    // Mover las carpetas
+    QDir auxDir=QDir::currentPath();
+    if(!auxDir.exists(matchesFolder))
+    {
+        if(!auxDir.mkdir(matchesFolder))
+        {
+            QString title="KpMProcessMonitor::onTapiocaProcessFinished";
+            QString strError=tr("Error making directory:\n %1").arg(matchesFolder);
+            manageProccesErrorOutput(strError);
+            return;
+        }
+    }
+    QString targetFolder=tapiocaMatchesFolder;
+    if(!copyDir(sourceFolder,targetFolder))
+    {
+        QString title="KpMProcessMonitor::onTapiocaProcessFinished";
+        QString strError=tr("Error moving Tapioca matching files");
+        manageProccesErrorOutput(strError);
+        return;
+    }
+
+    // Eliminar las carpetas
+    if(!removeDir(pastisFolder))
+    {
+        QString title="KpMProcessMonitor::onTapiocaProcessFinished";
+        QString strError=tr("Error removing Tapioca pastis folder:\n%1").arg(pastisFolder);
+        manageProccesErrorOutput(strError);
+        return;
+    }
+    if(!removeDir(tmpMMFolder))
+    {
+        return;
+    }
+
+    if(!mXmlFileName.isEmpty())
+    {
+        QString strError;
+        if(!writeOrtoSkyMatchesInXmlFile(targetFolder,strError))
+        {
+            manageProccesErrorOutput(strError);
+            return;
+        }
+        if(!removeDir(targetFolder))
+        {
+            QString title="KpMProcessMonitor::onTapiocaProcessFinished";
+            QString strError=tr("Error removing directory:\n %1").arg(targetFolder);
+            manageProccesErrorOutput(strError);
+            return;
+        }
+    }
+}
+
+void KpMProcessMonitor::onASIFTProcessFinished()
+{
+    // Eliminar los ficheros .sift y .keys
+    for(int i=0;i<mImagesFileName.count();i++)
+    {
+//        QString imageFileName=mImagesFileName.at(i);
+//        QString pngFilePath = mImagesPath+"/"+imageFileName;
+        QString pngFilePath =mImagesFileName.at(i);
+        pngFilePath = pngFilePath.left(pngFilePath.lastIndexOf(".")+1)+KPMPROCESSMONITOR_PNG_FILEEXTENSION;
+        QString keysFile=pngFilePath+KPMPROCESSMONITOR_KEYS_FILE_EXTENSION;
+        if(QFile::exists(keysFile))
+        {
+            if(!QFile::remove(keysFile))
+            {
+                QString title="KpMProcessMonitor::onAsiftTiePointsFinished";
+                QString strError=tr("Error removing keys file:\n%1").arg(keysFile);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+        QString keysAsiftFile=pngFilePath+KPMPROCESSMONITOR_ASIFT_FILE_EXTENSION;
+        if(QFile::exists(keysAsiftFile))
+        {
+            if(!QFile::remove(keysAsiftFile))
+            {
+                QString title="KpMProcessMonitor::onAsiftTiePointsFinished";
+                QString strError=tr("Error removing keys asift file:\n%1").arg(keysAsiftFile);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+    }
+
+    if(!mXmlFileName.isEmpty())
+    {
+        QString strError;
+        if(!writeOrtoSkyMatchesInXmlFile(mMatchesFolder,strError))
+        {
+            manageProccesErrorOutput(strError);
+            return;
+        }
+//        if(!removeDir(mMatchesFolder))
+//        {
+//            QString title="ProcessMonitor::onAsiftTiePointsFinished";
+//            QString strError=tr("Error removing directory:\n %1").arg(mMatchesFolder);
+//            manageProccesErrorOutput(strError);
+//            return;
+//        }
+    }
+}
+
+void KpMProcessMonitor::onOpenMVGKpmFinished()
+{
+    //mMatchesFolder
+//    QString imagesFilePath=mImagesFileName.at(0);
+//    QFileInfo fileInfo(imagesFilePath);
+//    imagesFilePath=fileInfo.absolutePath();
+//    QString outputPath=imagesFilePath+"/"+MATCHING_PATH;
+//    outputPath+="/";
+//    outputPath+=OPENMVGPARAMETERSDEFINITIONS_MATCHES_PATH;
+    QString listFileName=mTmpFolder+"/"+OPENMVGPARAMETERSDEFINITIONS_IMAGE_LIST_FILE_KEYPOINTS;
+    if(QFile::exists(listFileName))
+    {
+        if(!QFile::remove(listFileName))
+        {
+            QString title="KpMProcessMonitor::onOpenMVGKpmFinished";
+            QString strError=tr("Error removing list file:\n%1").arg(listFileName);
+            manageProccesErrorOutput(strError);
+            return;
+        }
+    }
+    QString outputPath=mTmpFolder;
+    for(int i=0;i<mImagesFileName.count();i++)
+    {
+        QString imageFileName =mImagesFileName.at(i);
+        //QString featuresFile=outputPath+"/"+imageFilename;
+        QString featuresFile=imageFileName;
+        QFileInfo featuresFileInfo(featuresFile);
+        QString featuresBaseName=featuresFileInfo.baseName();
+        featuresFile=outputPath+"/"+featuresBaseName+OPENMVGPARAMETERSDEFINITIONS_FEATURES_FILE_EXTENSION;
+        if(QFile::exists(featuresFile))
+        {
+            if(!QFile::remove(featuresFile))
+            {
+                QString title="KpMProcessMonitor::onOpenMVGKpmFinished";
+                QString strError=tr("Error removing features file:\n%1").arg(featuresFile);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+        //QString descriptorsFile=outputPath+"/"+imageFilename;
+        QString descriptorsFile=imageFileName;
+        QFileInfo descriptorsFileInfo(descriptorsFile);
+        QString descriptorsBaseName=descriptorsFileInfo.baseName();
+        descriptorsFile=outputPath+"/"+descriptorsBaseName+OPENMVGPARAMETERSDEFINITIONS_DESCRIPTORS_FILE_EXTENSION;
+        if(QFile::exists(descriptorsFile))
+        {
+            if(!QFile::remove(descriptorsFile))
+            {
+                QString title="ProcessMonitor::onOpenMVGKpmFinished";
+                QString strError=tr("Error removing descriptors file:\n%1").arg(descriptorsFile);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+    }
+    if(!mXmlFileName.isEmpty())
+    {
+        QString strError;
+        if(!writeOrtoSkyMatchesInXmlFile(outputPath,strError))
+        {
+            manageProccesErrorOutput(strError);
+            return;
+        }
+//        if(!removeDir(outputPath))
+//        {
+//            QString title="KpMProcessMonitor::onOpenMVGKpmFinished";
+//            QString strError=tr("Error removing directory:\n %1").arg(outputPath);
+//            manageProccesErrorOutput(strError);
+//            return;
+//        }
+    }
+}
+
+void KpMProcessMonitor::onOpenMVGKpmFinished_201501()
+{
+
+    // Eliminar los ficheros .desc y .feat
+    //mMatchesFolder
+    QString imagesFilePath=mImagesFileName.at(0);
+    QFileInfo fileInfo(imagesFilePath);
+    imagesFilePath=fileInfo.absolutePath();
+    QString outputPath=imagesFilePath+"/"+MATCHING_PATH;
+    outputPath+="/";
+    outputPath+=OPENMVGPARAMETERSDEFINITIONS_MATCHES_PATH;
+    QString listFileName=outputPath+"/"+OPENMVGPARAMETERSDEFINITIONS_IMAGE_LIST_FILE_KEYPOINTS;
+    if(QFile::exists(listFileName))
+    {
+        if(!QFile::remove(listFileName))
+        {
+            QString title="KpMProcessMonitor::onOpenMVGKpmFinished";
+            QString strError=tr("Error removing list file:\n%1").arg(listFileName);
+            manageProccesErrorOutput(strError);
+            return;
+        }
+    }
+    for(int i=0;i<mImagesFileName.count();i++)
+    {
+        QString imageFileName =mImagesFileName.at(i);
+        //QString featuresFile=outputPath+"/"+imageFilename;
+        QString featuresFile=imageFileName;
+        QFileInfo featuresFileInfo(featuresFile);
+        QString featuresBaseName=featuresFileInfo.baseName();
+        featuresFile=outputPath+"/"+featuresBaseName+OPENMVGPARAMETERSDEFINITIONS_FEATURES_FILE_EXTENSION;
+        if(QFile::exists(featuresFile))
+        {
+            if(!QFile::remove(featuresFile))
+            {
+                QString title="KpMProcessMonitor::onOpenMVGKpmFinished";
+                QString strError=tr("Error removing features file:\n%1").arg(featuresFile);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+        //QString descriptorsFile=outputPath+"/"+imageFilename;
+        QString descriptorsFile=imageFileName;
+        QFileInfo descriptorsFileInfo(descriptorsFile);
+        QString descriptorsBaseName=descriptorsFileInfo.baseName();
+        descriptorsFile=outputPath+"/"+descriptorsBaseName+OPENMVGPARAMETERSDEFINITIONS_DESCRIPTORS_FILE_EXTENSION;
+        if(QFile::exists(descriptorsFile))
+        {
+            if(!QFile::remove(descriptorsFile))
+            {
+                QString title="ProcessMonitor::onOpenMVGKpmFinished";
+                QString strError=tr("Error removing descriptors file:\n%1").arg(descriptorsFile);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+    }
+    if(!mXmlFileName.isEmpty())
+    {
+        QString strError;
+        if(!writeOrtoSkyMatchesInXmlFile(outputPath,strError))
+        {
+            manageProccesErrorOutput(strError);
+            return;
+        }
+        if(!removeDir(outputPath))
+        {
+            QString title="KpMProcessMonitor::onOpenMVGKpmFinished";
+            QString strError=tr("Error removing directory:\n %1").arg(outputPath);
+            manageProccesErrorOutput(strError);
+            return;
+        }
+    }
+}
+
+//void KpMProcessMonitor::manageProccesStdOutput(QString data)
+//{
+//    //*mStdOut<<data;
+//    fprintf(stdout, data.toAscii());
+//}
+
+//void KpMProcessMonitor::manageProccesErrorOutput(QString data)
+//{
+////   *mStdOut<<data;
+//    fprintf(stdout, data.toAscii());
+//}
+
+bool KpMProcessMonitor::writeImagePairsXmlFile(QString imagePairsFileName,
+                                            QString& strError)
+{
+    QFile file(imagePairsFileName);
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeImagePairsXmlFile, imagesPath not exists:\n%1").arg(imagePairsFileName);
+        return(false);
+    }
+    QTextStream out(&file);
+    QMap<QString,QVector<QString> >::const_iterator iter=mImagePairs.begin();
+    while(iter!=mImagePairs.end())
+    {
+        QString imageId=iter.key();
+        QVector<QString> pairs=iter.value();
+        for(int nI=0;nI<pairs.size();nI++)
+        {
+            QString imagePairId=pairs[nI];
+            out<<imageId<<"  "<<imagePairId<<endl;
+        }
+        iter++;
+    }
+    file.close();
+    return(true);
+}
+
+bool KpMProcessMonitor::writeOrtoSkyImagePairsXmlFile(QString imagePairsFileName,
+                                                      QString &strError)
+{
+    QFile file(imagePairsFileName);
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeImagePairsXmlFile, imagesPath not exists:\n%1").arg(imagePairsFileName);
+        return(false);
+    }
+    QTextStream out(&file);
+    QMap<QString,QVector<QString> >::const_iterator iter=mImagePairsByName.begin();
+    while(iter!=mImagePairsByName.end())
+    {
+        QString imageId=iter.key();
+//        QString imageFileName=mImageFileNamesByName[imageId];
+        QVector<QString> pairs=iter.value();
+        for(int nI=0;nI<pairs.size();nI++)
+        {
+            QString imagePairId=pairs[nI];
+//            QString imagePairFileName=mImageFileNamesByName[imagePairId];
+//            out<<imageFileName<<"  "<<imagePairFileName<<endl;
+            out<<imageId<<"  "<<imagePairId<<endl;
+        }
+        iter++;
+    }
+    file.close();
+    return(true);
+}
+
+/*
+void KpMProcessMonitor::writeMatchesInXmlFile_firstVersion(QString matchesPath)
+{
+    QFile file(mXmlFileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+        QString strError=tr("Error opening xml file:\n%1").arg(mXmlFileName);
+        manageProccesErrorOutput(strError);
+        return;
+    }
+    QString errorStr;
+    QString noStr;
+    int errorLine;
+    int errorColumn;
+    QDomDocument doc;
+    if (!doc.setContent(&file,true,&errorStr,&errorLine,&errorColumn))
+    {
+        QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+        QString strError=QObject::tr("\nError: %1 in line %2 in column %3").arg(errorStr).arg(QString::number(errorLine)).arg(QString::number(errorColumn));
+        manageProccesErrorOutput(strError);
+        return;
+    }
+    file.close();
+
+    QDomNodeList pairNodes=doc.elementsByTagName(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()==0)
+    {
+        QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+        QString strError=QObject::tr("\nNo tag pairs in the file");
+        manageProccesErrorOutput(strError);
+        return;
+    }
+
+    QDir auxDir=QDir::currentPath();
+    if(!auxDir.exists(matchesPath))
+    {
+        QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+        QString strError=QObject::tr("\nNot exists path:\n%1").arg(matchesPath);
+        manageProccesErrorOutput(strError);
+        return;
+    }
+    QDir sourceDir(matchesPath);
+    QStringList dirs = sourceDir.entryList(QDir::Dirs);
+    for(int i = 0; i< dirs.count(); i++)
+    {
+        QString srcPath = dirs[i];
+        if(srcPath.compare(".")==0
+                ||srcPath.compare("..")==0)
+        {
+            continue;
+        }
+        if(!srcPath.contains(TAPIOCA_PASTIS_PATH,Qt::CaseInsensitive))
+        {
+            QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+            QString strError=QObject::tr("\nPath is not valid:\n%1").arg(srcPath);
+            manageProccesErrorOutput(strError);
+            return;
+        }
+        QString completeSrcPath=matchesPath+"/"+srcPath;
+        QString firstImageFile=srcPath.remove(TAPIOCA_PASTIS_PATH);
+        QDir sourceFiles(completeSrcPath);
+        QStringList files = sourceFiles.entryList(QDir::Files);
+        for(int j = 0; j< files.count(); j++)
+        {
+            QString filePath = files[j];
+            if(filePath.compare(".")==0
+                    ||filePath.compare("..")==0)
+            {
+                continue;
+            }
+            QString completeFilePath=completeSrcPath+"/"+filePath;
+            QString secondImageFile=filePath.remove(MATCHING_TXT_FILE_EXTENSION);
+
+            for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+            {
+                QDomNode pairNode=pairNodes.at(nPairNode);
+//                if(!pairNode.isElement())
+//                {
+//                    QString title="ProcessMonitor::writeMatchesInXmlFile";
+//                    QString strError=QObject::tr("\nError in file:\n%1").arg(mXmlFileName);
+//                    strError+=QObject::tr("\nPair node is not an element");
+//                    manageProccesErrorOutput(strError);
+//                    return;
+//                }
+                QDomElement pairElement=pairNode.toElement();
+                QString imageIdFirst=pairElement.attribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_FIRST_IMAGE);
+//                if(imageIdFirst.isEmpty())
+//                {
+//                    QString title="ProcessMonitor::writeMatchesInXmlFile";
+//                    QString strError=QObject::tr("\nError in file:\n%1").arg(mXmlFileName);
+//                    strError+=QObject::tr("\nThere is a pair with a first image attibute empty");
+//                    manageProccesErrorOutput(strError);
+//                    return;
+//                }
+                QString imageIdSecond=pairElement.attribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_SECOND_IMAGE);
+//                if(imageIdSecond.isEmpty())
+//                {
+//                    QString title="ProcessMonitor::writeMatchesInXmlFile";
+//                    QString strError=QObject::tr("\nError in file:\n%1").arg(mXmlFileName);
+//                    strError+=QObject::tr("\nThere is a pair with a second image attibute empty");
+//                    manageProccesErrorOutput(strError);
+//                    return;
+//                }
+                // De momento solo contemplo que esten en el mismo orden, vere en depuracion
+                if(imageIdFirst.compare(firstImageFile,Qt::CaseInsensitive)==0
+                        &&imageIdSecond.compare(secondImageFile,Qt::CaseInsensitive)==0)
+                {
+                    QVector<double> firstImagePixelsColumn,firstImagePixelsRow;
+                    QVector<double> secondImagePixelsColumn,secondImagePixelsRow;
+                    QString strError;
+                    if(!readTiePointsFile(completeFilePath,
+                                          firstImagePixelsColumn,
+                                          firstImagePixelsRow,
+                                          secondImagePixelsColumn,
+                                          secondImagePixelsRow,
+                                          strError))
+                    {
+                        QString title="ProcessMonitor::writeMatchesInXmlFile";
+                        QString strError=QObject::tr("\nError reading tie points from file:\n%1").arg(completeFilePath);
+                        manageProccesErrorOutput(strError);
+                        return;
+                    }
+                    for(int nPoint=0;nPoint<firstImagePixelsColumn.size();nPoint++)
+                    {
+                        QString strFirstImageColumn=QString::number(firstImagePixelsColumn[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QString strFirstImageRow=QString::number(firstImagePixelsRow[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QString strSecondImageColumn=QString::number(secondImagePixelsColumn[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QString strSecondImageRow=QString::number(secondImagePixelsRow[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QDomElement pntDomElement=doc.createElement(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_TAG_POINT);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_X1_COORDINATE,strFirstImageColumn);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_Y1_COORDINATE,strFirstImageRow);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_X2_COORDINATE,strSecondImageColumn);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_Y2_COORDINATE,strSecondImageRow);
+                        pairNodes.at(nPairNode).appendChild(pntDomElement);
+                    }
+                    break;
+                }
+            }
+            if(!QFile::remove(completeFilePath))
+            {
+                QString title="ProcessMonitor::writeMatchesInXmlFile";
+                QString strError=QObject::tr("\nError removing matches file:\n%1").arg(completeFilePath);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+//        if(!auxDir.remove(completeSrcPath))
+//        {
+//            QString title="ProcessMonitor::writeMatchesInXmlFile";
+//            QString strError=QObject::tr("\nError removing matches folder:\n%1").arg(completeSrcPath);
+//            manageProccesErrorOutput(strError);
+//            return;
+//        }
+    }
+    const int IndentSize = 4;
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QString title="ProcessMonitor::writeMatchesInXmlFile";
+        QString strError=tr("Error opening xml file:\n%1").arg(mXmlFileName);
+        manageProccesErrorOutput(strError);
+        return;
+    }
+    QTextStream out(&file);
+    doc.save(out, IndentSize);
+}
+*/
+bool KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile(QString matchesPath,
+                                                     QString& strError)
+{
+    double pixelCoordinatesFactorIntegerToDouble=1.0/pow(10.0,mImageCoordinatesPrecision*1.0);
+    QDir auxDir=QDir::currentPath();
+    if(!auxDir.exists(matchesPath))
+    {
+        QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+        strError+=QObject::tr("\nNot exists path:\n%1").arg(matchesPath);
+        manageProccesErrorOutput(strError);
+        return(false);
+    }
+
+    // Lectura del nodo photography
+    QDomNodeList photographyNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PHOTOGRAPHY);
+    if(photographyNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile");
+        strError+=QObject::tr("\nShould be only one node photography");
+        return(false);
+    }
+    QDomNode photographyNode=photographyNodes.at(0);
+    QDomElement photographyElement=photographyNode.toElement();
+
+    // Lectura del nodo sessions
+    QDomNodeList sessionsNodes=photographyElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SESSIONS);
+    if(sessionsNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile");
+        strError+=QObject::tr("\nShould be only one node sessions");
+        return(false);
+    }
+    QDomNode sessionsNode=sessionsNodes.at(0);
+    QDomElement sessionsElement=sessionsNode.toElement();
+
+    QDomElement sessionElement;
+    // Lectura del nodo session
+    QDomNodeList sessionNodes=sessionsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SESSION);
+    if(sessionsNodes.size()<1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile");
+        strError+=QObject::tr("\nNo node session");
+        return(false);
+    }
+    bool findSession=false;
+    for(int nSessionNode=0;nSessionNode<sessionNodes.size();nSessionNode++)
+    {
+        QDomNode sessionNode=sessionNodes.at(nSessionNode);
+        QDomElement auxSessionElement=sessionNode.toElement();
+        QString sessionName=auxSessionElement.attribute(ORTOSKYXMLMATCHESFILE_TAG_SESSION_ATTRIBUTE_NAME).trimmed();
+        if(sessionName.compare(mSessionName,Qt::CaseInsensitive)==0)
+        {
+            if(findSession)
+            {
+                strError=QObject::tr("KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile");
+                strError+=QObject::tr("\nNode session with name %1 is repeat").arg(mSessionName);
+                return(false);
+            }
+            sessionElement=auxSessionElement;
+            findSession=true;
+        }
+    }
+    if(!findSession)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile");
+        strError+=QObject::tr("\nNo node session with name %1").arg(mSessionName);
+        return(false);
+    }
+
+    // Lectura de pairNodes
+    QDomNodeList pairsNodes=sessionElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIRS);
+    if(pairsNodes.size()==0)
+    {
+        QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+        strError+=QObject::tr("\nNo tag pairs in the file");
+        manageProccesErrorOutput(strError);
+        return(false);
+    }
+    if(pairsNodes.size()>1)
+    {
+        QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+        strError+=QObject::tr("\nThere are more than one pairs node");
+        manageProccesErrorOutput(strError);
+        return(false);
+    }
+    QDomNode pairsNode=pairsNodes.at(0);
+    QDomElement pairsElement=pairsNode.toElement();
+    QDomNodeList pairNodes=pairsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()<1)
+    {
+        QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+        strError+=QObject::tr("\nIn node pairs must be one pair node at least");
+        manageProccesErrorOutput(strError);
+        return(false);
+    }
+
+    QDir sourceDir(matchesPath);
+    QStringList dirs = sourceDir.entryList(QDir::Dirs);
+
+    QMap<QString,QVector<QString> > imageSecondImageIdByFirstImageId;
+    QMap<QString,QVector<QString> > pairsFullPathFileNameByFirstImageId;
+    for(int i = 0; i< dirs.count(); i++)
+    {
+        QString srcPath = dirs[i];
+        if(srcPath.compare(".")==0
+                ||srcPath.compare("..")==0)
+        {
+            continue;
+        }
+        if(!srcPath.contains(TAPIOCA_PASTIS_PATH,Qt::CaseInsensitive))
+        {
+//            QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+//            strError+=QObject::tr("\nPath is not valid:\n%1").arg(srcPath);
+//            manageProccesErrorOutput(strError);
+//            return(false);
+            continue;
+        }
+        QString completeSrcPath=matchesPath+"/"+srcPath;
+        addPathToRemove(completeSrcPath);
+        QString firstImageFile=srcPath.remove(TAPIOCA_PASTIS_PATH);
+        QVector<QString> secondImages;
+        imageSecondImageIdByFirstImageId[firstImageFile]=secondImages;
+        QVector<QString> fullPathFileNames;
+        pairsFullPathFileNameByFirstImageId[firstImageFile]=fullPathFileNames;
+        QDir sourceFiles(completeSrcPath);
+        QStringList files = sourceFiles.entryList(QDir::Files);
+        for(int j = 0; j< files.count(); j++)
+        {
+            QString filePath = files[j];
+            if(filePath.compare(".")==0
+                    ||filePath.compare("..")==0)
+            {
+                continue;
+            }
+            QString completeFilePath=completeSrcPath+"/"+filePath;
+            addFileToRemove(completeFilePath);
+            QString secondImageFile=filePath.remove(MATCHING_TXT_FILE_EXTENSION);
+            imageSecondImageIdByFirstImageId[firstImageFile].push_back(secondImageFile);
+            pairsFullPathFileNameByFirstImageId[firstImageFile].push_back(completeFilePath);
+        }
+    }
+
+    for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+    {
+        QDomNode pairNode=pairNodes.at(nPairNode);
+        if(!pairNode.isElement())
+        {
+            QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+            strError+=QObject::tr("\nPair node number %1 is not an element").arg(QString::number(nPairNode+1));
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+        QDomElement pairElement=pairNode.toElement();
+
+        QDomNodeList photo1DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE1);
+        if(photo1DataNodes.size()!=1)
+        {
+            QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+            strError+=QObject::tr("\nIn pair node number %1, there is not a image1 node").arg(QString::number(nPairNode+1));
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+        QDomElement photo1Element=photo1DataNodes.at(0).toElement();
+        QString imageId1=photo1Element.text();
+        if(!mImageFileNamesByName.contains(imageId1))
+        {
+            QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+            strError+=QObject::tr("\nIn pair node number %1, image1 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(imageId1);
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+
+        QDomNodeList photo2DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_IMAGE2);
+        if(photo2DataNodes.size()!=1)
+        {
+            QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+            strError+=QObject::tr("\nIn pair node number %1, there is not a photo2 node").arg(QString::number(nPairNode+1));
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+        QDomElement photo2Element=photo2DataNodes.at(0).toElement();
+        QString imageId2=photo2Element.text();
+        if(!mImageFileNamesByName.contains(imageId2))
+        {
+            QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+            strError+=QObject::tr("\nIn pair node number %1, image2 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(imageId2);
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+
+        QString image1FileName=mImageFileNamesByName[imageId1];
+        QFileInfo fileInfo1(image1FileName);
+        QString image1Id=fileInfo1.fileName();
+        QString image2FileName=mImageFileNamesByName[imageId2];
+        QFileInfo fileInfo2(image2FileName);
+        QString image2Id=fileInfo2.fileName();
+        if(!imageSecondImageIdByFirstImageId.contains(image1Id))
+            continue;
+        if(!imageSecondImageIdByFirstImageId[image1Id].contains(image2Id))
+            continue;
+        int pos=imageSecondImageIdByFirstImageId[image1Id].indexOf(image2Id);
+        QString completeFilePath=pairsFullPathFileNameByFirstImageId[image1Id][pos];
+        QVector<int> firstImagePixelsColumn,firstImagePixelsRow;
+        QVector<int> secondImagePixelsColumn,secondImagePixelsRow;
+        QString strError;
+        if(!readTiePointsFile(completeFilePath,
+                              mRemoveDuplicated,
+                              mImageCoordinatesPrecision,
+                              firstImagePixelsColumn,
+                              firstImagePixelsRow,
+                              secondImagePixelsColumn,
+                              secondImagePixelsRow,
+                              strError))
+        {
+            QString strError="KpMProcessMonitor::writeMatchesInXmlFile";
+            strError+=QObject::tr("\nError reading tie points from file:\n%1").arg(completeFilePath);
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+        QDomElement pointsDomElement;
+        QDomNodeList pointsNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_POINTS);
+        if(pointsNodes.size()>1)
+        {
+            QString strError="KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile";
+            strError+=QObject::tr("\nIn pair node number %1, there is more than one points node").arg(QString::number(nPairNode+1));
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+        if(pointsNodes.size()==0)
+        {
+            pointsDomElement=mDoc.createElement(ORTOSKYXMLMATCHESFILE_TAG_POINTS);
+        }
+        else
+        {
+            pointsDomElement=pointsNodes.at(0).toElement();
+            if(mRemoveExistsMatches)
+            {
+                QDomNodeList matchesNodes=pointsDomElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_POINT);
+                int numberOfPnts=matchesNodes.size();
+                for(int nPnt=0;nPnt<numberOfPnts;nPnt++)
+                {
+                    pointsNodes.at(0).removeChild(matchesNodes.at(0));
+                }
+            }
+            pointsDomElement=pointsNodes.at(0).toElement();
+            pairNodes.at(nPairNode).removeChild(pointsNodes.at(0));
+        }
+        for(int nPoint=0;nPoint<firstImagePixelsColumn.size();nPoint++)
+        {
+            float firstImagePixelColumnFloat=firstImagePixelsColumn[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            float firstImagePixelRowFloat=firstImagePixelsRow[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            float secondImagePixelColumnFloat=secondImagePixelsColumn[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            float secondImagePixelRowFloat=secondImagePixelsRow[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            if(mImageCoordinatesOrigin.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT,Qt::CaseInsensitive)==0)
+            {
+                firstImagePixelRowFloat=mSensorSize.height()-firstImagePixelRowFloat;
+                secondImagePixelRowFloat=mSensorSize.height()-secondImagePixelRowFloat;
+            }
+            QString strFirstImageColumn=QString::number(firstImagePixelColumnFloat,'f',mImageCoordinatesPrecision);
+            QString strFirstImageRow=QString::number(firstImagePixelRowFloat,'f',mImageCoordinatesPrecision);
+            QString strSecondImageColumn=QString::number(secondImagePixelColumnFloat,'f',mImageCoordinatesPrecision);
+            QString strSecondImageRow=QString::number(secondImagePixelRowFloat,'f',mImageCoordinatesPrecision);
+            QDomElement pntDomElement=mDoc.createElement(ORTOSKYXMLMATCHESFILE_TAG_POINT);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_X1_COORDINATE,strFirstImageColumn);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_Y1_COORDINATE,strFirstImageRow);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_X2_COORDINATE,strSecondImageColumn);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_Y2_COORDINATE,strSecondImageRow);
+            pointsDomElement.appendChild(pntDomElement);
+        }
+        pairNodes.at(nPairNode).appendChild(pointsDomElement);
+    }
+
+    const int IndentSize = 4;
+    QFile file(mXmlFileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QString strError="KpMProcessMonitor::writeMatchesInXmlFile";
+        strError+=tr("\nError opening xml file:\n%1").arg(mXmlFileName);
+        manageProccesErrorOutput(strError);
+        return(false);
+    }
+    QTextStream out(&file);
+    mDoc.save(out, IndentSize);
+    return(true);
+}
+
+bool KpMProcessMonitor::writeOrtoSkyMatchesInXmlFile_201501(QString matchesPath,
+                                                            QString& strError)
+{
+    double pixelCoordinatesFactorIntegerToDouble=1.0/pow(10.0,mImageCoordinatesPrecision*1.0);
+    QDir auxDir=QDir::currentPath();
+    if(!auxDir.exists(matchesPath))
+    {
+        QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+        QString strError=QObject::tr("\nNot exists path:\n%1").arg(matchesPath);
+        manageProccesErrorOutput(strError);
+        return(false);
+    }
+
+    // Lectura de las imágenes
+    QDomNodeList photosNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PHOTOS);
+    if(photosNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+        strError+=QObject::tr("\nNo tag photos in the file");
+        return(false);
+    }
+    if(photosNodes.size()>1)
+    {
+        strError=QObject::tr("ProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+        strError+=QObject::tr("\nThere are more than one photos node");
+        return(false);
+    }
+    QDomNode photosNode=photosNodes.at(0);
+    QDomElement photosElement=photosNode.toElement();
+    QDomNodeList photoNodes=photosElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PHOTO);
+    if(photoNodes.size()<2)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+        strError+=QObject::tr("\nIn node photos must be more than one photo nodes");
+        return(false);
+    }
+    QList<QString> imagesFileName;
+    for(int nPhotoNode=0;nPhotoNode<photoNodes.size();nPhotoNode++)
+    {
+        QDomNode photoNode=photoNodes.at(nPhotoNode);
+        if(!photoNode.isElement())
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nPhoto node number %1 is not an element").arg(QString::number(nPhotoNode+1));
+            return(false);
+        }
+        QDomElement photoElement=photoNode.toElement();
+        QDomNodeList resourceDataNodes=photoElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_DATASOURCE);
+        if(resourceDataNodes.size()!=1)
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nIn photo node number %1, there is not a resource data node").arg(QString::number(nPhotoNode+1));
+            return(false);
+        }
+        QDomElement resourceDataElement=resourceDataNodes.at(0).toElement();
+        QString imageFullPathFileName=resourceDataElement.text();
+        if(!imagesFileName.contains(imageFullPathFileName))
+        {
+            if(!QFile::exists(imageFullPathFileName))
+            {
+                strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, in file %1 there is a image that not exists: \n %2").arg(mXmlFileName).arg(imageFullPathFileName);
+                return(false);
+            }
+            imagesFileName.append(imageFullPathFileName);
+        }
+        else
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, in file %1 repeat image: \n %2").arg(mXmlFileName).arg(imageFullPathFileName);
+            return(false);
+        }
+    }
+
+    QDomNodeList pairsNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIRS);
+    if(pairsNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+        strError+=QObject::tr("\nNo tag pairs in the file");
+        return(false);
+    }
+    if(pairsNodes.size()>1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+        strError+=QObject::tr("\nThere are more than one pairs node");
+        return(false);
+    }
+    QDomNode pairsNode=pairsNodes.at(0);
+    QDomElement pairsElement=pairsNode.toElement();
+    QDomNodeList pairNodes=pairsElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()<1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+        strError+=QObject::tr("\nIn node pairs must be one pair node at least");
+        return(false);
+    }
+    QDir sourceDir(matchesPath);
+    QStringList dirs = sourceDir.entryList(QDir::Dirs);
+
+    QMap<QString,QVector<QString> > imageSecondImageIdByFirstImageId;
+    QMap<QString,QVector<QString> > pairsFullPathFileNameByFirstImageId;
+    for(int i = 0; i< dirs.count(); i++)
+    {
+        QString srcPath = dirs[i];
+        if(srcPath.compare(".")==0
+                ||srcPath.compare("..")==0)
+        {
+            continue;
+        }
+        if(!srcPath.contains(TAPIOCA_PASTIS_PATH,Qt::CaseInsensitive))
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nPath is not valid:\n%1").arg(srcPath);
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+        QString completeSrcPath=matchesPath+"/"+srcPath;
+        addPathToRemove(completeSrcPath);
+        QString firstImageFile=srcPath.remove(TAPIOCA_PASTIS_PATH);
+        QVector<QString> secondImages;
+        imageSecondImageIdByFirstImageId[firstImageFile]=secondImages;
+        QVector<QString> fullPathFileNames;
+        pairsFullPathFileNameByFirstImageId[firstImageFile]=fullPathFileNames;
+        QDir sourceFiles(completeSrcPath);
+        QStringList files = sourceFiles.entryList(QDir::Files);
+        for(int j = 0; j< files.count(); j++)
+        {
+            QString filePath = files[j];
+            if(filePath.compare(".")==0
+                    ||filePath.compare("..")==0)
+            {
+                continue;
+            }
+            QString completeFilePath=completeSrcPath+"/"+filePath;
+            addFileToRemove(completeFilePath);
+            QString secondImageFile=filePath.remove(MATCHING_TXT_FILE_EXTENSION);
+            imageSecondImageIdByFirstImageId[firstImageFile].push_back(secondImageFile);
+            pairsFullPathFileNameByFirstImageId[firstImageFile].push_back(completeFilePath);
+        }
+    }
+
+    for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+    {
+        QDomNode pairNode=pairNodes.at(nPairNode);
+        if(!pairNode.isElement())
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nPair node number %1 is not an element").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement pairElement=pairNode.toElement();
+
+        QDomNodeList photo1DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_PHOTO1);
+        if(photo1DataNodes.size()!=1)
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a photo1 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement photo1Element=photo1DataNodes.at(0).toElement();
+        QString strPhoto1=photo1Element.text();
+        bool toInt=false;
+        int photo1=strPhoto1.toInt(&toInt);
+        if(!toInt||photo1<0||photo1>(imagesFileName.size()-1))
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nIn pair node number %1, photo1 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(strPhoto1);
+            return(false);
+        }
+
+        QDomNodeList photo2DataNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR_PHOTO2);
+        if(photo2DataNodes.size()!=1)
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a photo2 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement photo2Element=photo2DataNodes.at(0).toElement();
+        QString strPhoto2=photo2Element.text();
+        toInt=false;
+        int photo2=strPhoto2.toInt(&toInt);
+        if(!toInt||photo2<0||photo2>(imagesFileName.size()-1))
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nIn pair node number %1, photo2 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(strPhoto2);
+            return(false);
+        }
+
+        QString image1FileName=imagesFileName.at(photo1);
+        QFileInfo fileInfo1(image1FileName);
+        QString image1Id=fileInfo1.fileName();
+        QString image2FileName=imagesFileName.at(photo2);
+        QFileInfo fileInfo2(image2FileName);
+        QString image2Id=fileInfo2.fileName();
+        if(!imageSecondImageIdByFirstImageId.contains(image1Id))
+            continue;
+        if(!imageSecondImageIdByFirstImageId[image1Id].contains(image2Id))
+            continue;
+        int pos=imageSecondImageIdByFirstImageId[image1Id].indexOf(image2Id);
+        QString completeFilePath=pairsFullPathFileNameByFirstImageId[image1Id][pos];
+        QVector<int> firstImagePixelsColumn,firstImagePixelsRow;
+        QVector<int> secondImagePixelsColumn,secondImagePixelsRow;
+        QString strError;
+        if(!readTiePointsFile(completeFilePath,
+                              mRemoveDuplicated,
+                              mImageCoordinatesPrecision,
+                              firstImagePixelsColumn,
+                              firstImagePixelsRow,
+                              secondImagePixelsColumn,
+                              secondImagePixelsRow,
+                              strError))
+        {
+            QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+            QString strError=QObject::tr("\nError reading tie points from file:\n%1").arg(completeFilePath);
+            manageProccesErrorOutput(strError);
+            return(false);
+        }
+        QDomElement pointsDomElement;
+        QDomNodeList pointsNodes=pairElement.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_POINTS);
+        if(pointsNodes.size()>1)
+        {
+            strError=QObject::tr("KpMProcessMonitor::writeMatchesInXmlFile, error in file:\n%1").arg(mXmlFileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is more than one points node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        if(pointsNodes.size()==0)
+        {
+            pointsDomElement=mDoc.createElement(ORTOSKYXMLMATCHESFILE_TAG_POINTS);
+        }
+        else
+        {
+            pointsDomElement=pointsNodes.at(0).toElement();
+            pairNodes.at(nPairNode).removeChild(pointsNodes.at(0));
+        }
+        for(int nPoint=0;nPoint<firstImagePixelsColumn.size();nPoint++)
+        {
+            float firstImagePixelColumnFloat=firstImagePixelsColumn[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            float firstImagePixelRowFloat=firstImagePixelsRow[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            float secondImagePixelColumnFloat=secondImagePixelsColumn[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            float secondImagePixelRowFloat=secondImagePixelsRow[nPoint]*pixelCoordinatesFactorIntegerToDouble;
+            if(mImageCoordinatesOrigin.compare(ORTOSKYXMLMATCHESFILE_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT,Qt::CaseInsensitive)==0)
+            {
+                firstImagePixelRowFloat=mSensorSize.height()-firstImagePixelRowFloat;
+                secondImagePixelRowFloat=mSensorSize.height()-secondImagePixelRowFloat;
+            }
+            QString strFirstImageColumn=QString::number(firstImagePixelColumnFloat,'f',mImageCoordinatesPrecision);
+            QString strFirstImageRow=QString::number(firstImagePixelRowFloat,'f',mImageCoordinatesPrecision);
+            QString strSecondImageColumn=QString::number(secondImagePixelColumnFloat,'f',mImageCoordinatesPrecision);
+            QString strSecondImageRow=QString::number(secondImagePixelRowFloat,'f',mImageCoordinatesPrecision);
+            QDomElement pntDomElement=mDoc.createElement(ORTOSKYXMLMATCHESFILE_TAG_POINT);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_X1_COORDINATE,strFirstImageColumn);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_Y1_COORDINATE,strFirstImageRow);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_X2_COORDINATE,strSecondImageColumn);
+            pntDomElement.setAttribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_Y2_COORDINATE,strSecondImageRow);
+            pointsDomElement.appendChild(pntDomElement);
+        }
+        pairNodes.at(nPairNode).appendChild(pointsDomElement);
+    }
+
+/*
+            for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+            {
+                QDomNode pairNode=pairNodes.at(nPairNode);
+//                if(!pairNode.isElement())
+//                {
+//                    QString title="ProcessMonitor::writeMatchesInXmlFile";
+//                    QString strError=QObject::tr("\nError in file:\n%1").arg(mXmlFileName);
+//                    strError+=QObject::tr("\nPair node is not an element");
+//                    manageProccesErrorOutput(strError);
+//                    return;
+//                }
+                QDomElement pairElement=pairNode.toElement();
+                QString imageIdFirst=pairElement.attribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_FIRST_IMAGE);
+//                if(imageIdFirst.isEmpty())
+//                {
+//                    QString title="ProcessMonitor::writeMatchesInXmlFile";
+//                    QString strError=QObject::tr("\nError in file:\n%1").arg(mXmlFileName);
+//                    strError+=QObject::tr("\nThere is a pair with a first image attibute empty");
+//                    manageProccesErrorOutput(strError);
+//                    return;
+//                }
+                QString imageIdSecond=pairElement.attribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_SECOND_IMAGE);
+//                if(imageIdSecond.isEmpty())
+//                {
+//                    QString title="ProcessMonitor::writeMatchesInXmlFile";
+//                    QString strError=QObject::tr("\nError in file:\n%1").arg(mXmlFileName);
+//                    strError+=QObject::tr("\nThere is a pair with a second image attibute empty");
+//                    manageProccesErrorOutput(strError);
+//                    return;
+//                }
+                // De momento solo contemplo que esten en el mismo orden, vere en depuracion
+                if(imageIdFirst.compare(firstImageFile,Qt::CaseInsensitive)==0
+                        &&imageIdSecond.compare(secondImageFile,Qt::CaseInsensitive)==0)
+                {
+                    QVector<double> firstImagePixelsColumn,firstImagePixelsRow;
+                    QVector<double> secondImagePixelsColumn,secondImagePixelsRow;
+                    QString strError;
+                    if(!readTiePointsFile(completeFilePath,
+                                          firstImagePixelsColumn,
+                                          firstImagePixelsRow,
+                                          secondImagePixelsColumn,
+                                          secondImagePixelsRow,
+                                          strError))
+                    {
+                        QString title="ProcessMonitor::writeMatchesInXmlFile";
+                        QString strError=QObject::tr("\nError reading tie points from file:\n%1").arg(completeFilePath);
+                        manageProccesErrorOutput(strError);
+                        return;
+                    }
+                    for(int nPoint=0;nPoint<firstImagePixelsColumn.size();nPoint++)
+                    {
+                        QString strFirstImageColumn=QString::number(firstImagePixelsColumn[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QString strFirstImageRow=QString::number(firstImagePixelsRow[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QString strSecondImageColumn=QString::number(secondImagePixelsColumn[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QString strSecondImageRow=QString::number(secondImagePixelsRow[nPoint],'f',LIBPW_IMAGE_COORDINATES_PRECISION);
+                        QDomElement pntDomElement=doc.createElement(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_TAG_POINT);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_X1_COORDINATE,strFirstImageColumn);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_Y1_COORDINATE,strFirstImageRow);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_X2_COORDINATE,strSecondImageColumn);
+                        pntDomElement.setAttribute(OPENMVG_KPM_PROGRAM_XMLMATCHESFILE_ATTRIBUTE_Y2_COORDINATE,strSecondImageRow);
+                        pairNodes.at(nPairNode).appendChild(pntDomElement);
+                    }
+                    break;
+                }
+            }
+            if(!QFile::remove(completeFilePath))
+            {
+                QString title="ProcessMonitor::writeMatchesInXmlFile";
+                QString strError=QObject::tr("\nError removing matches file:\n%1").arg(completeFilePath);
+                manageProccesErrorOutput(strError);
+                return;
+            }
+        }
+//        if(!auxDir.remove(completeSrcPath))
+//        {
+//            QString title="ProcessMonitor::writeMatchesInXmlFile";
+//            QString strError=QObject::tr("\nError removing matches folder:\n%1").arg(completeSrcPath);
+//            manageProccesErrorOutput(strError);
+//            return;
+//        }
+    }
+    */
+    const int IndentSize = 4;
+    QFile file(mXmlFileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QString title="KpMProcessMonitor::writeMatchesInXmlFile";
+        QString strError=tr("Error opening xml file:\n%1").arg(mXmlFileName);
+        manageProccesErrorOutput(strError);
+        return(false);
+    }
+    QTextStream out(&file);
+    mDoc.save(out, IndentSize);
+    return(true);
+}
+
+//bool KpMProcessMonitor::copyDir(QString sourceFolder, QString destFolder, bool move)
+//{
+//    QDir auxDir=QDir::currentPath();
+//    if(!auxDir.exists(sourceFolder))
+//        return(false);
+//    QDir sourceDir(sourceFolder);
+//    if(!auxDir.exists(destFolder))
+//    {
+//        auxDir.mkdir(destFolder);
+//    }
+//    QStringList files = sourceDir.entryList(QDir::Files);
+//    for(int i = 0; i< files.count(); i++)
+//    {
+//        QString srcName = sourceFolder + "/" + files[i];
+//        QString destName = destFolder + "/" + files[i];
+//        QFile::copy(srcName, destName);
+//        if (move)
+//            QFile::remove(srcName);
+//    }
+//    files.clear();
+//    files = sourceDir.entryList(QDir::AllDirs | QDir::NoDotAndDotDot);
+//    for(int i = 0; i< files.count(); i++)
+//    {
+//        QString srcName = sourceFolder + "/" + files[i];
+//        QString destName = destFolder + "/" + files[i];
+//        copyDir(srcName, destName, move);
+//        //auxDir.rmdir(srcName);
+//    }
+//    if(move)
+//        auxDir.rmdir(sourceFolder);
+//}
+
+bool KpMProcessMonitor::readTiePointsFile(QString &url,
+                                          bool removeDuplicatedPoints,
+                                          int precision,
+                                          QVector<int> &firstImagePixelsColumn,
+                                          QVector<int> &firstImagePixelsRow,
+                                          QVector<int> &secondImagePixelsColumn,
+                                          QVector<int> &secondImagePixelsRow,
+                                          QString& strError)
+{
+    double pixelCoordinatesFactorDoubleToInteger=pow(10.0,precision*1.0);
+    if(!QFile::exists(url))
+    {
+        return(false);
+    }
+    firstImagePixelsColumn.clear();
+    firstImagePixelsRow.clear();
+    secondImagePixelsColumn.clear();
+    secondImagePixelsRow.clear();
+    QFile file(url);
+    int nLine=0;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        while (!file.atEnd())
+        {
+            QString line = file.readLine();
+            nLine++;
+            QStringList splitedLine = line.simplified().split(" ");
+            if(splitedLine.count() == 4)
+            {
+                int firstImagePixelColumn,firstImagePixelRow,secondImagePixelColumn,secondImagePixelRow;
+                for(int i=0;i<4;i++)
+                {
+                    QString strValue=splitedLine.at(i).trimmed();
+                    bool okToDouble=false;
+                    double value=strValue.toDouble(&okToDouble);
+                    if(!okToDouble)
+                    {
+                        return(false);
+                    }
+                    if(i==0) firstImagePixelColumn=qRound(value*pixelCoordinatesFactorDoubleToInteger);
+                    if(i==1) firstImagePixelRow=qRound(value*pixelCoordinatesFactorDoubleToInteger);
+                    if(i==2) secondImagePixelColumn=qRound(value*pixelCoordinatesFactorDoubleToInteger);
+                    if(i==3) secondImagePixelRow=qRound(value*pixelCoordinatesFactorDoubleToInteger);
+                }
+                bool duplicatedPoint=false;
+                if(removeDuplicatedPoints)
+                {
+                    for(int nPa=0;nPa<firstImagePixelsColumn.size()-1;nPa++)
+                    {
+                        if((firstImagePixelColumn==firstImagePixelsColumn[nPa]
+                                &&firstImagePixelRow==firstImagePixelsRow[nPa])
+                                ||(secondImagePixelColumn==secondImagePixelsColumn[nPa]
+                                   &&secondImagePixelRow==secondImagePixelsRow[nPa]))
+                        {
+                            duplicatedPoint=true;
+                            firstImagePixelsColumn.remove(nPa);
+                            firstImagePixelsRow.remove(nPa);
+                            secondImagePixelsColumn.remove(nPa);
+                            secondImagePixelsRow.remove(nPa);
+                            break;
+                        }
+                    }
+                }
+                if(!duplicatedPoint)
+                {
+                    firstImagePixelsColumn.push_back(firstImagePixelColumn);
+                    firstImagePixelsRow.push_back(firstImagePixelRow);
+                    secondImagePixelsColumn.push_back(secondImagePixelColumn);
+                    secondImagePixelsRow.push_back(secondImagePixelRow);
+                }
+            }
+            else
+            {
+                strError=QObject::tr("KpMProcessMonitor::readTiePointsFile, there is not four numbers in line %1 in file %2")
+                        .arg(QString::number(nLine))
+                        .arg(url);
+                return(false);
+            }
+        }
+        file.close();
+    }
+    else
+    {
+        return(false);
+    }
+    return(true);
+}
+
+//bool KpMProcessMonitor::removeDir(QString dirName)
+//{
+//    bool result = true;
+//    QDir dir(dirName);
+//    if (dir.exists(dirName)) {
+//        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+//            if (info.isDir()) {
+//                result = removeDir(info.absoluteFilePath());
+//            }
+//            else {
+//                result = QFile::remove(info.absoluteFilePath());
+//            }
+//            if (!result) {
+//                return result;
+//            }
+//        }
+//        result = dir.rmdir(dirName);
+//    }
+//    return result;
+//}
+
+bool KpMProcessMonitor::readXmlCameraFile(QString& xmlCameraFileName,
+                                       float& sensorWidth,
+                                       float& sensorHeight,
+                                       float& focal,
+                                       QString& strError)
+{
+    if(!QFile::exists(xmlCameraFileName))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, xml camera file name not exists:\n%1").arg(xmlCameraFileName);
+        return(false);
+    }
+
+    QFile file(xmlCameraFileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error opening file:\n%1").arg(xmlCameraFileName);
+        return(false);
+    }
+    QString errorStr;
+    QString noStr;
+    int errorLine;
+    int errorColumn;
+    QDomDocument doc;
+    if (!doc.setContent(&file,true,&errorStr,&errorLine,&errorColumn))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error reading file:\n%1").arg(xmlCameraFileName);
+        strError+=QObject::tr("\nError: %1 in line %2 in column %3").arg(errorStr).arg(QString::number(errorLine)).arg(QString::number(errorColumn));
+        return(false);
+    }
+
+    QDomNodeList focalNodes=mDoc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_FOCAL);
+    if(focalNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error in file:\n%1").arg(xmlCameraFileName);
+        strError+=QObject::tr("\nFocal node is not unique");
+        return(false);
+    }
+
+    QDomNodeList sensorWidthNodes=doc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORWIDTH);
+    if(sensorWidthNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error in file:\n%1").arg(xmlCameraFileName);
+        strError+=QObject::tr("\nSensor width node is not unique");
+        return(false);
+    }
+
+    QDomNodeList sensorHeightNodes=doc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_SENSORHEIGHT);
+    if(sensorHeightNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error in file:\n%1").arg(xmlCameraFileName);
+        strError+=QObject::tr("\nSensor height node is not unique");
+        return(false);
+    }
+
+    bool toDouble=false;
+    QDomNode focalNode=focalNodes.at(0);
+    focal=focalNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error in file:\n%1").arg(xmlCameraFileName);
+        strError+=QObject::tr("\nFocal node is not valid");
+        return(false);
+    }
+
+    toDouble=false;
+    QDomNode sensorWidthNode=sensorWidthNodes.at(0);
+    sensorWidth=sensorWidthNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error in file:\n%1").arg(xmlCameraFileName);
+        strError+=QObject::tr("\nSensor width node is not valid");
+        return(false);
+    }
+
+    toDouble=false;
+    QDomNode sensorHeightNode=sensorHeightNodes.at(0);
+    sensorHeight=sensorHeightNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readXmlCameraFile, error in file:\n%1").arg(xmlCameraFileName);
+        strError+=QObject::tr("\nSensor heigth node is not valid");
+        return(false);
+    }
+
+    return(true);
+}
+/*
+bool KpMProcessMonitor::readImagePairsXmlFile_firstVersion(QString imagesPath,
+                                                        QString imagePairsFileName,
+                                                        float sensorWidth,
+                                                        float sensorHeight,
+                                                        float focal,
+                                                        int &numberOfImagePairs,
+                                                        QList<QString>& imagesFileName,
+                                                        QList<PW::PWImage *>& images,
+                                                        QString& strError)
+{
+    numberOfImagePairs=0;
+
+    QDir imagesDir(imagesPath);
+    if(!imagesDir.exists())
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, imagesPath not exists:\n%1").arg(imagesPath);
+        return(false);
+    }
+    if(!QFile::exists(imagePairsFileName))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, xml camera file name not exists:\n%1").arg(imagePairsFileName);
+        return(false);
+    }
+
+    QFile file(imagePairsFileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, error opening file:\n%1").arg(imagePairsFileName);
+        return(false);
+    }
+    QString errorStr;
+    QString noStr;
+    int errorLine;
+    int errorColumn;
+    QDomDocument doc;
+    if (!doc.setContent(&file,true,&errorStr,&errorLine,&errorColumn))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, error reading file:\n%1").arg(imagePairsFileName);
+        strError+=QObject::tr("\nError: %1 in line %2 in column %3").arg(errorStr).arg(QString::number(errorLine)).arg(QString::number(errorColumn));
+        return(false);
+    }
+
+    QDomNodeList pairNodes=doc.elementsByTagName(ORTOSKYXMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, error in file:\n%1").arg(imagePairsFileName);
+        strError+=QObject::tr("\nNo tag pairs in the file");
+        return(false);
+    }
+    for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+    {
+        QDomNode pairNode=pairNodes.at(nPairNode);
+        if(!pairNode.isElement())
+        {
+            strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, error in file:\n%1").arg(imagePairsFileName);
+            strError+=QObject::tr("\nPair node is not an element");
+            return(false);
+        }
+        QDomElement pairElement=pairNode.toElement();
+        QString imageIdFirst=pairElement.attribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_FIRST_IMAGE);
+        if(imageIdFirst.isEmpty())
+        {
+            strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, error in file:\n%1").arg(imagePairsFileName);
+            strError+=QObject::tr("\nThere is a pair with a first image attibute empty");
+            return(false);
+        }
+        QString imageIdSecond=pairElement.attribute(ORTOSKYXMLMATCHESFILE_ATTRIBUTE_SECOND_IMAGE);
+        if(imageIdSecond.isEmpty())
+        {
+            strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, error in file:\n%1").arg(imagePairsFileName);
+            strError+=QObject::tr("\nThere is a pair with a second image attibute empty");
+            return(false);
+        }
+        QString imageFirstCompleteFileName=imagesPath+"/"+imageIdFirst;
+        if(!imagesFileName.contains(imageFirstCompleteFileName))
+        {
+            if(!QFile::exists(imageFirstCompleteFileName))
+            {
+                strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, in file %1 there is a image that not exists: \n %2").arg(imagePairsFileName).arg(imageFirstCompleteFileName);
+                return(false);
+            }
+            PW::PWImage* ptrImage=new PW::PWImage(imageFirstCompleteFileName);
+            PW::Camera* ptrCamera=new PW::Camera("no name","no lens",sensorWidth,sensorHeight,focal);
+            ptrImage->setCamera(ptrCamera);
+            images.append(ptrImage);
+            imagesFileName.append(imageFirstCompleteFileName);
+            numberOfImagePairs++;
+        }
+        QString imageSecondCompleteFileName=imagesPath+"/"+imageIdSecond;
+        if(!imagesFileName.contains(imageSecondCompleteFileName))
+        {
+            if(!QFile::exists(imageFirstCompleteFileName))
+            {
+                strError=QObject::tr("KpMProcessMonitor::readImagePairsXmlFile, in file %1 there is a image that not exists: \n %2").arg(imagePairsFileName).arg(imageSecondCompleteFileName);
+                return(false);
+            }
+            PW::PWImage* ptrImage=new PW::PWImage(imageSecondCompleteFileName);
+            PW::Camera* ptrCamera=new PW::Camera("no name","no lens",sensorWidth,sensorHeight,focal);
+            ptrImage->setCamera(ptrCamera);
+            images.append(ptrImage);
+            imagesFileName.append(imageSecondCompleteFileName);
+            numberOfImagePairs++;
+        }
+    }
+    return(true);
+}
+*/
+/*
+bool KpMProcessMonitor::readOrtoSkyXmlProjectFile(QString fileName,
+                                                  QString& imagesPath,
+                                                  float& sensorWidth,
+                                                  float& sensorHeight,
+                                                  float& focal,
+                                                  int &numberOfImagePairs,
+                                                  QList<QString>& imagesFileName,
+                                                  QList<PW::PWImage *>& images,
+                                                  QString& strError)
+{
+    numberOfImagePairs=0;
+    mImagePairs.clear();
+    mImagesFileName.clear();
+    mImageCoordinatesOrigin=KPMPROCESSMONITOR_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT;
+    mImageCoordinatesPrecision=LIBPW_IMAGE_COORDINATES_PRECISION;
+    mSensorSize=QSize(-1,-1);
+
+    if(!QFile::exists(fileName))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, xml camera file name not exists:\n%1").arg(fileName);
+        return(false);
+    }
+
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error opening file:\n%1").arg(fileName);
+        return(false);
+    }
+    QString errorStr;
+    QString noStr;
+    int errorLine;
+    int errorColumn;
+    QDomDocument doc;
+    if (!doc.setContent(&file,true,&errorStr,&errorLine,&errorColumn))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nError: %1 in line %2 in column %3").arg(errorStr).arg(QString::number(errorLine)).arg(QString::number(errorColumn));
+        return(false);
+    }
+
+    // Lectura de la ruta del proyecto, donde deben estar las imágenes
+    QDomNodeList pathNodes=doc.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PROJECT_PATH);
+    if(pathNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag projectPath in the file");
+        return(false);
+    }
+    if(pathNodes.size()>1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one projectPath node");
+        return(false);
+    }
+    imagesPath=pathNodes.at(0).toElement().text().trimmed();
+    QDir imagesDir(imagesPath);
+    if(!imagesDir.exists())
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, imagesPath not exists:\n%1").arg(imagesPath);
+        return(false);
+    }
+    mImagesPath=imagesPath;
+
+    // Lectura de la información de la cámara
+    QDomNodeList cameraNodes=doc.elementsByTagName(KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_CAMERA);
+    if(cameraNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag camera in the file");
+        return(false);
+    }
+    if(cameraNodes.size()>1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one camera node");
+        return(false);
+    }
+    QDomNode cameraNode=cameraNodes.at(0);
+    QDomElement cameraElement=cameraNode.toElement();
+
+    // Lectura de la focal
+    QDomNodeList focalNodes=cameraElement.elementsByTagName(KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_FOCAL);
+    if(focalNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nFocal node is not unique");
+        return(false);
+    }
+    bool toDouble=false;
+    QDomNode focalNode=focalNodes.at(0);
+    focal=focalNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nFocal node is not valid");
+        return(false);
+    }
+
+    // Lectura del ancho del sensor
+    QDomNodeList sensorWidthNodes=cameraElement.elementsByTagName(KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_SENSORWIDTH);
+    if(sensorWidthNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor width node is not unique");
+        return(false);
+    }
+    toDouble=false;
+    QDomNode sensorWidthNode=sensorWidthNodes.at(0);
+    sensorWidth=sensorWidthNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor width node is not valid");
+        return(false);
+    }
+
+    // Lectura del alto del sensor
+    QDomNodeList sensorHeightNodes=cameraElement.elementsByTagName(KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_SENSORHEIGHT);
+    if(sensorHeightNodes.size()!=1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor height node is not unique");
+        return(false);
+    }
+    toDouble=false;
+    QDomNode sensorHeightNode=sensorHeightNodes.at(0);
+    sensorHeight=sensorHeightNode.toElement().text().toDouble(&toDouble);
+    if(!toDouble)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nSensor heigth node is not valid");
+        return(false);
+    }
+
+    // Lectura del origen de coordenadas imagen
+    QDomNodeList imageCoordinatesOriginNodes=cameraElement.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+    if(imageCoordinatesOriginNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag imageCoordinatesOrigin in camera node in the file");
+        return(false);
+    }
+    if(imageCoordinatesOriginNodes.size()==1)
+    {
+        QString strValue=imageCoordinatesOriginNodes.at(0).toElement().text().trimmed();
+        if(strValue.compare(KPMPROCESSMONITOR_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT)!=0
+                &&strValue.compare(KPMPROCESSMONITOR_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT)!=0)
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN);
+            return(false);
+        }
+        mImageCoordinatesOrigin=strValue;
+    }
+
+    // Lectura de la precisión de las coordenadas imagen
+    QDomNodeList imageCoordinatesPrecisionNodes=cameraElement.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+    if(imageCoordinatesOriginNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag imageCoordinatesPrecision in camera node in the file");
+        return(false);
+    }
+    if(imageCoordinatesPrecisionNodes.size()==1)
+    {
+        QString strValue=imageCoordinatesPrecisionNodes.at(0).toElement().text().trimmed();
+        bool toInt=false;
+        int value=strValue.toInt(&toInt);
+        if(!toInt||value<0)
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error reading file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nValue %1 is not valid for tag %2").arg(strValue).arg(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION);
+            return(false);
+        }
+        mImageCoordinatesPrecision=value;
+    }
+
+    // Lectura de las imágenes
+    QDomNodeList photosNodes=doc.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PHOTOS);
+    if(photosNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag photos in the file");
+        return(false);
+    }
+    if(photosNodes.size()>1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one photos node");
+        return(false);
+    }
+    QDomNode photosNode=photosNodes.at(0);
+    QDomElement photosElement=photosNode.toElement();
+    QDomNodeList photoNodes=photosElement.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PHOTO);
+    if(photoNodes.size()<2)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn node photos must be more than one photo nodes");
+        return(false);
+    }
+    for(int nPhotoNode=0;nPhotoNode<photoNodes.size();nPhotoNode++)
+    {
+        QDomNode photoNode=photoNodes.at(nPhotoNode);
+        if(!photoNode.isElement())
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nPhoto node number %1 is not an element").arg(QString::number(nPhotoNode+1));
+            return(false);
+        }
+        QDomElement photoElement=photoNode.toElement();
+        QDomNodeList resourceDataNodes=photoElement.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_DATASOURCE);
+        if(resourceDataNodes.size()!=1)
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn photo node number %1, there is not a resource data node").arg(QString::number(nPhotoNode+1));
+            return(false);
+        }
+        QDomElement resourceDataElement=resourceDataNodes.at(0).toElement();
+        QString imageFullPathFileName=resourceDataElement.text();
+        if(!imagesFileName.contains(imageFullPathFileName))
+        {
+            if(!QFile::exists(imageFullPathFileName))
+            {
+                strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 there is a image that not exists: \n %2").arg(fileName).arg(imageFullPathFileName);
+                return(false);
+            }
+            PW::PWImage* ptrImage=new PW::PWImage(imageFullPathFileName);
+            QSize sensorSize=ptrImage->getSize();
+            if(mSensorSize.height()==-1
+                    &&mSensorSize.width()==-1)
+            {
+                mSensorSize=sensorSize;
+            }
+            else
+            {
+                if(mSensorSize!=sensorSize)
+                {
+                    strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 there is a image with sensor size invalid: \n %2").arg(fileName).arg(imageFullPathFileName);
+                    return(false);
+                }
+            }
+            PW::Camera* ptrCamera=new PW::Camera("no name","no lens",sensorWidth,sensorHeight,focal);
+            ptrImage->setCamera(ptrCamera);
+            images.append(ptrImage);
+            imagesFileName.append(imageFullPathFileName);
+        }
+        else
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, in file %1 repeat image: \n %2").arg(fileName).arg(imageFullPathFileName);
+            return(false);
+        }
+    }
+
+    // Lectura de los pares a procesar
+    QMap<int,QVector<int> > noDuplictadedImagePairs;
+    QDomNodeList pairsNodes=doc.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIRS);
+    if(pairsNodes.size()==0)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nNo tag pairs in the file");
+        return(false);
+    }
+    if(pairsNodes.size()>1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nThere are more than one pairs node");
+        return(false);
+    }
+    QDomNode pairsNode=pairsNodes.at(0);
+    QDomElement pairsElement=pairsNode.toElement();
+    QDomNodeList pairNodes=pairsElement.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIR);
+    if(pairNodes.size()<1)
+    {
+        strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+        strError+=QObject::tr("\nIn node pairs must be one pair node at least");
+        return(false);
+    }
+    for(int nPairNode=0;nPairNode<pairNodes.size();nPairNode++)
+    {
+        QDomNode pairNode=pairNodes.at(nPairNode);
+        if(!pairNode.isElement())
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nPair node number %1 is not an element").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement pairElement=pairNode.toElement();
+
+        QDomNodeList photo1DataNodes=pairElement.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIR_PHOTO1);
+        if(photo1DataNodes.size()!=1)
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a photo1 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement photo1Element=photo1DataNodes.at(0).toElement();
+        QString strPhoto1=photo1Element.text();
+        bool toInt=false;
+        int photo1=strPhoto1.toInt(&toInt);
+        if(!toInt||photo1<0||photo1>(images.size()-1))
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, photo1 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(strPhoto1);
+            return(false);
+        }
+
+        QDomNodeList photo2DataNodes=pairElement.elementsByTagName(KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIR_PHOTO2);
+        if(photo2DataNodes.size()!=1)
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, there is not a photo2 node").arg(QString::number(nPairNode+1));
+            return(false);
+        }
+        QDomElement photo2Element=photo2DataNodes.at(0).toElement();
+        QString strPhoto2=photo2Element.text();
+        toInt=false;
+        int photo2=strPhoto2.toInt(&toInt);
+        if(!toInt||photo2<0||photo2>(images.size()-1))
+        {
+            strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+            strError+=QObject::tr("\nIn pair node number %1, photo2 value %1 is not valid").arg(QString::number(nPairNode+1)).arg(strPhoto2);
+            return(false);
+        }
+
+        QString image1FileName=images.at(photo1)->getFullPath();
+        if(!mImagesFileName.contains(image1FileName))
+            mImagesFileName.append(image1FileName);
+        QString image1Id=images.at(photo1)->getFileName();
+        QString image2FileName=images.at(photo2)->getFullPath();
+        QString image2Id=images.at(photo2)->getFileName();
+        if(!mImagesFileName.contains(image2FileName))
+            mImagesFileName.append(image2FileName);
+        if(!noDuplictadedImagePairs.contains(photo1))
+        {
+            QVector<int> aux;
+            aux.push_back(photo2);
+            noDuplictadedImagePairs[photo1]=aux;
+            QVector<QString> strAux;
+            strAux.push_back(image2Id);
+            mImagePairs[image1Id]=strAux;
+        }
+        else
+        {
+            if(noDuplictadedImagePairs[photo1].contains(photo2))
+            {
+                strError=QObject::tr("KpMProcessMonitor::readOrtoSkyXmlProjectFile, error in file:\n%1").arg(fileName);
+                strError+=QObject::tr("\nPair duplicated (%1,%2)").arg(QString::number(photo1)).arg(QString::number(photo2));
+                return(false);
+            }
+            else
+            {
+                noDuplictadedImagePairs[photo1].push_back(photo2);
+                mImagePairs[image1Id].push_back(image2Id);
+            }
+        }
+        numberOfImagePairs++;
+    }
+    return(true);
+}
+
+bool KpMProcessMonitor::writeImagePairsXmlFile(QString imagePairsFileName,
+                                            QString& strError)
+{
+    QFile file(imagePairsFileName);
+    if(!file.open(QIODevice::WriteOnly | QIODevice::Text))
+    {
+        strError=QObject::tr("KpMProcessMonitor::writeImagePairsXmlFile, imagesPath not exists:\n%1").arg(imagePairsFileName);
+        return(false);
+    }
+    QTextStream out(&file);
+    QMap<QString,QVector<QString> >::const_iterator iter=mImagePairs.begin();
+    while(iter!=mImagePairs.end())
+    {
+        QString imageId=iter.key();
+        QVector<QString> pairs=iter.value();
+        for(int nI=0;nI<pairs.size();nI++)
+        {
+            QString imagePairId=pairs[nI];
+            out<<imageId<<"  "<<imagePairId<<endl;
+        }
+        iter++;
+    }
+    file.close();
+    return(true);
+}
+*/
+int KpMProcessMonitor::readImagePairsFile(QString imagesPath,
+                                          QString imagePairsFileName,
+                                          float sensorWidth,
+                                          float sensorHeight,
+                                          float focal,
+                                          int &numberOfImagePairs,
+                                          QList<QString>& imagesFileName,
+                                          QList<PW::PWImage *>& images,
+                                          QString& strError)
+{
+    mSensorWidth=sensorWidth;
+    mSensorHeight=sensorHeight;
+    mFocal=focal;
+    numberOfImagePairs=0;
+    QDir imagesDir(imagesPath);
+    if(!imagesDir.exists())
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, imagesPath not exists:\n%1").arg(imagesPath);
+        return(false);
+    }
+    if(!QFile::exists(imagePairsFileName))
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, imagePairsFileName not exists:\n%1").arg(imagePairsFileName);
+        return(false);
+    }
+    QFile file(imagePairsFileName);
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        int nLine=0;
+        while (!file.atEnd())
+        {
+            nLine++;
+            QString line = file.readLine().trimmed();
+            if(line.isEmpty())
+                continue;
+            QStringList splitedLine = line.simplified().split(" ");
+            if(splitedLine.count() == 2)
+            {
+                QString imageIdFirst=splitedLine.at(0).trimmed();
+                QString imageFirstCompleteFileName=imagesPath+"/"+imageIdFirst;
+                if(!imagesFileName.contains(imageFirstCompleteFileName))
+                {
+                    if(!QFile::exists(imageFirstCompleteFileName))
+                    {
+                        strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, in imagePairsFile\n%1 \n in line number: %2 not exists image file: \n %3").arg(imagePairsFileName).arg(nLine).arg(imageFirstCompleteFileName);
+                        return(false);
+                    }
+                    PW::PWImage* ptrImage=new PW::PWImage(imageFirstCompleteFileName);
+                    QSize sensorSize=ptrImage->getSize();
+                    if(mSensorSize.height()==-1
+                            &&mSensorSize.width()==-1)
+                    {
+                        mSensorSize=sensorSize;
+                    }
+                    else
+                    {
+                        if(mSensorSize!=sensorSize)
+                        {
+                            strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, in file %1 there is a image with sensor size invalid: \n %2").arg(imagePairsFileName).arg(imageFirstCompleteFileName);
+                            return(false);
+                        }
+                    }
+                    PW::Camera* ptrCamera=new PW::Camera("no name","no lens",mSensorWidth,mSensorHeight,mFocal);
+                    ptrImage->setCamera(ptrCamera);
+                    images.append(ptrImage);
+                    imagesFileName.append(imageFirstCompleteFileName);
+                    numberOfImagePairs++;
+                }
+                QString imageIdSecond=splitedLine.at(1).trimmed();
+                QString imageSecondCompleteFileName=imagesPath+"/"+imageIdSecond;
+                if(!imagesFileName.contains(imageSecondCompleteFileName))
+                {
+                    if(!QFile::exists(imageSecondCompleteFileName))
+                    {
+                        strError=QObject::tr("ProcessMonitor::readImagePairsFileName, in imagePairsFile\n%1 \n in line number: %2 not exists image file: \n %3").arg(imagePairsFileName).arg(nLine).arg(imageSecondCompleteFileName);
+                        return(false);
+                    }
+                    PW::PWImage* ptrImage=new PW::PWImage(imageSecondCompleteFileName);
+                    QSize sensorSize=ptrImage->getSize();
+                    if(mSensorSize.height()==-1
+                            &&mSensorSize.width()==-1)
+                    {
+                        mSensorSize=sensorSize;
+                    }
+                    else
+                    {
+                        if(mSensorSize!=sensorSize)
+                        {
+                            strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, in file %1 there is a image with sensor size invalid: \n %2").arg(imagePairsFileName).arg(imageSecondCompleteFileName);
+                            return(false);
+                        }
+                    }
+                    PW::Camera* ptrCamera=new PW::Camera("no name","no lens",mSensorWidth,mSensorHeight,mFocal);
+                    ptrImage->setCamera(ptrCamera);
+                    images.append(ptrImage);
+                    imagesFileName.append(imageSecondCompleteFileName);
+                    numberOfImagePairs++;
+                }
+            }
+            else
+            {
+                strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, in imagePairsFile\n%1 \n in line number: %2 there are not two strings").arg(imagePairsFileName).arg(nLine);
+                return(false);
+            }
+        }
+    }
+    else
+    {
+        strError=QObject::tr("KpMProcessMonitor::readImagePairsFileName, opening imagePairsFile:\n").arg(imagePairsFileName);
+        return(false);
+    }
+    return(true);
+}

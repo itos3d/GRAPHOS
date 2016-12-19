@@ -1,0 +1,30 @@
+#include "MicMacComputeSlavesProcess.h"
+#include "libPW.h"
+using namespace PW;
+
+MicMacComputeSlavesProcess::MicMacComputeSlavesProcess(QString inputRegExp, QString orientation, QString outResults):
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + MM3D_COMMAND)
+{
+    setStartupMessage("Searching slave images...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Apero2PMVS.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/Apero2PMVSError.log");
+    QStringList inputs;
+    inputs << "AperoChImSecMM";
+    inputs << inputRegExp;
+    inputs << orientation;
+    inputs << "ExpTxt=true";
+    inputs << "Out="+outResults;
+    addIntputs(inputs);
+}
+
+MicMacComputeSlavesProcess::~MicMacComputeSlavesProcess()
+{
+
+}
+

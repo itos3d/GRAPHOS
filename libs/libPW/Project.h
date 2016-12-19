@@ -1,0 +1,269 @@
+/**
+*-------------------------------------------------
+*  Copyright 2016 by Tidop Research Group <daguilera@usal.se>
+*
+* This file is part of GRAPHOS - inteGRAted PHOtogrammetric Suite.
+*
+* GRAPHOS - inteGRAted PHOtogrammetric Suite is free software: you can redistribute
+* it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either
+* version 3 of the License, or (at your option) any later version.
+*
+* GRAPHOS - inteGRAted PHOtogrammetric Suite is distributed in the hope that it will
+* be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*
+* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
+*-------------------------------------------------
+*/
+#ifndef PROJECT_H
+#define PROJECT_H
+
+#include <QList>
+#include <QStringList>
+#include <QVector3D>
+#include <QMap>
+#include <QVector>
+
+#include "PWImage.h"
+#include "PW3dPoint.h"
+#include "PhotogrammetricModel.h"
+#include "Camera.h"
+#include "PW2dPoint.h"
+#include "PWGraphImages.h"
+//#include "PWMatchesCategory.h"
+
+namespace PW{
+class PWMatchesCategory;
+class LIBPWSHARED_EXPORT Project
+{
+public:
+    Project();
+
+    ~Project();
+
+    int     getID();
+    QString getName();
+    QString getBasePath();
+    QString getPreProcessingPath();
+    QString getSparseModelFullPath();
+    QString getDenseModelFullPath();
+    QString getSparseModelRelativePath();
+    QString getDenseModelRelativePath();
+    QString getDescription();
+    Camera *getCamera(QString exiff_id);
+    QList<Camera *> getCameras();
+    QString getCurrentOrientation();
+    QList<PWImage*> getImages();
+    QVector<QString> getImagesFileName();
+    PWImage *getImageByURL(QString url);
+    PWImage *getImageByName(QString name);
+    int getMatchingFormat();
+    QList<PW3dPoint *> *getModelCPoints();
+    QString getActiveTiePointsSet();
+
+    QPointF getOriginPoint();
+    QPointF getOX1();
+    QPointF getOX2();
+    QPointF getScalePointA1();
+    QPointF getScalePointA2();
+    QPointF getScalePointB1();
+    QPointF getScalePointB2();
+    PWImage *getOriginImage();
+    PWImage *getOXImage();
+    PWImage *getScaleImageA();
+    PWImage *getScaleImageB();
+    double getScaleDistance();
+    QString getProcessMetadata();
+    QString getCloudUUID();
+
+    void setProcessMetadata(QString metadata);
+    void setProcessMetadataElement(QString process, QString tag, QString value);
+    void removeProcessMetadata(QString process);
+
+    void setID(int id);
+    void setName(QString name);
+    void setBasePath(QString path);
+    void setPreprocessingPath(QString path);
+
+    /*!
+     \brief Sets the Sparse model path, relative to basePath
+
+     \param path
+    */
+    void setSparseModelRelativePath(QString path);
+    /*!
+     \brief Sets the Dense model path, relative to basePath
+
+     \param path
+    */
+    void setDenseModelRelativePath(QString path);
+    void setDescription(QString description);
+    void addImputImages (QList<PWImage*> imagesList);
+    bool needToSave();
+    void setNeedToSave(bool needToSave);
+    void addCamera(Camera * camera);
+    void setCurrentOrientation(QString orientationName);
+    void setMatchingFormat(int format);
+    void setActiveTiePointsSet(QString name);
+    void setCloudUUID(QString value);
+
+    void setOriginPoint(QPointF point);
+    void setOX1(QPointF point);
+    void setOX2(QPointF point);
+    void setScalePointA1(QPointF point);
+    void setScalePointA2(QPointF point);
+    void setScalePointB1(QPointF point);
+    void setScalePointB2(QPointF point);
+    void setOriginImage(PWImage *image);
+    void setOXImage(PWImage *image);
+    void setScaleImageA(PWImage *image);
+    void setScaleImageB(PWImage *image);
+    void setScaleDistance(double distance);
+
+
+    /*!
+     \brief
+
+     \return int 1 if there is no camera in db for any image.
+    */
+    int addImputImages (QStringList imagePathList);  
+    void removeImageByName(QString name);
+    void removeImagesByName(QStringList namesList);
+
+
+
+    void updateImagesCPoints();
+    int readOrientations(QString basePath);
+    int calculateImagePoints();
+    int calculateImagePoints(QList<PW3dPoint *> *points,
+                             PhotogrammetricModel *pm,
+                             ExteriorOrientation * ext,
+                             QList<PW2dPoint *> *resultPoints,
+                             int imgWidth = 10000,
+                             int imgHeight = 10000);
+//    int Project::calculateImagePoint(double xT,
+//                                     double yT,
+//                                     double zT,
+//                                     PhotogrammetricModel *pm,
+//                                     QVector<double> * cp,
+//                                     QVector< QVector<double> > * r,
+//                                     int imgWidth,
+//                                     int imgHeight,
+//                                     float& column,
+//                                     float& row);
+
+    bool insertMatchesCategory(PWMatchesCategory* matchesCategory);
+
+    bool networkConnectivityAnalysis(QMap<QString,QVector<QString> >& imagesIdsTiePoints,
+                                     QVector<QString> &connectedImages,
+                                     QVector<QString> &unconnectedImages);
+    void insertConnectionsImages(QString &image,
+                                 QMap<QString, QVector<QString> > &connectionsImages,
+                                 QVector<QString> &connectedImagesGroup,
+                                 int& numberOfConnectedImages);
+    bool convertInFirstImage(QString& noFirstImage,
+                             QVector<QString>& noFirstImages,
+                             QMap<QString,QVector<QString> >& imagesIdsTiePoints);
+
+    QStringList getTiePointsSets();
+    QStringList getValidTiePointsSets();
+    void clearTiePointsSets();
+    void appendTiePointsSet(QString tiePointsSet);
+    bool existsMatchesCategoryValid();
+    void getActiveImagePairs(QMap<QString, QVector<QString> >& imagesIdsPairs);
+    void getMatchesCategoriesInformation(QStringList& metadataMatchesCategories,
+                                         QStringList& descriptionMatchesCategories,
+                                         QStringList& timeCalculationMatchesCategories,
+                                         QVector<bool> &validityMatchesCategories);
+    QList<PWMatchesCategory*> getMatchesCategories();
+    bool isValidMatchedCategory(QString metadata);
+    bool isValidMatchedCategoryByDescription(QString description);
+    PWMatchesCategory* getMatchesCategory(QString description);
+    void getInvalidMatchedCategoryExplanation(QString metadata,
+                                              QString& title,
+                                              QStringList &subgraphs);
+    void getInvalidMatchedCategoryExplanationByDescription(QString description,
+                                                           QString& title,
+                                                           QStringList& subgraphs);
+    bool getMatchedCategoryImagePairs(QString &metadata,
+                                      QMap<QString, QVector<QString> >& imagePairs);
+    bool getMatchedCategoryImagePairsByDescription(QString &description,
+                                                   QMap<QString, QVector<QString> >& imagePairs);
+    bool getMatchedCategoryOrderedImages(QString &metadata,
+                                         int nGraph,
+                                         QVector<QString>& orderedImages);
+    bool getMatchedCategoryOrderedImagesByDescription(QString &description,
+                                                      int nGraph,
+                                                      QVector<QString> &orderedImages);
+
+    bool updateTiePointsAccuracy(QMap<QString,int>& orientationImagesIds,
+                                 QMap<QString,QVector<QString> >& orientationImagesIdsTiePoints,
+                                 QMap<QString, QMap<QString, QVector<double> > > &orientationImagesFirstColumnsTiePoints,
+                                 QMap<QString, QMap<QString, QVector<double> > > &orientationImagesFirstRowsTiePoints,
+                                 QMap<QString, QMap<QString, QVector<double> > > &orientationImagesSecondColumnsTiePoints,
+                                 QMap<QString, QMap<QString, QVector<double> > > &orientationImagesSecondRowsTiePoints,
+                                 QMap<QString,QMap<QString,QVector<int> > >& orientationMatchesIds,
+                                 QMap<QString, QMap<QString, QVector<double> > > &orientationMatchesAccuracies,
+                                 QMap<int, double> &accuraciesByMatchId);
+
+    QString getCaptureType();
+    void setCaptureType(QString type);
+
+    QMap<QString,QList<PW2dPoint *>*>* getImagePointsMap();
+private:
+    int mID; //Persistence id.
+    QString mName;
+    QString mDescription;
+    QList<PWImage *> mInputImages;
+    QList<PW3dPoint *> mModelCPoints; //3d Model control/check points.
+    QString mBasePath;
+    QString mPreprocessingPath;
+    QString mSparseModelPath;
+    QString mDenseModelPath;
+    bool mNeedToSave;
+    QMap<QString, Camera *> mCameras;
+    QString mCurrentOrientation;
+    int mMatchingFormat;
+    QString mActiveTiePointsSet;
+    QStringList mTiePointsSets;
+    QString mCloudUUID;
+    QString mCaptureType;
+
+    //Bascule:
+    QPointF mOriginPoint;
+    QPointF mOX1;
+    QPointF mOX2;
+    QPointF mScalePointA1;
+    QPointF mScalePointA2;
+    QPointF mScalePointB1;
+    QPointF mScalePointB2;
+    PWImage *mOriginImage;
+    PWImage *mOXImage;
+    PWImage *mScaleImageA;
+    PWImage *mScaleImageB;
+    double mScaleDistance;
+
+    //Process Metadata:
+    QString mProcessMetadata;
+
+    // Contenedores para gestionar las categorias de matches
+    // Los indexo por el metadata, que es único.
+    // El problema viene si se ha recalculado con el mismo metadata, por eso compruebo el timeCalculation
+//    QMap<QString,QString> mMatchesCategoryTimeCalculation;
+//    QMap<QString,PWGraphImages*> mMatchesCategoryGraphImages;
+//    QMap<QString,QMap<QString, QVector<QString> > > mMatchesCategoryImagesPairs;
+//    QMap<QString,QString> mMatchesCategoryByDescription;
+
+    QMap<QString,PWMatchesCategory*> mMatchesCategories;
+
+    QMap<QString,QList<PW2dPoint *>*> *imagePointsMap;
+};
+
+}
+
+#endif // PROJECT_H

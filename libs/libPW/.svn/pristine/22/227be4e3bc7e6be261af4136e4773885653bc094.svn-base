@@ -1,0 +1,30 @@
+#ifndef WRITEPROJECTPROCESS_H
+#define WRITEPROJECTPROCESS_H
+
+#include <QThread>
+#include "Project.h"
+#include "PersistenceManager.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT WriteProjectProcess: public QThread
+{
+public:
+    WriteProjectProcess(PersistenceManager *persistenceManager,
+                        Project *project,
+                        bool writeCams,
+                        int previousProyectID);
+
+protected:
+        void run();
+
+private:
+        PersistenceManager *mPersistenceManager;
+        PW::Project *mProject;
+        bool mWriteCams;
+        int mPreviousProyectID;
+
+};
+}
+
+#endif // WRITEPROJECTPROCESS_H

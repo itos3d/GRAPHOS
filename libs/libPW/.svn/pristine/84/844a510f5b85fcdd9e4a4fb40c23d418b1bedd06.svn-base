@@ -1,0 +1,26 @@
+#ifndef DECENTERING_H
+#define DECENTERING_H
+
+#include "DistortionModel.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT Decentering : public DistortionModel
+{
+public:
+    Decentering();
+
+    double getP1();
+    double getP2();
+
+    void setP1(double p1);
+    void setP2(double p2);
+
+private:
+    double mP1;
+    double mP2;
+};
+
+}
+
+#endif // DECENTERING_H

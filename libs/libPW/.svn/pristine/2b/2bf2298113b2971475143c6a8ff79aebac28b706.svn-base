@@ -1,0 +1,16 @@
+#ifndef SBGLOBBASCULEPROCESS_H
+#define SBGLOBBASCULEPROCESS_H
+
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT SBGlobBasculeProcess: public ExternalProcess
+{
+public:
+    SBGlobBasculeProcess();
+};
+
+}
+#endif // SBGLOBBASCULEPROCESS_H

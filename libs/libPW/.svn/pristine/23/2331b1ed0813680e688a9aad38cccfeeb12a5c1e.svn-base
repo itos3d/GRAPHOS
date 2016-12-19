@@ -1,0 +1,18 @@
+#ifndef APEROFINISHEDPROCESS_H
+#define APEROFINISHEDPROCESS_H
+#include "ProcessConcurrent.h"
+#include "libPW.h"
+namespace PW{
+class LIBPWSHARED_EXPORT AperoFinishedProcess: public ProcessConcurrent
+{
+public:
+    AperoFinishedProcess(PW::Project *project,bool MatchestoDat=false,bool cleanOri=false);
+    ~AperoFinishedProcess();
+        virtual void run();
+private:
+    PW::Project *mProject;
+    bool mMatchesToDat;
+    bool mCleanOri;
+};
+}
+#endif // APEROFINISHEDPROCESS_H

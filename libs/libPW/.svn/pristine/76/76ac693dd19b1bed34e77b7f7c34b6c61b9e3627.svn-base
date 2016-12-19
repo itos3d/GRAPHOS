@@ -1,0 +1,26 @@
+#ifndef MSDPROCESS_H
+#define MSDPROCESS_H
+
+#include <QMap>
+#include "MultiProcess.h"
+#include "ProcessedImageData.h"
+#include "MSDMatching.h"
+
+namespace PW {
+
+class LIBPWSHARED_EXPORT MSDProcess : public MultiProcess
+{
+public:
+    MSDProcess(QString projectBasePath, QStringList imagesPathList, QString outputPath);
+    ~MSDProcess();
+
+private:
+    MultiProcess *mKPDProcess;
+    MSDMatching *mMatchingProcess;
+    QString matchesFolder;
+    QStringList mImagesPathList;
+    QMap<QString, ProcessedImageData*> mImageMetadataMap;
+};
+}
+
+#endif // MSDPROCESS_H

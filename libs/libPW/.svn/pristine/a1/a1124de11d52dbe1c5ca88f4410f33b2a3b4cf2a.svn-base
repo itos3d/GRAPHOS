@@ -1,0 +1,25 @@
+#include "DrunkProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+DrunkProcess::DrunkProcess(QString inputRegExp, QString orientation, QString outputPath):
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + DRUNK_COMMAND)
+{
+  setStartupMessage("Undistorting Images...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Drunk.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/DrunkEror.log");
+
+    QStringList inputs;
+    inputs << inputRegExp << orientation;
+    if (!outputPath.isEmpty())
+        inputs << "Out="+outputPath+"/";
+
+    addIntputs(inputs);
+}

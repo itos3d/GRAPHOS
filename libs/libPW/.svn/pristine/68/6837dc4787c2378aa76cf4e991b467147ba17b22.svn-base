@@ -1,0 +1,39 @@
+#ifndef TAPIOCAWAITRESULTS_H
+#define TAPIOCAWAITRESULTS_H
+
+#include <QFileSystemWatcher>
+#include <QStringList>
+#include <QMap>
+
+#include "Process.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT TapiocaWaitResults : public Process
+{
+    Q_OBJECT
+
+public:
+    TapiocaWaitResults(QString homolPath, int imagesCount = 0);
+    ~TapiocaWaitResults();
+
+protected:
+    void run();
+
+public slots:
+    virtual void onElementChange(QString path);
+
+private:
+    int mImagesCount;
+    QString mHomolPath;
+    QFileSystemWatcher *mFileWatcher;
+    QStringList mElementList;
+    QStringList mElementChanged;
+    long mOffset;
+    bool mStop;
+    QMap<QString, bool> mCompleted;
+    int mCounter;
+};
+}
+
+#endif // TAPIOCAWAITRESULTS_H

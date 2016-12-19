@@ -1,0 +1,14 @@
+#ifndef MICMACDENSEPROCESSOBJECTSPACE_H
+#define MICMACDENSEPROCESSOBJECTSPACE_H
+
+#include "MultiProcess.h"
+namespace PW {
+
+class LIBPWSHARED_EXPORT MicMacDenseProcessObjectSpace : public MultiProcess
+{
+public:
+    MicMacDenseProcessObjectSpace(QString projectPath,QString distortionModel,QString paramsPath);
+    ~MicMacDenseProcessObjectSpace();
+};
+}
+#endif // MICMACDENSEPROCESSOBJECTSPACE_H

@@ -1,0 +1,61 @@
+#include <QFile>
+#include <QTextStream>
+
+#include "AperoMatchingIO.h"
+#include "PW2dPoint.h"
+
+using namespace PW;
+
+AperoMatchingIO::AperoMatchingIO()
+{
+}
+
+int AperoMatchingIO::write(QMap<QString, QPointF> *matching, QString url)
+{
+    QFile file(url);
+    file.open(QIODevice::WriteOnly);
+    QTextStream out(&file);
+    QMap<QString, QPointF>::iterator i;
+    for (i = matching->begin(); i != matching->end(); ++i){
+        QPointF point = i.value();
+        out << i.key() + " " + QString::number(point.x()) + " " + QString::number(point.y()) << "\n";
+    }
+
+    return 0;
+}
+
+int AperoMatchingIO::writeFromControlPoints(QList<PW2dPoint *> *pointListA,
+                                            QList<PW2dPoint *> *pointListB,
+                                            QString url)
+{
+    QFile file(url);
+    file.open(QIODevice::WriteOnly);
+    QTextStream out(&file);
+
+    QMap<QString, QPointF> bMap;
+    // Mapping B List:
+    for(int i = 0; i<pointListB->count(); i++){
+        bMap.insert(pointListB->at(i)->getName(), pointListB->at(i)->getPoint());
+    }
+
+    int matchesCount = 0;
+    for(int i = 0; i<pointListA->count(); i++){
+        QString pointName = pointListA->at(i)->getName();
+        if (bMap.keys().contains(pointName)){
+
+            out << QString::number(pointListA->at(i)->getCoord(0)) +
+                   " " +
+                   QString::number(pointListA->at(i)->getCoord(1)) +
+                   " " +
+                   QString::number(bMap.value(pointName).x()) +
+                   " " +
+                   QString::number(bMap.value(pointName).y()) << "\n";
+            matchesCount++;
+        }
+    }
+    if (matchesCount)
+        return 0;
+    else
+        return 1;
+
+}

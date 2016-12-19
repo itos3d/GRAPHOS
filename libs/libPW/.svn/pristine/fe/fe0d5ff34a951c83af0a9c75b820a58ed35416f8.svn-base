@@ -1,0 +1,20 @@
+#ifndef MERGELASRESULTSPROCESS_H
+#define MERGELASRESULTSPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT MergeLasResultsProcess : public ExternalProcess
+{
+public:
+    MergeLasResultsProcess(QStringList inputLasFiles,
+                           QString outputFilePath);
+//    ~MergeLasResultsProcess();
+
+//private:
+//    QStringList mInputLasFiles;
+//    QString mOutputPath;
+};
+}
+#endif // MERGELASRESULTSPROCESS_H

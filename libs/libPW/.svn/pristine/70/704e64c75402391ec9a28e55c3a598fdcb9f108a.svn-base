@@ -1,0 +1,21 @@
+#ifndef CUSTOMSUREPROCESS_H
+#define CUSTOMSUREPROCESS_H
+
+#include "MultiProcess.h"
+#include "Project.h"
+namespace PW {
+
+class LIBPWSHARED_EXPORT CustomSureProcess : public MultiProcess
+{
+public:
+    CustomSureProcess(Project *project, int pyr,int fold, int maxModels,bool useGPU=false);
+    ~CustomSureProcess();
+private:
+    Project *mProject;
+    int mPyr;
+    int mFold;
+    int mMaxModels;
+    bool mUseGPU;
+};
+}
+#endif // CUSTOMSUREPROCESS_H

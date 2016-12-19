@@ -1,0 +1,23 @@
+#ifndef WALLISBATCHPROCESS_H
+#define WALLISBATCHPROCESS_H
+
+#include "MultiProcess.h"
+
+namespace PW {
+
+class LIBPWSHARED_EXPORT WallisBatchProcess : public MultiProcess
+{
+public:
+    WallisBatchProcess(QStringList imagesPaths,
+                  QString outputPath,
+                  float wallisParameterA,
+                  float wallisParameterB,
+                  unsigned short int kernelSize,
+                  unsigned short int imposedAverage,
+                  unsigned short int imposedStDeviation);
+
+
+};
+}
+
+#endif // WALLISBATCHPROCESS_H

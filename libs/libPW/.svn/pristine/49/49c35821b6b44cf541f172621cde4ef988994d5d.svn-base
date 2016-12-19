@@ -1,0 +1,49 @@
+#include "MicMacOrthoProcess.h"
+#include "TaramaProcess.h"
+#include "MaltProcess.h"
+#include "TawnyProcess.h"
+#include "BasculeProcess.h"
+#include "Nuage2PlyProcess.h"
+#include "AperiCloudProcess.h"
+
+using namespace PW;
+
+MicMacOrthoProcess::MicMacOrthoProcess(QString inputRegExp, QString orientation, bool runBascule)
+{
+    //setStartupMessage("MicMac Ortophoto...");
+    setStartupMessage("Generating ortophoto-type model...");
+
+    QString outputPath = inputRegExp.left(inputRegExp.lastIndexOf(QRegExp("/"))+1);
+
+//    appendProcess(new BasculeProcess());
+//    at(0)->addIntputs(QStringList()<<inputRegExp<<"RadialStd"<<"Repere.xml"<<"PostPlan=_Masq");
+
+//    appendProcess(new TaramaProcess());
+//    at(1)->addIntputs(QStringList()<<inputRegExp<<"RadialStd"<<"Repere=Repere.xml"<<"Out=TA0");
+
+    if (runBascule){
+        appendProcess(new BasculeProcess());
+//        at(0)->addIntputs(QStringList()<<inputRegExp<<"PW"<<"Basc"<<"PostPlan=_Masq");
+        at(0)->addIntputs(QStringList()<<inputRegExp<< orientation <<"Basc"<<"PostPlan=_Masq");
+
+        AperiCloudProcess *aperiCloud = new AperiCloudProcess();
+        aperiCloud->setStartupMessage(tr("Writting reoriented sparse model (.ply)"));
+        aperiCloud->addIntputs(QStringList()<<inputRegExp<< "Basc" << "Out=Basc.ply" );
+        appendProcess(aperiCloud);
+
+        appendProcess(new MaltProcess());
+        at(2)->addIntputs(QStringList()<<"Ortho"<<inputRegExp<<"Basc"<<"SzW=1"<<"AffineLast=false"<<"DefCor=0.0");
+
+        appendProcess(new TawnyProcess());
+        at(3)->addIntputs(QStringList()<<outputPath + "Ortho-MEC-Malt/");
+
+        appendProcess(new Nuage2PlyProcess());
+        at(4)->addIntputs(QStringList()<<outputPath+"MEC-Malt/NuageImProf_STD-MALT_Etape_7.xml" <<"Attr="+outputPath+"/Ortho-MEC-Malt/Ortho-Eg-Test-Redr.tif");
+    }
+
+//    appendProcess(new MaltProcess());
+//    at(2)->addIntputs(QStringList()<<"Ortho"<<inputRegExp<<"RadialStd"<<"Repere=Repere.xml"<<"DirTA=TA0"<<"SzW=1 ZoomF=1"<<"Regul=0.05");
+
+//    Malt Ortho  "Abbey.*.jpg" L93 SzW=1 AffineLast=false DefCor=0.0
+
+}

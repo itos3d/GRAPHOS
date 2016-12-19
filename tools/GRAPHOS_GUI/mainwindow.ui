@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Photogrammetry Workbench</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionDefaultTool"/>
+   <addaction name="separator"/>
+   <addaction name="actionMask"/>
+   <addaction name="separator"/>
+   <addaction name="action_ActionPickRotationCenter"/>
+   <addaction name="actionPointTool"/>
+   <addaction name="actionDistance_Tool"/>
+   <addaction name="actionAngleTool"/>
+   <addaction name="separator"/>
+   <addaction name="actionTop_view"/>
+   <addaction name="actionBottom_view"/>
+   <addaction name="actionRight_view"/>
+   <addaction name="actionLeft_view"/>
+   <addaction name="actionBack_view"/>
+   <addaction name="actionFront_view"/>
+   <addaction name="actionFront_isometric_view"/>
+   <addaction name="actionBack_isometric_view"/>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuExport">
+     <property name="title">
+      <string>Export</string>
+     </property>
+     <widget class="QMenu" name="menuDistortion_model">
+      <property name="title">
+       <string>Distortion model</string>
+      </property>
+      <addaction name="actionExport_Agisoft_model"/>
+      <addaction name="actionExport_GRAPHOS_distortion"/>
+      <addaction name="actionExport_Photomodeller_distortion"/>
+      <addaction name="actionExport_Balanced_distortion"/>
+     </widget>
+     <addaction name="actionExport_Project"/>
+     <addaction name="separator"/>
+     <addaction name="actionUndistorted_images"/>
+     <addaction name="menuDistortion_model"/>
+     <addaction name="separator"/>
+     <addaction name="actionExport_Sparse_Model"/>
+     <addaction name="actionExport_Dense_Model"/>
+     <addaction name="separator"/>
+    </widget>
+    <widget class="QMenu" name="menuImport">
+     <property name="title">
+      <string>Import</string>
+     </property>
+     <addaction name="actionImport_Project"/>
+    </widget>
+    <addaction name="actionNew_Project"/>
+    <addaction name="actionOpen_Project"/>
+    <addaction name="actionSave"/>
+    <addaction name="menuImport"/>
+    <addaction name="menuExport"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="separator"/>
+    <addaction name="actionAbout_PW"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>3D View</string>
+    </property>
+    <addaction name="actionTop_view"/>
+    <addaction name="actionBottom_view"/>
+    <addaction name="actionRight_view"/>
+    <addaction name="actionLeft_view"/>
+    <addaction name="actionBack_view"/>
+    <addaction name="actionFront_view"/>
+    <addaction name="actionFront_isometric_view"/>
+    <addaction name="actionBack_isometric_view"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionMask"/>
+    <addaction name="separator"/>
+    <addaction name="action_ActionPickRotationCenter"/>
+    <addaction name="actionPointTool"/>
+    <addaction name="actionDistance_Tool"/>
+    <addaction name="actionAngleTool"/>
+    <addaction name="separator"/>
+    <addaction name="actionScale_cloud"/>
+    <addaction name="on_actionGeorreference"/>
+    <addaction name="separator"/>
+    <addaction name="actionBatch_process"/>
+    <addaction name="separator"/>
+    <addaction name="actionCalibration_conversion"/>
+    <addaction name="separator"/>
+    <addaction name="actionSettings_2"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuView"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <action name="actionMask">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/polyline</normaloff>:/PW/icons/polyline</iconset>
+   </property>
+   <property name="text">
+    <string>Mask</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+S</string>
+   </property>
+  </action>
+  <action name="actionOpen_Project">
+   <property name="text">
+    <string>Open Project</string>
+   </property>
+  </action>
+  <action name="actionNew_Project">
+   <property name="text">
+    <string>New Project</string>
+   </property>
+  </action>
+  <action name="actionSettings_2">
+   <property name="text">
+    <string>Settings</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionExport_Sparse_Model">
+   <property name="text">
+    <string>Sparse Model</string>
+   </property>
+  </action>
+  <action name="actionExport_Dense_Model">
+   <property name="text">
+    <string>Dense Model</string>
+   </property>
+  </action>
+  <action name="actionExport_Project">
+   <property name="text">
+    <string>Project</string>
+   </property>
+   <property name="toolTip">
+    <string>Export Project</string>
+   </property>
+  </action>
+  <action name="actionImport_Project">
+   <property name="text">
+    <string>Project</string>
+   </property>
+  </action>
+  <action name="actionAbout_PW">
+   <property name="text">
+    <string>About ...</string>
+   </property>
+  </action>
+  <action name="actionDistance_Tool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/ruler</normaloff>:/PW/icons/ruler</iconset>
+   </property>
+   <property name="text">
+    <string>Distance Tool</string>
+   </property>
+   <property name="toolTip">
+    <string>Distance measuring tool</string>
+   </property>
+  </action>
+  <action name="actionAngleTool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/angle</normaloff>:/PW/icons/angle</iconset>
+   </property>
+   <property name="text">
+    <string>AngleTool</string>
+   </property>
+   <property name="toolTip">
+    <string>Angle measuring tool</string>
+   </property>
+  </action>
+  <action name="actionPointTool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/pointTool</normaloff>:/PW/icons/pointTool</iconset>
+   </property>
+   <property name="text">
+    <string>PointTool</string>
+   </property>
+   <property name="toolTip">
+    <string>Coordinates measuring tool</string>
+   </property>
+  </action>
+  <action name="actionDefaultTool">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/normalCursor</normaloff>:/PW/icons/normalCursor</iconset>
+   </property>
+   <property name="text">
+    <string>DefaultTool</string>
+   </property>
+   <property name="toolTip">
+    <string>Deselect tools</string>
+   </property>
+  </action>
+  <action name="actionUndistorted_images">
+   <property name="text">
+    <string>Undistorted images</string>
+   </property>
+  </action>
+  <action name="actionExport_Agisoft_model">
+   <property name="text">
+    <string>Agisoft distortion</string>
+   </property>
+  </action>
+  <action name="actionExport_Balanced_distortion">
+   <property name="text">
+    <string>Balanced distortion</string>
+   </property>
+  </action>
+  <action name="actionExport_GRAPHOS_distortion">
+   <property name="text">
+    <string>GRAPHOS distortion</string>
+   </property>
+  </action>
+  <action name="actionExport_Photomodeller_distortion">
+   <property name="text">
+    <string>Photomodeller distortion</string>
+   </property>
+  </action>
+  <action name="action_ActionPickRotationCenter">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../libs/libCC/cc/qCC/icones.qrc">
+     <normaloff>:/CC/images/ccPickCenter.png</normaloff>:/CC/images/ccPickCenter.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rotation center</string>
+   </property>
+   <property name="toolTip">
+    <string>Pick rotation center</string>
+   </property>
+  </action>
+  <action name="actionBatch_process">
+   <property name="text">
+    <string>Batch process</string>
+   </property>
+  </action>
+  <action name="on_actionGeorreference">
+   <property name="text">
+    <string>Georreference</string>
+   </property>
+  </action>
+  <action name="actionScale_cloud">
+   <property name="text">
+    <string>Scale cloud</string>
+   </property>
+  </action>
+  <action name="actionTop_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewTop.png</normaloff>:/PW/icons/img/viewTop.png</iconset>
+   </property>
+   <property name="text">
+    <string>Top view</string>
+   </property>
+  </action>
+  <action name="actionBottom_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewBottom.png</normaloff>:/PW/icons/img/viewBottom.png</iconset>
+   </property>
+   <property name="text">
+    <string>Bottom view</string>
+   </property>
+  </action>
+  <action name="actionRight_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewRight.png</normaloff>:/PW/icons/img/viewRight.png</iconset>
+   </property>
+   <property name="text">
+    <string>Right view</string>
+   </property>
+  </action>
+  <action name="actionLeft_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewLeft.png</normaloff>:/PW/icons/img/viewLeft.png</iconset>
+   </property>
+   <property name="text">
+    <string>Left view</string>
+   </property>
+  </action>
+  <action name="actionBack_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewBack.png</normaloff>:/PW/icons/img/viewBack.png</iconset>
+   </property>
+   <property name="text">
+    <string>Back view</string>
+   </property>
+  </action>
+  <action name="actionFront_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewFront.png</normaloff>:/PW/icons/img/viewFront.png</iconset>
+   </property>
+   <property name="text">
+    <string>Front view</string>
+   </property>
+  </action>
+  <action name="actionFront_isometric_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewIsoFront.png</normaloff>:/PW/icons/img/viewIsoFront.png</iconset>
+   </property>
+   <property name="text">
+    <string>Front isometric view</string>
+   </property>
+  </action>
+  <action name="actionBack_isometric_view">
+   <property name="icon">
+    <iconset resource="GRAPHOS.qrc">
+     <normaloff>:/PW/icons/img/viewIsoBack.png</normaloff>:/PW/icons/img/viewIsoBack.png</iconset>
+   </property>
+   <property name="text">
+    <string>Back isometric view</string>
+   </property>
+  </action>
+  <action name="actionOpenDialog">
+   <property name="text">
+    <string>OpenDialog</string>
+   </property>
+  </action>
+  <action name="actionCalibration_conversion">
+   <property name="text">
+    <string>Calibration conversion</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../../libs/libCC/cc/qCC/icones.qrc"/>
+  <include location="GRAPHOS.qrc"/>
+ </resources>
+ <connections/>
+</ui>

@@ -1,0 +1,18 @@
+#ifndef MSDFINISHEDPROCESS_H
+#define MSDFINISHEDPROCESS_H
+
+#include "ProcessConcurrent.h"
+#include "libPW.h"
+namespace PW{
+class LIBPWSHARED_EXPORT MSDFinishedProcess: public ProcessConcurrent
+{
+public:
+    MSDFinishedProcess(PW::Project *project,QString tiepointsMetadata);
+    ~MSDFinishedProcess();
+    virtual void run();
+private:
+    PW::Project *mProject;
+    QString mTiepointsMetadata;
+};
+}
+#endif // MSDFINISHEDPROCESS_H

@@ -1,0 +1,34 @@
+#include "WallisProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+WallisProcess::WallisProcess(QString imagePath,
+                             QString outputPath,
+                             float wallisParameterA,
+                             float wallisParameterB,
+                             unsigned short int kernelSize,
+                             unsigned short int imposedAverage,
+                             unsigned short int imposedStDeviation):
+    ExternalProcess(LibPW::getToolsPath()+"/"+WALLIS_COMMAND)
+{
+    QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+    workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+    if(workingDir.isEmpty())
+        workingDir = QDir::currentPath();
+    setWorkingDir(workingDir);
+
+    setStartupMessage("Applying Wallis filter...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/wallis.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/wallisError.log");
+
+    QStringList inputs;
+    inputs << imagePath <<
+              outputPath <<
+              QString::number(wallisParameterA) <<
+              QString::number(wallisParameterB) <<
+              QString::number(kernelSize) <<
+              QString::number(imposedAverage) <<
+              QString::number(imposedStDeviation);
+    addIntputs(inputs);
+}

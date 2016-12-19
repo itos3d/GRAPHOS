@@ -1,0 +1,30 @@
+#ifndef ASIFTTOPASTISPROCESS_H
+#define ASIFTTOPASTISPROCESS_H
+
+#include "Process.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AsiftToPastisProcess : public Process
+{
+public:
+    AsiftToPastisProcess(QString inputMatching, QString outputMatching, QString reversePath ="");
+
+    virtual void start();
+    virtual void wait();
+    virtual bool isRunning();
+
+protected:
+    void run();
+    virtual QByteArray readStdout();
+    virtual QByteArray readStderr();
+
+private:
+    QString mInputMatching;
+    QString mOutputMatching;
+    QString mReversePath;
+};
+
+}
+
+#endif // ASIFTTOPASTISPROCESS_H

@@ -1,0 +1,22 @@
+#include "MicMacDenseProcess.h"
+#include "MicMacProcess.h"
+#include "Nuage2PlyProcess.h"
+#include "WaitForResultsProcess.h"
+
+using namespace PW;
+
+MicMacDenseProcess::MicMacDenseProcess(QString paramsPath, QString mainImgFileName)
+{
+//    setStartupMessage("MicMac Dense Model...");
+    setStartupMessage("Generating Dense Model...");
+
+    appendProcess(new MicMacProcess());
+    at(0)->addIntputs(QStringList()<< paramsPath );
+
+//    QString paramsDir = paramsPath.left(paramsPath.lastIndexOf(QRegExp("/"))+1);
+//    mProcessList.append(new WaitForResultsProcess(QStringList () << paramsDir+"MEC-0-PW/NuageImProf_PW_RESULTS_Etape_5.ply", WaitForResultsProcess::Create));
+
+//    mProcessList.append(new Nuage2PlyProcess());
+//    QString paramsDir = paramsPath.left(paramsPath.lastIndexOf(QRegExp("/"))+1);
+//    mProcessList.at(1)->addIntputs(QStringList()<<paramsDir+"MEC-0-SEGUN/NuageImProf_IMG_7211_Etape_5.xml" << "Attr="+paramsDir+mainImgFileName);
+}

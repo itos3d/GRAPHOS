@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<Global>
+	<DicoAppuisFlottant>
+		<OneAppuisDAF>
+			<Pt>    1002.025    1009.838      98.425</Pt>
+			<NamePt>     101</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1004.358    1009.865      98.506</Pt>
+			<NamePt>     102</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1005.831    1008.674      98.706</Pt>
+			<NamePt>     103</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1005.970    1008.249     100.906</Pt>
+			<NamePt>     104</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1005.314    1009.407     100.788</Pt>
+			<NamePt>     105</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1003.371    1010.271     100.811</Pt>
+			<NamePt>     106</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1001.687    1009.751     100.922</Pt>
+			<NamePt>     107</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1002.037    1009.576     103.081</Pt>
+			<NamePt>     108</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1004.371    1009.759     102.929</Pt>
+			<NamePt>     109</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1005.347    1008.304     103.180</Pt>
+			<NamePt>     110</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+		<OneAppuisDAF>
+			<Pt>    1003.704    1008.786     104.340</Pt>
+			<NamePt>     111</NamePt>
+			<Incertitude>       0.002       0.002       0.002</Incertitude>
+		</OneAppuisDAF>
+	</DicoAppuisFlottant>
+</Global>

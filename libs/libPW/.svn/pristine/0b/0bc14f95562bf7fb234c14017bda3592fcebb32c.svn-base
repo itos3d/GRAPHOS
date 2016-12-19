@@ -1,0 +1,15 @@
+#ifndef APERO2SUREPROCESS_H
+#define APERO2SUREPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT Apero2SureProcess : public ExternalProcess
+{
+public:
+//    Apero2SureProcess(QString inputOriPath);
+    Apero2SureProcess(QString inputOriPath,bool takeFirst=false);
+};
+}
+
+#endif // APERO2SUREPROCESS_H

@@ -1,0 +1,16 @@
+\hypertarget{classRTDistortion}{
+\section{RTDistortion Class Reference}
+\label{classRTDistortion}\index{RTDistortion@{RTDistortion}}
+}
+Inheritance diagram for RTDistortion:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classRTDistortion}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+RTDistortion.h\item 
+RTDistortion.cpp\end{DoxyCompactItemize}

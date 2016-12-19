@@ -1,0 +1,28 @@
+#ifndef OPENMVGMATCHINGPROCESS_H
+#define OPENMVGMATCHINGPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT OpenMVGMatchingProcess : public ExternalProcess
+{
+public:
+    OpenMVGMatchingProcess(QString imagesPath,
+                           QString firstImageBaseName,
+                           QString secondImageBaseName,
+                           QString outputPath);
+    OpenMVGMatchingProcess(QMap<QString, QString> &imageFileNamesByName,
+                           QString firstImageId,
+                           QString secondImageId,
+                           QString outputPath);
+private:
+    bool removeDir(QString dirName);
+    virtual void start();
+    QMap<QString, QString> mImageFileNamesByName;
+    QString mFirstImageId;
+    QString mSecondImageId;
+    QString mOutputPath;
+};
+}
+#endif // OPENMVGMATCHINGPROCESS_H

@@ -1,0 +1,63 @@
+#include <QDir>
+#include <QDebug>
+
+#include "TapiocaWaitResults.h"
+
+using namespace PW;
+
+TapiocaWaitResults::TapiocaWaitResults(QString homolPath, int imagesCount):
+    mImagesCount(imagesCount),
+    mHomolPath(homolPath),
+    mStop(false)
+{
+    setStartupMessage(tr("Waiting for Tapioca results..."));
+    mFileWatcher = new QFileSystemWatcher();
+}
+
+TapiocaWaitResults::~TapiocaWaitResults(){
+    delete mFileWatcher;
+}
+
+void PW::TapiocaWaitResults::run()
+{
+    //Watch all subdirs into homol dir:
+    QDir homolDir(mHomolPath);
+    if (homolDir.exists()){
+        if(mImagesCount == 0)
+            mImagesCount = homolDir.entryList().count() - 2; // . and ..
+        mCounter = 0;
+        for (int i = 0; i < homolDir.entryList().count(); i++){
+            if (homolDir.entryList().at(i) != "." && homolDir.entryList().at(i) != ".."){
+                mFileWatcher->addPath(mHomolPath + "/" + homolDir.entryList().at(i));
+                QDir homolChild(mHomolPath + "/" + homolDir.entryList().at(i));
+                if (homolChild.entryList().count() >= (mImagesCount - 2))
+                        mCounter++;
+            }
+            //Check if results finished already:
+            if (mCounter == mImagesCount)
+                mStop = true;
+        }
+    }
+
+    connect(mFileWatcher,SIGNAL(directoryChanged(QString)), this, SLOT(onElementChange(QString)));
+    while (!mStop);
+}
+
+void PW::TapiocaWaitResults::onElementChange(QString path)
+{
+    //Watch all subdirs into homol dir:
+    QDir homolDir(mHomolPath);
+    if (homolDir.exists()){
+        mCounter = 0;
+        for (int i = 0; i < homolDir.entryList().count(); i++){
+            if (homolDir.entryList().at(i) != "." && homolDir.entryList().at(i) != ".."){
+                QDir homolChild(mHomolPath + "/" + homolDir.entryList().at(i));
+                if (homolChild.entryList().count() >= (mImagesCount - 2))
+                        mCounter++;
+            }
+            //Check if results finished.
+            if (mCounter == mImagesCount)
+                mStop = true;
+        }
+    }
+}

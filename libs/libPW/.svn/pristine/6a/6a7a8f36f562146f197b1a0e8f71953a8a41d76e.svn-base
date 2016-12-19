@@ -1,0 +1,22 @@
+#include "MicMacDenseProcessObjectSpace.h"
+#include "MicMacProcess.h"
+#include "Nuage2PlyProcess.h"
+
+using namespace PW;
+
+MicMacDenseProcessObjectSpace::MicMacDenseProcessObjectSpace(QString projectPath,QString distortionModel,QString paramsPath)
+{
+    setStartupMessage("Generating Dense Model...");
+
+    appendProcess(new MicMacProcess());
+    at(0)->addIntputs(QStringList()<< paramsPath );
+    appendProcess(new Nuage2PlyProcess());
+    at(1)->addIntputs(QStringList()<<projectPath+"/MEC-0-PW/NuageImProf_PW_RESULTS_Etape_7.xml" <<"Attr="+projectPath+"/ORTHO/Ortho.tif");
+
+}
+
+MicMacDenseProcessObjectSpace::~MicMacDenseProcessObjectSpace()
+{
+
+}
+

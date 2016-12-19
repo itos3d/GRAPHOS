@@ -1,0 +1,15 @@
+#ifndef TARAMAPROCESS_H
+#define TARAMAPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT TaramaProcess : public ExternalProcess
+{
+public:
+    TaramaProcess();
+};
+}
+
+#endif // TARAMAPROCESS_H

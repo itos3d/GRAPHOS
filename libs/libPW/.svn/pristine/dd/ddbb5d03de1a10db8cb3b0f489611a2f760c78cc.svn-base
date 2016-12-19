@@ -1,0 +1,21 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "SBGlobBasculeProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+SBGlobBasculeProcess::SBGlobBasculeProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + SBGLOBBASCULE_COMMAND)
+{
+        setStartupMessage("Scene orientation...");
+
+        QFileInfo commandFileInfo(mCommandPath);
+        QDir workingDir = commandFileInfo.absoluteDir();
+        workingDir.cdUp();
+        setWorkingDir(workingDir.absolutePath());
+
+        setStdOutputFilePath(LibPW::getStdErrorPath() + "/SBGlobalBascule.log");
+        setStdErrorFilePath(LibPW::getStdErrorPath() + "/SBGlobalBascule.log");
+}

@@ -1,0 +1,8 @@
+#include "AperoModelWriter.h"
+
+using namespace PW;
+
+
+AperoModelWriter::AperoModelWriter()
+{
+}

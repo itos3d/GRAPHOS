@@ -1,0 +1,8 @@
+#include "GroundControlIO.h"
+
+using namespace PW;
+
+GroundControlIO::GroundControlIO(QObject *parent) :
+    QObject(parent)
+{
+}

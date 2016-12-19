@@ -1,0 +1,13 @@
+#ifndef MICMACMULTIMAINIMAGE_H
+#define MICMACMULTIMAINIMAGE_H
+#include "MultiProcess.h"
+namespace PW{
+
+class LIBPWSHARED_EXPORT MicMacMultiMainImage : public MultiProcess
+{
+public:
+    MicMacMultiMainImage(QStringList paramsPathList);
+    ~MicMacMultiMainImage();
+};
+}
+#endif // MICMACMULTIMAINIMAGE_H

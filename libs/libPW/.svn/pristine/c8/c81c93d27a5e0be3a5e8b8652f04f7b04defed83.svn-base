@@ -1,0 +1,19 @@
+#include "PWImagePoint.h"
+
+using namespace PW;
+
+
+PWImagePoint::PWImagePoint(PWPoint::PointType type):
+    PW2dPoint(type)
+{
+}
+
+PWImage * PWImagePoint::getImage()
+{
+    return mImage;
+}
+
+void PWImagePoint::setImage(PWImage *image)
+{
+    mImage = image;
+}

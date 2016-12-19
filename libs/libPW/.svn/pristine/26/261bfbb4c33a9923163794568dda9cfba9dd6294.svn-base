@@ -1,0 +1,16 @@
+#ifndef TAPASPROCESS_H
+#define TAPASPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT TapasProcess : public ExternalProcess
+{
+public:
+    TapasProcess();
+
+};
+}
+
+#endif // TAPASPROCESS_H

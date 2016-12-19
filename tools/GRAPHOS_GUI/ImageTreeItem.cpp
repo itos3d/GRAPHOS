@@ -1,0 +1,38 @@
+/**
+*-------------------------------------------------
+*  Copyright 2016 by Tidop Research Group <daguilera@usal.se>
+*
+* This file is part of GRAPHOS - inteGRAted PHOtogrammetric Suite.
+*
+* GRAPHOS - inteGRAted PHOtogrammetric Suite is free software: you can redistribute
+* it and/or modify it under the terms of the GNU General Public
+* License as published by the Free Software Foundation, either
+* version 3 of the License, or (at your option) any later version.
+*
+* GRAPHOS - inteGRAted PHOtogrammetric Suite is distributed in the hope that it will
+* be useful, but WITHOUT ANY WARRANTY; without even the implied warranty
+* of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with Foobar.  If not, see <http://www.gnu.org/licenses/>.
+*
+* @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
+*-------------------------------------------------
+*/
+#include "ImageTreeItem.h"
+
+ImageTreeItem::ImageTreeItem(PW::PWImage *image):
+    mImage(image)
+{
+    QString imageName = mImage->getFullPath();
+    imageName = imageName.right(imageName.length()-imageName.lastIndexOf(QRegExp("/"))-1);
+    if (image->getMask().count() > 1)
+        imageName += "*";
+    setText(0,imageName);
+}
+
+PW::PWImage * ImageTreeItem::getImage()
+{
+    return mImage;
+}

@@ -1,0 +1,14 @@
+#include "ImagePoint.h"
+
+using namespace PW;
+
+ImagePoint::ImagePoint(int imagePosition,
+                       int column,
+                       int row,
+                       int std):
+    mImagePosition(imagePosition),
+    mColumn(column),
+    mRow(row),
+    mStd(std)
+{
+}

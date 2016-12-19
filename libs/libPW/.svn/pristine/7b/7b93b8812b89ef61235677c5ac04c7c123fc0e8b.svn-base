@@ -1,0 +1,15 @@
+#ifndef MICMACORTOPROCESS_H
+#define MICMACORTOPROCESS_H
+
+#include "MultiProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT MicMacOrthoProcess : public MultiProcess
+{
+public:
+    MicMacOrthoProcess(QString inputRegExp, QString orientation, bool runBascule);
+};
+}
+
+#endif // MICMACORTOPROCESS_H

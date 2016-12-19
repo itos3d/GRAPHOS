@@ -1,0 +1,225 @@
+#ifndef LIBPW_H
+#define LIBPW_H
+
+#define LIBPW_MINIMUM_NUMBER_OF_CONNECTED_IMAGES_IN_PROJECT     3
+
+#define DEFAULT_MICMAC_BIN_PATH                             ""
+#define DEFAULT_OPENCV_BIN_PATH                             ""
+#define DEFAULT_OPENMVG_BIN_PATH                            ""
+#define DEFAULT_TOOLS_BIN_PATH                              ""
+#define DEFAULT_SURE_BIN_PATH                               ""
+#define DEFAULT_MICMAC_WORKING_PATH                         ""
+#define DEFAULT_PMVS_WORKING_PATH                           ""
+#define DEFAULT_SURE_WORKING_PATH                           ""
+
+#define DEFAULT_KEEP_MATCHES_IN_MEMORY                      0
+#define DEFAULT_DEFAULT_ACCURACY_TOLERANCE_FOR_MATCHES      1.0
+
+#define TAPIOCA_COMMAND                     "Tapioca"
+#define APERO_COMMAND                       "Apero"
+#define TAPAS_COMMAND                       "Tapas"
+#define APERICLOUD_COMMAND                  "AperiCloud"
+#define MICMAC_COMMAND                      "MICMAC"
+#define NUAGE2PLY_COMMAND                   "Nuage2Ply"
+#define BASCULE_COMMAND                     "Bascule"
+#define SBGLOBBASCULE_COMMAND               "SBGlobBascule"
+#define TARAMA_COMMAND                      "Tarama"
+#define MALT_COMMAND                        "Malt"
+#define TAWNY_COMMAND                       "Tawny"
+#define PORTO_COMMAND                       "Porto"
+#define APERO2PMVS_COMMAND                  "Apero2PMVS"
+#define DRUNK_COMMAND                       "Drunk"
+
+
+#define TAPIOCA_MICMAC_ENGINE_TAG           "Tapioca-MICMAC"
+#define TAPIOCA_MATCHES_ORIGINAL_PATH       "Homol"
+#define TAPIOCA_MATCHES_PATH                "Tapioca"
+#define TAPIOCA_PASTIS_PATH                 "Pastis"
+#define TAPIOCA_TMP_MM_PATH                 "Tmp-MM-Dir"
+#define TAPIOCA_COMMANDS_HISTORY_FILE_NAME  "mm3d-LogFile.txt"
+#define TAPIOCA_WARN_APERO_FILE_NAME        "WarnApero.txt"
+#define TAPIOCA_SAUV_APERO_FILE_NAME        "SauvApero.xml"
+#define TAPIOCA_ORIENTATION_PREFIX_FOLDER   "Ori-"
+#define TAPIOCA_ORIENTATION_PREFIX_FILE     "Orientation-"
+#define TAPIOCA_CALIBRATION_PREFIX_FILE     "AutoCal"
+#define TAPIOCA_ORIENTATION_EXTENSION_FILE  ".xml"
+#define APERO_XMLFILES_TAG_EXPORT_APERO     "ExportAPERO"
+#define APERO_XMLFILES_TAG_EXPORT_APERO_VERIF     "Verif"
+#define APERO_XMLFILES_FIRST_LINE           "<?xml version=\"1.0\" ?>"
+#define APERO_XMLFILES_TAG_EXPORT_APERO_OC  "OrientationConique"
+
+#define APERO_CALIBRATION_MODEL_FRASER_BASIC      "FraserBasic"
+#define APERO_CALIBRATION_MODEL_AUTOCAL           "AutoCal"
+#define APERO_CALIBRATION_MODEL_FIGEE             "Figee"
+
+#define PBA_COMPUTATIONS_ENGINE_APERO                    "Apero"
+#define PBA_COMPUTATIONS_ENGINE_SDGAP                    "SDGAP"
+
+#define ASIFT_KPD_COMMAND                   "kp_detection"
+#define ASIFT_MATCHING_COMMAND              "matching"
+#define ASIFT_ENGINE_TAG                    "ASIFT"
+
+#define TOOLS_CONVERT_COMMAND               "convert"
+
+#define PMVS_PMVS_COMMAND                   "pmvs2"
+
+#define WALLIS_COMMAND                      "wallis"
+
+#define APERO2SURE_COMMAND                  "Apero2Sure4CMD"
+#define SURE_COMMAND                        "Sure"
+
+#define MATCHING_FORMAT_APERO_BIN           0
+#define MATCHING_FORMAT_APERO_TXT           1
+#define MATCHING_ASIFT_DIR_NAME             "ASIFT"
+#define MATCHING_TAPIOCA_DIR_NAME           "Tapioca"
+#define MATCHING_GC_DIR_NAME                "GC"
+#define MATCHING_TXT_FILE_EXTENSION         ".txt"
+
+//#define USE_OPENCV
+#define OPENCV_PATH                         "OpenCV"
+#define OPENCV_KPM_COMMAND                  "OpenCV_kpm"
+#define OPENCV_PREFIX_MATCHES_PATH          "OpenCV"
+
+#define OPENMVG_PATH                        "KPM_EPIPOLAR"
+#define OPENMVG_ENGINE_TAG                  "KPM_EPIPOLAR"
+#define OPENMVG_KPM_COMMAND                 "KPMEpipolar"
+#define OPENMVG_PREFIX_MATCHES_PATH         "KPM_EPIPOLAR"
+#define OPENMVG_KPM_PROGRAM_KPDETECTCION    "KPMEpipolar_dhl"
+#define OPENMVG_KPM_PROGRAM_MATCHING        "KPMEpipolar_dhl"
+
+#define MATCHING_PATH                       "Matches"
+#define MATCHING_PATH_STRING_SEPARATOR      "_"
+
+// DHL_20140406
+#define LIBPW_DATETIME_STRING_FORMAT        "yyyy-MM-dd hh:mm:ss.zzz"
+// DHL_20140406
+
+#define LIBPW_IMAGE_COORDINATES_PRECISION               2
+#define LIBPW_IMAGE_COORDINATES_COINCIDENCE_TOLERANCE   0.005
+#define LIBPW_IMAGE_COORDINATES_CRS                    -1
+#define LIBPW_IMAGE_POINTCLOUD_GRIDSIZE                 10.0
+
+#define LIPPW_APERO_PARAMETERS_FILE_TAG_ETAPECOMPENSATION                   "EtapeCompensation"
+#define LIPPW_APERO_PARAMETERS_FILE_TAG_OBSLIAISONS                         "ObsLiaisons"
+#define LIPPW_APERO_PARAMETERS_FILE_TAG_OBSAPPUISFLOTTANT                   "ObsAppuisFlottant"
+#define LIPPW_APERO_PARAMETERS_FILE_TAG_NBMAX                               "NbMax"
+#define LIPPW_APERO_PARAMETERS_FILE_NBMAX_MATCHES_STAGE_0_VALUE             "100"
+#define LIPPW_APERO_PARAMETERS_FILE_NBMAX_MATCHES_STAGE_1_VALUE             "100"
+#define LIPPW_APERO_PARAMETERS_FILE_NBMAX_GCPS_STAGE_0_VALUE                "100"
+#define LIPPW_APERO_PARAMETERS_FILE_NBMAX_GCPS_STAGE_1_VALUE                "100"
+#define LIPPW_APERO_PARAMETERS_FILE_TAG_SIGMAPOND                           "SigmaPond"
+#define LIPPW_APERO_PARAMETERS_FILE_SIGMAPOND_MATCHES_STAGE_0_VALUE         "2"
+#define LIPPW_APERO_PARAMETERS_FILE_SIGMAPOND_MATCHES_STAGE_1_VALUE         "2"
+#define LIPPW_APERO_PARAMETERS_FILE_SIGMAPOND_GCPS_STAGE_0_VALUE            "20"
+#define LIPPW_APERO_PARAMETERS_FILE_SIGMAPOND_GCPS_STAGE_1_VALUE            "2"
+#define LIPPW_APERO_PARAMETERS_FILE_TAG_ECARTMAX                            "EcartMax"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMAX_MATCHES_STAGE_0_VALUE          "5"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMAX_MATCHES_STAGE_1_VALUE          "5"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMAX_GCPS_STAGE_0_VALUE             "5000000"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMAX_GCPS_STAGE_1_VALUE             "5"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMESUREINDIV_MATCHES_STAGE_0_VALUE  "1"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMESUREINDIV_MATCHES_STAGE_1_VALUE  "1"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMESUREINDIV_GCPS_STAGE_0_VALUE     "1"
+#define LIPPW_APERO_PARAMETERS_FILE_ECARTMESUREINDIV_GCPS_STAGE_1_VALUE     "1"
+
+#define LIPPW_APERO_ORIENTATIONXML_TERRAINALTITUDE_AVERAGEALTITUDE_TAG      "AltiSol"
+#define LIPPW_APERO_ORIENTATIONXML_TERRAINALTITUDE_AVERAGEDEPTH_TAG         "Profondeur"
+#define TIEPOINTS_IN_DB                                                     false
+#define TIEPOINTS_VALIDATE_SETS                                             true
+
+#include <QString>
+
+#include "libPW_global.h"
+#include "PersistenceManager.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT LibPW {
+
+public:
+    LibPW();
+
+    static QString getMicMacBinPath();
+    static QString getMicMacWorkigPath();
+    static QString getAsiftBinPath();
+    static QString getPMVSBinPath();
+    static QString getOpenCVBinPath();
+    static QString getOpenMVGBinPath();
+    static QString getToolsPath();
+    static QString getSUREBinPath();
+
+    static bool getKeepMatchesInMemory();
+    static float getDefaultAccuracyToleranceForMatches();
+
+    static PersistenceManager * getPersistenceManager();
+    static QString getStdErrorPath();
+
+    static void setMicMacBinPath(QString path);
+    static void setMicMacWorkigPath(QString path);
+    static void setAsiftBinPath(QString path);
+    static void setPMVSBinPath(QString path);
+    static void setOpenCVBinPath(QString path);
+    static void setOpenMVGBinPath(QString path);
+    static void setToolsPath(QString path);
+    static void setSUREBinPath(QString value);
+
+    static void setKeepMatchesInMemory(bool value);
+    static void setDefaultAccuracyToleranceForMatches(float value);
+
+    static void setPersistencePath(QString dbPath);
+    static void setStdErrorPath(QString errorPath);
+
+    static bool validateAperoPath(QString path);
+    static bool validateAsiftPath(QString path);
+    static bool validatePMVSPath(QString path);
+    static bool validateOpenCVPath(QString path);
+    static bool validateOpenMVGPath(QString path);
+    static bool validateToolsPath(QString path);
+    static bool validateSUREPath(QString path);
+
+    static bool updateGCPPointsAccuracy(QMap<QString,PWImage*> imagesById,
+                                        QMap<QString,QVector<double> >& geometryGCPs,
+                                        QMap<QString,QMap<QString,QVector<double> > >& imageCoordinatesGCPs,
+                                        QString& strError);
+    static bool updateTiePointsAccuracy(QMap<QString,PWImage*> imagesById,
+                                        QMap<QString,QMap<QString,QVector<double> > >& orientationImagesFirstColumnsTiePoints,
+                                        QMap<QString,QMap<QString,QVector<double> > >& orientationImagesFirstRowsTiePoints,
+                                        QMap<QString,QMap<QString,QVector<double> > >& orientationImagesSecondColumnsTiePoints,
+                                        QMap<QString,QMap<QString,QVector<double> > >& orientationImagesSecondRowsTiePoints,
+                                        QMap<QString,QMap<QString,QVector<int> > >& orientationMatchesIds,
+                                        QMap<QString, QMap<QString, QVector<double> > >& orientationMatchesAccuracies,
+                                        QMap<int, double> & accuraciesByMatchId,
+                                        QString& strError);
+    static int calculateImagePoint(double xT,
+                                   double yT,
+                                   double zT,
+                                   PhotogrammetricModel *pm,
+                                   QVector<double> * cp,
+                                   QVector< QVector<double> > * r,
+                                   int imgWidth,
+                                   int imgHeight,
+                                   double &column,
+                                   double &row);
+
+private:
+    static QString              mErrorPath;
+    static QString              mMicMacBinPath;
+    static QString              mMicMacWorkigPath;
+    static QString              mAsiftBinPath;
+    static QString              mPMVSPath;
+    static QString              mOpenCVBinPath;
+    static QString              mOpenMVGBinPath;
+    static QString              mSUREBinPath;
+    static QString              mToolsPath;
+
+
+    static bool                 mKeepMatchesInMemory;
+    static float                mDefaultAccuracyToleranceForMatches;
+
+    static PersistenceManager   *mPersistenceManager;
+
+};
+
+}
+
+#endif // LIBPW_H

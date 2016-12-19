@@ -1,0 +1,70 @@
+#ifndef CALIBRATIONMODEL_H
+#define CALIBRATIONMODEL_H
+
+#include <QString>
+
+#include "../libPW/libPW.h"
+#include "../../libSDGAP/libSDGAP_defines.h"
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_FRASER_BASIC              "Instrinsic Calibration (focal, PPA) + radial distortion (K1,K2,K3) + decentering distortion (P1,P2) + in/out plane distortion (b1,b2)"
+#define PBA_CALIBRATION_MODEL_ID_FRASER_BASIC                   APERO_CALIBRATION_MODEL_FRASER_BASIC
+#define PBA_CALIBRATION_MODEL_APERO_ID_FRASER_BASIC             APERO_CALIBRATION_MODEL_FRASER_BASIC
+#define PBA_CALIBRATION_MODEL_DGAP_ID_FRASER_BASIC              LIBSDGAP_ADITIONAL_PARAMETERS_ID_AUSTRALIS  // no se usa
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_IMAGE_MASTER              "Instrinsic Calibration (focal, PPA) + radial distortion (K1,K2,K3) + decentering distortion (P1,P2)"
+#define PBA_CALIBRATION_MODEL_ID_IMAGE_MASTER                   "ImageMaster"
+#define PBA_CALIBRATION_MODEL_APERO_ID_IMAGE_MASTER             APERO_CALIBRATION_MODEL_FRASER_BASIC
+#define PBA_CALIBRATION_MODEL_DGAP_ID_IMAGE_MASTER              LIBSDGAP_ADITIONAL_PARAMETERS_ID_AUSTRALIS_IRD // no se usa
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_REFINE                    "Refine previous calibration"
+#define PBA_CALIBRATION_MODEL_ID_REFINE                         "Refine"
+#define PBA_CALIBRATION_MODEL_APERO_ID_REFINE                   APERO_CALIBRATION_MODEL_AUTOCAL
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_FIXED                     "Fix previous orientation"
+#define PBA_CALIBRATION_MODEL_ID_FIXED                          "Fixed"
+#define PBA_CALIBRATION_MODEL_APERO_ID_FIXED                    APERO_CALIBRATION_MODEL_FIGEE
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_SDGAP_AUSTRALIS           "Inner orientation (focal, PPA) + radial distortion (K1,K2,K3) + decentering distortion (P1,P2) + in/out plane distortion (b1,b2)"
+#define PBA_CALIBRATION_MODEL_ID_SDGAP_AUSTRALIS                "SDGAP_Australis"
+#define PBA_CALIBRATION_MODEL_APERO_ID_SDGAP_AUSTRALIS          APERO_CALIBRATION_MODEL_FRASER_BASIC
+#define PBA_CALIBRATION_MODEL_DGAP_ID_SDGAP_AUSTRALIS           LIBSDGAP_ADITIONAL_PARAMETERS_ID_AUSTRALIS
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_SDGAP_AUSTRALIS_FIXED     "Inner orientation (focal, PPA) + radial distortion (K1,K2,K3) + decentering distortion (P1,P2) + in/out plane distortion (b1,b2)"
+#define PBA_CALIBRATION_MODEL_ID_SDGAP_AUSTRALIS_FIXED          "SDGAP_Australis_Fixed"
+#define PBA_CALIBRATION_MODEL_APERO_ID_SDGAP_AUSTRALIS_FIXED    APERO_CALIBRATION_MODEL_FRASER_BASIC
+#define PBA_CALIBRATION_MODEL_DGAP_ID_SDGAP_AUSTRALIS_FIXED     LIBSDGAP_ADITIONAL_PARAMETERS_ID_AUSTRALIS_FIXED
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_SDGAP_IRD                 "Inner orientation (focal, PPA) + radial distortion (K1,K2,K3) + decentering distortion (P1,P2)"
+#define PBA_CALIBRATION_MODEL_ID_SDGAP_IRD                      "SDGAP_Ird"
+#define PBA_CALIBRATION_MODEL_APERO_ID_SDGAP_IRD                APERO_CALIBRATION_MODEL_FRASER_BASIC
+#define PBA_CALIBRATION_MODEL_DGAP_ID_SDGAP_IRD                 LIBSDGAP_ADITIONAL_PARAMETERS_ID_AUSTRALIS_IRD
+
+#define PBA_CALIBRATION_MODEL_EXPLAIN_SDGAP_IRD_FIXED           "Inner orientation (focal, PPA) + radial distortion (K1,K2,K3) + decentering distortion (P1,P2)"
+#define PBA_CALIBRATION_MODEL_ID_SDGAP_IRD_FIXED                "SDGAP_Ird_Fixed"
+#define PBA_CALIBRATION_MODEL_APERO_ID_SDGAP_IRD_FIXED          APERO_CALIBRATION_MODEL_FRASER_BASIC
+#define PBA_CALIBRATION_MODEL_DGAP_ID_SDGAP_IRD_FIXED           LIBSDGAP_ADITIONAL_PARAMETERS_ID_AUSTRALIS_IRD_FIXED
+
+#define PBA_CALIBRATION_ORTOSKY_TYPE_PREFIX                     "PSCalibration"
+
+class PBACalibrationModel
+{
+public:
+    PBACalibrationModel(QString aperoId,
+                     QString dgapId,
+                     QString explanation,
+                     QString id);
+    QString getExplanation(){return mExplanation;};
+    QString getId(){return mId;};
+    QString getAperoId(){return mAperoId;}
+    QString getDGAPId(){return mDGAPId;}
+    bool getIsSDGAP();
+    bool getIsFixed();
+    QString getOrtoSkyType();
+private:
+    QString mAperoId;
+    QString mExplanation;
+    QString mId;
+    QString mDGAPId;
+};
+
+#endif // CALIBRATIONMODEL_H

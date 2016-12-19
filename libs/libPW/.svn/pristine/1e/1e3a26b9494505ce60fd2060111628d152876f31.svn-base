@@ -1,0 +1,22 @@
+#ifndef TAPIOCASHPROCESS_H
+#define TAPIOCASHPROCESS_H
+
+#include <QProcess>
+
+#include "Process.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT TapiocaShProcess : public Process
+{
+public:
+    TapiocaShProcess();
+
+protected:
+    void run();
+
+private:
+    QProcess *process;
+};
+}
+#endif // TAPIOCASHPROCESS_H

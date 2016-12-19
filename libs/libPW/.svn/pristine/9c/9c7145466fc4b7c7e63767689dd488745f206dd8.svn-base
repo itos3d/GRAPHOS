@@ -1,0 +1,7 @@
+#include "DistortionModel.h"
+
+using namespace PW;
+
+DistortionModel::DistortionModel()
+{
+}

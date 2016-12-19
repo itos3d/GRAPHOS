@@ -1,0 +1,27 @@
+#ifndef IMGPOINT_H
+#define IMGPOINT_H
+#include "libPW_global.h"
+#include <QtCore>
+namespace PW{
+class LIBPWSHARED_EXPORT imgPoint
+{
+public:
+    imgPoint();
+    imgPoint(int id, double x, double y, QString desc);
+
+    void setId(int id);
+    void setX(double x);
+    void setY(double y);
+    void setDesc(QString desc);
+    int getID();
+    double getX();
+    double getY();
+    QString getDesc();
+    ~imgPoint();
+private:
+    int ID;
+    double X,Y;
+    QString mDesc;
+};
+}
+#endif // IMAGEPOINT_H

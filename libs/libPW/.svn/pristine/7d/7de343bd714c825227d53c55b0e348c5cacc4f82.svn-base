@@ -1,0 +1,21 @@
+#ifndef APEROMATCHINGIO_H
+#define APEROMATCHINGIO_H
+
+#include <QMap>
+#include "ImageMatching.h"
+#include "PW2dPoint.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT  AperoMatchingIO
+{
+public:
+    AperoMatchingIO();
+
+    int write(QMap<QString, QPointF> *matching, QString url);
+    int writeFromControlPoints(QList<PW2dPoint *> *pointListA, QList<PW2dPoint *> *pointListB, QString url);
+};
+
+}
+
+#endif // APEROMATCHINGIO_H

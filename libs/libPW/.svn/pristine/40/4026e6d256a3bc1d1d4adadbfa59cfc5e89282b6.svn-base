@@ -1,0 +1,36 @@
+#include "Apero2SureProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+Apero2SureProcess::Apero2SureProcess(QString inputOriPath):
+    ExternalProcess(LibPW::getToolsPath() + "/" + APERO2SURE_COMMAND)
+{
+    QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+    workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+    if(workingDir.isEmpty())
+        workingDir = QDir::currentPath();
+    setWorkingDir(workingDir);
+
+    setStartupMessage("Apero to SURE transformation...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/apero2sure.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/apero2sureError.log");
+
+    QDir inputOriDir(inputOriPath);
+    inputOriDir.cdUp();
+    QString projectPath = inputOriDir.absolutePath();
+    QStringList filters;
+    filters << "Ori-*";
+    QFileInfoList fileInfoList = inputOriDir.entryInfoList(filters,QDir::NoDotAndDotDot | QDir::Dirs);
+    int oriIndex = -1;
+    QFileInfo inputOriPathInfo(inputOriPath);
+    for (int i=0; i<fileInfoList.count();i++) {
+        if( fileInfoList.at(i) == inputOriPathInfo)
+            oriIndex = i;
+    }
+
+    QStringList inputs;
+    inputs << projectPath <<
+              QString::number(oriIndex+1);
+    addIntputs(inputs);
+}

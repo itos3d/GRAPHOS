@@ -1,0 +1,277 @@
+\hypertarget{classRadialDistortion}{
+\section{RadialDistortion Class Reference}
+\label{classRadialDistortion}\index{RadialDistortion@{RadialDistortion}}
+}
+
+
+Base class representing camera distortion as radial distortion model.  
+
+
+
+
+{\ttfamily \#include $<$RadialDistortion.h$>$}
+
+Inheritance diagram for RadialDistortion:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classRadialDistortion}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classRadialDistortion_a826307c3d60aa4756ec9adf460073782}{
+\hyperlink{classRadialDistortion_a826307c3d60aa4756ec9adf460073782}{RadialDistortion} ()}
+\label{classRadialDistortion_a826307c3d60aa4756ec9adf460073782}
+
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\item 
+\hypertarget{classRadialDistortion_ac19043a2dc84d988bca338c423e3f4e3}{
+\hyperlink{classRadialDistortion_ac19043a2dc84d988bca338c423e3f4e3}{$\sim$RadialDistortion} ()}
+\label{classRadialDistortion_ac19043a2dc84d988bca338c423e3f4e3}
+
+\begin{DoxyCompactList}\small\item\em Destructor. \end{DoxyCompactList}\item 
+float \hyperlink{classRadialDistortion_afa274c5fc6b2572a43f6b089f36c95a3}{getPP} ()
+\begin{DoxyCompactList}\small\item\em Gets the principal ponit value in pixels. \end{DoxyCompactList}\item 
+float \hyperlink{classRadialDistortion_aac0908909ad5c3f56fafcddc31999866}{getSymmetryPP} ()
+\begin{DoxyCompactList}\small\item\em Gets the principal poin of symmetry in pixels. \end{DoxyCompactList}\item 
+float \hyperlink{classRadialDistortion_ae51e183f957c6269a978eb46b6a69e5c}{getFocal} ()
+\begin{DoxyCompactList}\small\item\em Gets the focal lenght in pixels. \end{DoxyCompactList}\item 
+float \hyperlink{classRadialDistortion_ae10fc8e7de7476496e215c57bf90387e}{getRadialDistCoef} (int index)
+\begin{DoxyCompactList}\small\item\em Gets a coefficient of radial distortion. \end{DoxyCompactList}\item 
+int \hyperlink{classRadialDistortion_a6614a583264fc377d399ae387729b8cf}{getImageHeight} ()
+\begin{DoxyCompactList}\small\item\em Gets the image height in pixels. \end{DoxyCompactList}\item 
+int \hyperlink{classRadialDistortion_ae5bdbbef396660ea4e140c805390b36c}{getImageWidt} ()
+\begin{DoxyCompactList}\small\item\em gets the image widt in pixels. \end{DoxyCompactList}\item 
+void \hyperlink{classRadialDistortion_a9907642ef2898cda781084b1daead3c7}{setPP} (float pp)
+\begin{DoxyCompactList}\small\item\em Sets the principal ponit value in pixels. \end{DoxyCompactList}\item 
+void \hyperlink{classRadialDistortion_a91d59c0c97e7660604089cbb2e0cc743}{setSymmetryPP} (float symmetryPP)
+\begin{DoxyCompactList}\small\item\em Sets the principal poin of symmetry in pixels. \end{DoxyCompactList}\item 
+void \hyperlink{classRadialDistortion_a6418c0ee8375e4d6056ae44ebf30df19}{setFocal} (float f)
+\begin{DoxyCompactList}\small\item\em Sets the focal lenght in pixels. \end{DoxyCompactList}\item 
+void \hyperlink{classRadialDistortion_ace02ac046e219192c2b43ff2f7121da4}{setImageHeight} (int height)
+\begin{DoxyCompactList}\small\item\em Sets the image height in pixels. \end{DoxyCompactList}\item 
+void \hyperlink{classRadialDistortion_a468ca185db05d2026af41f771a28992b}{setImageWidt} (int widt)
+\begin{DoxyCompactList}\small\item\em Sets the image widt in pixels. \end{DoxyCompactList}\item 
+void \hyperlink{classRadialDistortion_ae1a625f4c64b14565b614ab676054a47}{addRadialCoef} (float coef)
+\begin{DoxyCompactList}\small\item\em Append a coefficient of radial distortion at the of the coefficients vector. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Base class representing camera distortion as radial distortion model. 
+
+\subsection{Member Function Documentation}
+\hypertarget{classRadialDistortion_ae1a625f4c64b14565b614ab676054a47}{
+\index{RadialDistortion@{RadialDistortion}!addRadialCoef@{addRadialCoef}}
+\index{addRadialCoef@{addRadialCoef}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{addRadialCoef}]{\setlength{\rightskip}{0pt plus 5cm}void RadialDistortion::addRadialCoef (
+\begin{DoxyParamCaption}
+\item[{float}]{coef}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_ae1a625f4c64b14565b614ab676054a47}
+
+
+Append a coefficient of radial distortion at the of the coefficients vector. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em coef} & A coefficient of radial distortion. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classRadialDistortion_ae51e183f957c6269a978eb46b6a69e5c}{
+\index{RadialDistortion@{RadialDistortion}!getFocal@{getFocal}}
+\index{getFocal@{getFocal}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{getFocal}]{\setlength{\rightskip}{0pt plus 5cm}float RadialDistortion::getFocal (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_ae51e183f957c6269a978eb46b6a69e5c}
+
+
+Gets the focal lenght in pixels. 
+
+\begin{DoxyReturn}{Returns}
+float focal lenght in pixels. 
+\end{DoxyReturn}
+\hypertarget{classRadialDistortion_a6614a583264fc377d399ae387729b8cf}{
+\index{RadialDistortion@{RadialDistortion}!getImageHeight@{getImageHeight}}
+\index{getImageHeight@{getImageHeight}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{getImageHeight}]{\setlength{\rightskip}{0pt plus 5cm}int RadialDistortion::getImageHeight (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_a6614a583264fc377d399ae387729b8cf}
+
+
+Gets the image height in pixels. 
+
+\begin{DoxyReturn}{Returns}
+int image height in pixels. 
+\end{DoxyReturn}
+\hypertarget{classRadialDistortion_ae5bdbbef396660ea4e140c805390b36c}{
+\index{RadialDistortion@{RadialDistortion}!getImageWidt@{getImageWidt}}
+\index{getImageWidt@{getImageWidt}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{getImageWidt}]{\setlength{\rightskip}{0pt plus 5cm}int RadialDistortion::getImageWidt (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_ae5bdbbef396660ea4e140c805390b36c}
+
+
+gets the image widt in pixels. 
+
+\begin{DoxyReturn}{Returns}
+int Image widt in pixels. 
+\end{DoxyReturn}
+\hypertarget{classRadialDistortion_afa274c5fc6b2572a43f6b089f36c95a3}{
+\index{RadialDistortion@{RadialDistortion}!getPP@{getPP}}
+\index{getPP@{getPP}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{getPP}]{\setlength{\rightskip}{0pt plus 5cm}float RadialDistortion::getPP (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_afa274c5fc6b2572a43f6b089f36c95a3}
+
+
+Gets the principal ponit value in pixels. 
+
+\begin{DoxyReturn}{Returns}
+float principal point in pixels. 
+\end{DoxyReturn}
+\hypertarget{classRadialDistortion_ae10fc8e7de7476496e215c57bf90387e}{
+\index{RadialDistortion@{RadialDistortion}!getRadialDistCoef@{getRadialDistCoef}}
+\index{getRadialDistCoef@{getRadialDistCoef}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{getRadialDistCoef}]{\setlength{\rightskip}{0pt plus 5cm}float RadialDistortion::getRadialDistCoef (
+\begin{DoxyParamCaption}
+\item[{int}]{index}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_ae10fc8e7de7476496e215c57bf90387e}
+
+
+Gets a coefficient of radial distortion. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em index} & Position of the coefficient in the vector of coefficients. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+float the coefficient at position indicated by index. 
+\end{DoxyReturn}
+\hypertarget{classRadialDistortion_aac0908909ad5c3f56fafcddc31999866}{
+\index{RadialDistortion@{RadialDistortion}!getSymmetryPP@{getSymmetryPP}}
+\index{getSymmetryPP@{getSymmetryPP}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{getSymmetryPP}]{\setlength{\rightskip}{0pt plus 5cm}float RadialDistortion::getSymmetryPP (
+\begin{DoxyParamCaption}
+{}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_aac0908909ad5c3f56fafcddc31999866}
+
+
+Gets the principal poin of symmetry in pixels. 
+
+\begin{DoxyReturn}{Returns}
+float principal poin of symmetry in pixels. 
+\end{DoxyReturn}
+\hypertarget{classRadialDistortion_a6418c0ee8375e4d6056ae44ebf30df19}{
+\index{RadialDistortion@{RadialDistortion}!setFocal@{setFocal}}
+\index{setFocal@{setFocal}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{setFocal}]{\setlength{\rightskip}{0pt plus 5cm}void RadialDistortion::setFocal (
+\begin{DoxyParamCaption}
+\item[{float}]{f}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_a6418c0ee8375e4d6056ae44ebf30df19}
+
+
+Sets the focal lenght in pixels. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em f} & focal lenght in pixels. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classRadialDistortion_ace02ac046e219192c2b43ff2f7121da4}{
+\index{RadialDistortion@{RadialDistortion}!setImageHeight@{setImageHeight}}
+\index{setImageHeight@{setImageHeight}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{setImageHeight}]{\setlength{\rightskip}{0pt plus 5cm}void RadialDistortion::setImageHeight (
+\begin{DoxyParamCaption}
+\item[{int}]{height}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_ace02ac046e219192c2b43ff2f7121da4}
+
+
+Sets the image height in pixels. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em height} & the image height in pixels. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classRadialDistortion_a468ca185db05d2026af41f771a28992b}{
+\index{RadialDistortion@{RadialDistortion}!setImageWidt@{setImageWidt}}
+\index{setImageWidt@{setImageWidt}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{setImageWidt}]{\setlength{\rightskip}{0pt plus 5cm}void RadialDistortion::setImageWidt (
+\begin{DoxyParamCaption}
+\item[{int}]{widt}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_a468ca185db05d2026af41f771a28992b}
+
+
+Sets the image widt in pixels. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em widt} & the image widt in pixels. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classRadialDistortion_a9907642ef2898cda781084b1daead3c7}{
+\index{RadialDistortion@{RadialDistortion}!setPP@{setPP}}
+\index{setPP@{setPP}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{setPP}]{\setlength{\rightskip}{0pt plus 5cm}void RadialDistortion::setPP (
+\begin{DoxyParamCaption}
+\item[{float}]{pp}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_a9907642ef2898cda781084b1daead3c7}
+
+
+Sets the principal ponit value in pixels. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em pp} & principal ponit value in pixels. \\
+\hline
+\end{DoxyParams}
+\hypertarget{classRadialDistortion_a91d59c0c97e7660604089cbb2e0cc743}{
+\index{RadialDistortion@{RadialDistortion}!setSymmetryPP@{setSymmetryPP}}
+\index{setSymmetryPP@{setSymmetryPP}!RadialDistortion@{RadialDistortion}}
+\subsubsection[{setSymmetryPP}]{\setlength{\rightskip}{0pt plus 5cm}void RadialDistortion::setSymmetryPP (
+\begin{DoxyParamCaption}
+\item[{float}]{symmetryPP}
+\end{DoxyParamCaption}
+)}}
+\label{classRadialDistortion_a91d59c0c97e7660604089cbb2e0cc743}
+
+
+Sets the principal poin of symmetry in pixels. 
+
+
+\begin{DoxyParams}{Parameters}
+{\em symmetryPP} & principal poin of symmetry in pixels. \\
+\hline
+\end{DoxyParams}
+
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+RadialDistortion.h\item 
+RadialDistortion.cpp\end{DoxyCompactItemize}

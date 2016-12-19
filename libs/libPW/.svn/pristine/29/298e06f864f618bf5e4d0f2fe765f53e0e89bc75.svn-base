@@ -1,0 +1,23 @@
+#ifndef GROUNDCONTROLIMAGEMASTERIO_H
+#define GROUNDCONTROLIMAGEMASTERIO_H
+
+#include "GroundControlIO.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT GroundControlImageMasterIO : public GroundControlIO
+{
+public:
+    GroundControlImageMasterIO();
+
+    virtual void read(QString url,
+                      QList<PW::PW3dPoint> &groudPoints,
+                      QMap<QString, QList<PW2dPoint *> *> &imagePoints);
+    virtual QList<PW::PW3dPoint> readGroundPoinst(QString url);
+    virtual QList<PW2dPoint *> readImagePoints(QString url);
+    QMap<QString, QList<PW2dPoint *> *> readImagePointsByImage(QString url);
+
+    virtual int writeGroudPoints(QString url, QList<PW::PW3dPoint *> *points);
+    virtual int writeImagePoints(QString url, QList<PWImage *> images);
+};
+}
+#endif // GROUNDCONTROLIMAGEMASTERIO_H

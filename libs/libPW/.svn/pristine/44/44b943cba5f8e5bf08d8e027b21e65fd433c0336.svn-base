@@ -1,0 +1,28 @@
+#ifndef WAITPROCESS_H
+#define WAITPROCESS_H
+
+#include <QTimer>
+
+#include "Process.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT WaitProcess : public Process
+{
+    Q_OBJECT
+
+public:
+    WaitProcess(int msec);
+
+protected:
+    void run();
+
+private:
+    int mInterval;
+    bool mStop;
+    QTimer mTimer;
+
+public slots:
+    void onTimeOut();
+};
+}
+#endif // WAITPROCESS_H

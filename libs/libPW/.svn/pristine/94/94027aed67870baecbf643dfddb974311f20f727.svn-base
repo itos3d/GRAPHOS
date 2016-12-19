@@ -1,0 +1,23 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "Apero2pmvs.h"
+#include "libPW.h"
+
+using namespace PW;
+
+Apero2pmvs::Apero2pmvs(QString inputRegExp, QString orientation):
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + APERO2PMVS_COMMAND)
+{
+    setStartupMessage("Generating PVMS files...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Apero2PMVS.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/Apero2PMVSError.log");
+
+    addIntputs(QStringList() << inputRegExp << orientation);
+}

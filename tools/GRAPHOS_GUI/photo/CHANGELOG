@@ -1,0 +1,49 @@
+Changelog Photo - by Lukas Spies, 2012 - Contact: photoQt@ymail.com
+
+
+Release 0.4.0.1 - 11/01/2012
+----------------------------
+- Added Czech Translation by Tomas Bartl
+
+
+Release 0.4 - 10/01/2012
+----------------------------
+- Added zooming of images
+- Replaced menu button by nicely animated menu
+- Different code improvements that might increase the speed of Photo slightly
+- Other small code changes
+
+
+
+Release 0.3.0.1 - 31/12/2011
+----------------------------
+- Added Greek Translation by Dimitrios Glentadakis
+
+
+
+Release 0.3 - 27/12/2011
+----------------------------
+- Rewritten and Restyled Settings Window
+- Improved Shortcut handling
+- Faster thumbnail (re-)creation
+- Replaced buttons top right by single menu buttons
+- Translation into German
+- Several small changes and code improvements
+
+
+
+Release 0.2 - 16/12/2011
+----------------------------
+- Improved Thumbnail View (now more interactive)
+- Thumbnail Cache (freedesktop.org compliant)
+- Use of QImageReader to increase performance
+- Composite made an option in settings
+- Thumbnail size can be adjusted
+- Implement function to open a new file from inside photo
+- many, many small bug fixes and code improvements
+
+
+
+Release 0.1 - 08/12/2011
+----------------------------
+First initial Release

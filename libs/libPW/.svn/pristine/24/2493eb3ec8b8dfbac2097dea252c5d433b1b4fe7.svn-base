@@ -1,0 +1,16 @@
+#ifndef APERICLOUDPROCESS_H
+#define APERICLOUDPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AperiCloudProcess: public ExternalProcess
+{
+public:
+    AperiCloudProcess();
+
+};
+}
+
+#endif // APERICLOUDPROCESS_H

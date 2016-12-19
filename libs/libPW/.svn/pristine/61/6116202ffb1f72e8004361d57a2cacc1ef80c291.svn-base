@@ -1,0 +1,20 @@
+#ifndef TESTPERSISTENCEMANAGER_H
+#define TESTPERSISTENCEMANAGER_H
+
+#include <QObject>
+
+class TestPersistenceManager : public QObject
+{
+    Q_OBJECT
+public:
+    explicit TestPersistenceManager(QObject *parent = 0);
+
+signals:
+
+private slots:
+    void writeProject();
+    void readProject();
+
+};
+
+#endif // TESTPERSISTENCEMANAGER_H

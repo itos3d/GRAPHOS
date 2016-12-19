@@ -1,0 +1,60 @@
+#include <QDebug>
+
+#include "AsiftToPastisProcess.h"
+#include "AsiftMatchingIO.h"
+#include "MicMac/TapiocaIO.h"
+
+using namespace PW;
+
+AsiftToPastisProcess::AsiftToPastisProcess(QString inputMatching, QString outputMatching, QString reversePath):
+    mInputMatching(inputMatching),
+    mOutputMatching(outputMatching),
+    mReversePath(reversePath)
+{
+    setSteps(1);
+}
+
+void AsiftToPastisProcess::start()
+{
+    run();
+}
+
+void AsiftToPastisProcess::setWaitForFinished(bool wait)
+{
+}
+
+bool AsiftToPastisProcess::isRunning()
+{
+    return false;
+}
+
+void AsiftToPastisProcess::run()
+{
+    AsiftMatchingIO asiftReader;
+    QMap<QString, QPointF> matching;
+    QMap<QString, QPointF> inverseMatching;
+    if(mReversePath.isEmpty())
+        asiftReader.read(mInputMatching, &matching);
+    else
+        asiftReader.read(mInputMatching, &matching, &inverseMatching);
+
+    TapiocaIO aperoWriter;
+    aperoWriter.write(&matching, mOutputMatching);
+    if(!mReversePath.isEmpty())
+        aperoWriter.write(&inverseMatching, mReversePath);
+    emit statusChanged(1,getStartupMessage());
+    qDebug() << QString(" ************** Finishing: ASIFT2Pastis");
+    emit finished();
+}
+
+QByteArray AsiftToPastisProcess::readStdout()
+{
+    QByteArray b;
+    return b;
+}
+
+QByteArray AsiftToPastisProcess::readStderr()
+{
+    QByteArray b;
+    return b;
+}

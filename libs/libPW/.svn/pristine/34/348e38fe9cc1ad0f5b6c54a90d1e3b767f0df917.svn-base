@@ -1,0 +1,777 @@
+#include "MSDMatching.h"
+#include <QFile>
+#include <QDir>
+#include <QTime>
+#include <QMessageBox>
+#include <QFutureWatcher>
+#include <QtCore>
+#include <QThread>
+using namespace cv;
+using namespace PW;
+
+
+MSDMatching::MSDMatching(QString matchesFolder,
+                         QStringList imagesPathList,
+                         QMap<QString, ProcessedImageData*> imageMetadataMap):
+    matchesFolder(matchesFolder),
+    mImagesPathList(imagesPathList),
+    mImageDataMap(imageMetadataMap)
+{
+//    max_dist=0.0f;
+    ratio= 0.85f;
+    distance= 3.0f;
+    confidence=0.95f;
+    threshold_K =0.6f;
+    stepsNumber=imagesPathList.count();
+    mImageScaleFactorX=1;
+    mImageScaleFactorY=1;
+    for (int i = 0; i < imagesPathList.count(); ++i) {
+        stepsNumber+=imagesPathList.count()-i;
+    }
+    qDebug() <<"Number of steps: "<< stepsNumber;
+}
+
+MSDMatching::~MSDMatching()
+{
+
+}
+
+void MSDMatching::run(){
+    myTimer.start();
+//        matchesFolder=mProjectBasePath+"/Matches";
+//        QDir auxDir(mProjectBasePath);
+//        if(!auxDir.exists(matchesFolder))
+//        {
+//            if(auxDir.mkdir(matchesFolder))
+//            {
+
+//                QDir matchesDir(matchesFolder);
+//                if (!matchesDir.exists(matchesFolder+"/tapioca")) {
+//                    if(matchesDir.mkdir(matchesFolder+"/tapioca"))
+//                    {
+
+
+//                    }else {
+//                        QMessageBox msg;
+//                        msg.setText("No se ha podido crear la carpeta");
+//                        msg.exec();
+//                    }
+//                }
+
+//            }else {
+//                QMessageBox msg;
+//                msg.setText("No se ha podido crear la carpeta");
+//                msg.exec();
+//            }
+//        }
+
+
+
+//        unsigned nThreads = boost::thread::hardware_concurrency();
+
+//        int imageToProcess=0;
+//        while (imageToProcess<mImagesPathList.count()) {
+//             //Single thread
+////             computeTiePointsAndDescriptors(mImagesPathList.at(imageToProcess));
+////             imageToProcess++;
+
+//            //Multi thread boost
+//            std::vector<boost::thread*> threads;
+//            for (unsigned i = 0; i < nThreads; i++)
+//            {
+//                if (imageToProcess<mImagesPathList.count()) {
+//                    threads.push_back(new boost::thread(&MSDMatching::computeTiePointsAndDescriptors, this,mImagesPathList.at(imageToProcess)));
+//                    imageToProcess++;
+//                }
+//            }
+//    //        threads.push_back(new boost::thread(&MsdDetector::contextualSelfDissimilarity, this, m_scaleSpace[r], border + (nThreads - 1)*stepThread, m_scaleSpace[r].cols - border, saliency[r]));
+
+//            for (unsigned i = 0; i < threads.size(); i++)
+//            {
+//                threads[i]->join();
+//                delete threads[i];
+//            }
+//        }
+
+
+
+    computeMatching();
+
+
+    writeMatchesToApero();
+
+    qDebug() <<"Execution time: "<< myTimer.elapsed()/1000 <<" seg";
+}
+
+void MSDMatching::computeTiePointsAndDescriptors(const QString &imageFileName)
+{
+//    QDir matchingMethodDir(matchesFolder+"/tapioca");
+//    QString imageMatchings = matchesFolder+"/tapioca/Pastis"+imageFileName.split("/").last();
+//    if(!matchingMethodDir.exists(imageMatchings))
+//    {
+//        if(matchingMethodDir.mkdir(imageMatchings))
+//        {
+//        }else {
+//            QMessageBox msg;
+//            msg.setText("No se ha podido crear la carpeta");
+//            msg.exec();
+//        }
+//    }
+//    cv::String cvImageFileName = imageFileName.toLatin1();
+
+//    cv::Mat cvImg = cv::imread(cvImageFileName, CV_LOAD_IMAGE_COLOR);
+//    mOriginalImageWidth=cvImg.cols;
+//    mOriginalImageHeight=cvImg.rows;
+//    int newImageWidth=1500;
+
+//    if (cvImg.size[1]>newImageWidth) {
+//        //Scale
+
+//        int newImageHeight = (int)(cvImg.rows*newImageWidth/cvImg.cols);
+
+//        mImageScaleFactorX = (float)newImageWidth/(float)mOriginalImageWidth;
+//        mImageScaleFactorY = (float)newImageHeight/(float)mOriginalImageHeight;
+
+//        Size newSize(newImageWidth,newImageHeight);
+
+//        cv::resize(cvImg,cvImg,newSize,INTER_NEAREST    ); //resize image
+//    }
+
+
+//    MsdDetector msdLeft;
+//    msdLeft.setThSaliency(750.0f);
+
+//    cv::Mat kpsImg;
+//    cv::Mat auxImage;
+
+
+//    cv::cvtColor(cvImg,kpsImg,CV_RGB2GRAY);
+
+//    std::vector<cv::KeyPoint> cvImg_keyPoints;
+//    cvImg_keyPoints.clear();
+
+//    cvImg_keyPoints = msdLeft.detectandcompute(kpsImg,auxImage);
+
+
+//    qDebug() << "Found " << cvImg_keyPoints.size() << " keypoints (MSD) for image" << imageFileName.split("/").last() <<"at " << myTimer.elapsed()/1000 <<" seg";
+//    qDebug() << "Starting description (SIFT)  for image" << imageFileName.split("/").last() <<"at " << myTimer.elapsed()/1000 <<" seg";
+
+//    cv::Ptr<cv::xfeatures2d::SIFT> detector = cv::xfeatures2d::SIFT::create();
+//    cv::Mat cvDescriptors;
+
+//    detector->compute(kpsImg,cvImg_keyPoints,cvDescriptors);
+
+//    ProcessedImageData imageData;
+//    imageData.setTiepoints(cvImg_keyPoints);
+//    imageData.setDescriptors(cvDescriptors);
+//    imageData.setImageName(imageFileName.split("/").last());
+//    mImageDataMap.insert(imageFileName.split("/").last(),imageData);
+//    qDebug() << "End description (SIFT)  for image" << imageFileName.split("/").last() <<"at " << myTimer.elapsed()/1000 <<" seg";
+
+}
+
+void MSDMatching::computeMatching(){
+
+    bool mi = false;
+    qDebug() << "Starting matching process at " << myTimer.elapsed()/1000 <<" seg";;
+
+    QList<QString> mapKeyList = mImageDataMap.keys();
+    for (int m = 0; m < mapKeyList.count(); ++m) {
+        for (int n = m+1; n < mapKeyList.count(); ++n) {
+            if (m!=n) {
+                 matchesltor.clear();
+                 matchesrtol.clear();
+                 cv::BFMatcher matcher(cv::NORM_L2);
+                 // from image 1 to image 2
+                 // based on k nearest neighbours (with k=2)
+                 ProcessedImageData *imageDataLeft = mImageDataMap.value(mapKeyList.at(m));
+                 std::vector<cv::KeyPoint> tiePointsLeft = imageDataLeft->getTiepoints();
+                 cv::Mat descriptorsLeft= imageDataLeft->getDescriptors();
+                 ProcessedImageData *imageDataRight = mImageDataMap.value(mapKeyList.at(n));
+                 std::vector<cv::KeyPoint> tiePointsRight = imageDataRight->getTiepoints();
+                 cv::Mat descriptorsRight= imageDataRight->getDescriptors();
+
+                 matcher.knnMatch(descriptorsLeft,descriptorsRight,
+                 matchesltor, // vector of matches (up to 2 per entry)
+                 2); // return 2 nearest neighbours
+                 // from image 2 to image 1
+                 // based on k nearest neighbours (with k=2)
+                 matcher.knnMatch(descriptorsRight,descriptorsLeft,
+                 matchesrtol, // vector of matches (up to 2 per entry)
+                 2); // return 2 nearest neighbours
+
+                 qDebug() << "Left to Right: " << matchesltor.size() <<" matches found."<< "Right to Left: " << matchesrtol.size() <<" matches found." ;
+                 qDebug() << "Starting matching refinement" ;
+
+                 std::vector<std::vector< cv::DMatch > > good_matchesl;
+                 std::vector< std::vector< cv::DMatch > > good_matchesr;
+
+                 int refinementMethod = CV_FM_LMEDS; //CV_FM_LMEDS || CV_FM_RANSAC || CV_FM_8POINT;
+
+
+                 for (size_t i = 0; i < matchesltor.size(); ++i)
+                 {
+                     std::vector<cv::DMatch> aux =  matchesltor[i];
+                     for (size_t j = 0; j < aux.size(); ++j)
+                     {
+                         cv::DMatch aux_dis = aux[j];
+                         double dist = aux_dis.distance;
+                         if( dist > max_dist ) max_dist = dist;
+
+                     }
+                 }
+                 for (size_t i = 0; i < matchesrtol.size(); ++i)
+                 {
+                     std::vector<cv::DMatch> aux =  matchesrtol[i];
+                     for (size_t j = 0; j < aux.size(); ++j)
+                     {
+                         cv::DMatch aux_dis = aux[j];
+                         double dist = aux_dis.distance;
+                         if( dist > max_dist ) max_dist = dist;
+                     }
+                 }
+
+                 //find the "good" matches
+                 for (size_t i = 0; i < matchesltor.size(); ++i)
+                 {
+                     std::vector<cv::DMatch> aux =  matchesltor[i];
+                     std::vector<cv::DMatch> good_matchesr_aux;
+                     for (size_t j = 0; j < aux.size(); ++j)
+                     {
+
+                         cv::DMatch aux_dos = aux[j];
+                         if (mi)
+                         {
+                         if (aux_dos.distance > threshold_K*max_dist) good_matchesr_aux.push_back(aux_dos);
+                         }
+                         else
+                         {
+                          if (aux_dos.distance < threshold_K*max_dist) good_matchesr_aux.push_back(aux_dos);
+                         }
+                     }
+                     if(good_matchesr_aux.size()>0)good_matchesl.push_back(good_matchesr_aux);
+                 }
+
+
+                 for (size_t i = 0; i < matchesrtol.size(); ++i)
+                 {
+                     std::vector<cv::DMatch> aux =  matchesrtol[i];
+                     std::vector<cv::DMatch> good_matchesr_aux;
+                     for (size_t j = 0; j < aux.size(); ++j)
+                     {
+                         cv::DMatch aux_dos = aux[j];
+
+                         if (mi)
+                         {
+                         if (aux_dos.distance > threshold_K*max_dist) good_matchesr_aux.push_back(aux_dos);
+                         }
+                         else
+                         {
+                          if (aux_dos.distance < threshold_K*max_dist) good_matchesr_aux.push_back(aux_dos);
+                         }
+                     }
+                       if(good_matchesr_aux.size()>0)good_matchesr.push_back(good_matchesr_aux);
+                 }
+
+                 qDebug() << "Good matches. Left to Right: " << good_matchesl.size() <<" matches found."<< "Right to Left: " << good_matchesr.size() <<" matches found." ;
+
+
+
+
+                 if (good_matchesl.size()>0&&good_matchesr.size()>0)
+                 {
+
+                     int correct2=0;
+                    // clean image 1 -> image 2 matches
+                    int removed= ratioTest(good_matchesl);
+                    removed = ratioTest(good_matchesr);
+
+                    qDebug() << "End ratio test at " << myTimer.elapsed()/1000 <<" seg";;
+                    qDebug() << "Left to Right: " << good_matchesl.size() <<" matches found."<< "Right to Left: " << good_matchesr.size() <<" matches found." ;
+
+                    // 4. Remove non-symmetrical matches
+                    std::vector<cv::DMatch> symMatches;
+                    std::vector<cv::DMatch> matches;
+                    symmetryTest(good_matchesl,good_matchesr,symMatches);
+
+                    qDebug() << "End symetry test at " << myTimer.elapsed()/1000 <<" seg";;
+                    qDebug() << symMatches.size() <<" symmetric matches found.";
+
+                    // 5. Validate matches using RANSAC
+             //       int method;
+             //       switch (refinementMethod)
+             //       {
+             //       case 0:
+             //           method =CV_FM_LMEDS;
+             //           break;
+             //       case 1:
+             //           method=CV_FM_RANSAC;
+             //           break;
+             //       case 2:
+             //           method=CV_FM_8POINT;
+             //           break;
+             //       }
+
+
+                      ransacTest(symMatches,tiePointsLeft, tiePointsRight, matches,CV_FM_LMEDS);
+                      // return the found fundemental matrix
+
+                      std::vector<std::vector<float>> imageMatchings;
+                      std::vector<float> imageCoordinates;
+
+
+                      for (int i=0;i<matches.size();i++)
+                      {
+                         imageCoordinates.clear();
+                         imageCoordinates.push_back(tiePointsLeft[matches[i].queryIdx].pt.x);
+                         imageCoordinates.push_back(tiePointsLeft[matches[i].queryIdx].pt.y);
+                         imageCoordinates.push_back(tiePointsRight[matches[i].trainIdx].pt.x);
+                         imageCoordinates.push_back(tiePointsRight[matches[i].trainIdx].pt.y);
+                         imageMatchings.push_back(imageCoordinates);
+                      }
+                      mMatchingsMap.insert(mapKeyList.at(m)+"_"+mapKeyList.at(n),imageMatchings);
+
+
+                     qDebug() << "End Matching refinement  at " << myTimer.elapsed()/1000 <<" seg";;
+                     qDebug() << matches.size() <<" matches found." ;
+                 }
+            }
+        }
+
+    }
+
+    qDebug() << "End matching process (First etape) at " << myTimer.elapsed()/1000 <<" seg";
+
+    qDebug() << "Start Matching refinement at " << myTimer.elapsed()/1000 <<" seg";
+
+}
+
+
+//void MSDProcess::computeMatching(){
+
+//    bool mi = false;
+//    qDebug() << "Starting matching process at " << myTimer.elapsed()/1000 <<" seg";;
+
+//    unsigned nThreads = boost::thread::hardware_concurrency();
+
+
+//    QList<QString> mapKeyList = mImageDataMap.keys();
+//    std::vector<boost::thread*> threads;
+//    for (int m = 0; m < mapKeyList.count()-1; ++m) {
+//        for (int n = m+1; n < mapKeyList.count(); ++n) {
+//            if (m!=n) {
+
+//                processedImageData imageDataLeft = mImageDataMap.value(mapKeyList.at(m));
+//                processedImageData imageDataRight = mImageDataMap.value(mapKeyList.at(n));
+
+
+//                threads.push_back(new boost::thread(&MSDProcess::startMatchingThread, this,imageDataLeft,imageDataRight));
+
+//                if (threads.size()%nThreads==0) {
+//                    for (unsigned i = 0; i < threads.size(); i++)
+//                    {
+//                        threads[i]->join();
+//                        delete threads[i];
+//                    }
+//                    threads.clear();
+//                }
+
+//            }
+
+//        }
+
+//    }
+
+
+//    for (unsigned i = 0; i < threads.size(); i++)
+//    {
+//        threads[i]->join();
+//        delete threads[i];
+//    }
+
+
+//    qDebug() << "End matching process (First etape) at " << myTimer.elapsed()/1000 <<" seg";
+
+//    qDebug() << "Start Matching refinement at " << myTimer.elapsed()/1000 <<" seg";
+
+//}
+
+//void MSDProcess::startMatchingThread(processedImageData imageDataLeft,processedImageData imageDataRight){
+//    std::vector<std::vector<cv::DMatch>> matchesltor;
+//    std::vector<std::vector<cv::DMatch>> matchesrtol;
+//    float max_dist =0;
+
+//    cv::BFMatcher matcher(cv::NORM_L2);
+//    // from image 1 to image 2
+//    // based on k nearest neighbours (with k=2)
+//    std::vector<cv::KeyPoint> tiePointsLeft = imageDataLeft.getTiepoints();
+//    cv::Mat descriptorsLeft= imageDataLeft.getDescriptors();
+//    std::vector<cv::KeyPoint> tiePointsRight = imageDataRight.getTiepoints();
+//    cv::Mat descriptorsRight= imageDataRight.getDescriptors();
+
+//    matcher.knnMatch(descriptorsLeft,descriptorsRight,
+//    matchesltor, // vector of matches (up to 2 per entry)
+//    2); // return 2 nearest neighbours
+//    // from image 2 to image 1
+//    // based on k nearest neighbours (with k=2)
+//    matcher.knnMatch(descriptorsRight,descriptorsLeft,
+//    matchesrtol, // vector of matches (up to 2 per entry)
+//    2); // return 2 nearest neighbours
+
+//    qDebug() << "Left to Right: " << matchesltor.size() <<" matches found."<< "Right to Left: " << matchesrtol.size() <<" matches found." ;
+//    qDebug() << "Starting matching refinement" ;
+
+//    std::vector<std::vector< cv::DMatch > > good_matchesl;
+//    std::vector< std::vector< cv::DMatch > > good_matchesr;
+
+//    int refinementMethod = CV_FM_LMEDS; //CV_FM_LMEDS || CV_FM_RANSAC || CV_FM_8POINT;
+
+
+//    for (size_t i = 0; i < matchesltor.size(); ++i)
+//    {
+//        std::vector<cv::DMatch> aux =  matchesltor[i];
+//        for (size_t j = 0; j < aux.size(); ++j)
+//        {
+//            cv::DMatch aux_dis = aux[j];
+//            double dist = aux_dis.distance;
+//            if( dist > max_dist ) max_dist = dist;
+
+//        }
+//    }
+//    for (size_t i = 0; i < matchesrtol.size(); ++i)
+//    {
+//        std::vector<cv::DMatch> aux =  matchesrtol[i];
+//        for (size_t j = 0; j < aux.size(); ++j)
+//        {
+//            cv::DMatch aux_dis = aux[j];
+//            double dist = aux_dis.distance;
+//            if( dist > max_dist ) max_dist = dist;
+
+//        }
+//    }
+
+//    //find the "good" matches
+//    for (size_t i = 0; i < matchesltor.size(); ++i)
+//    {
+//        std::vector<cv::DMatch> aux =  matchesltor[i];
+//        std::vector<cv::DMatch> good_matchesr_aux;
+//        for (size_t j = 0; j < aux.size(); ++j)
+//        {
+
+//            cv::DMatch aux_dos = aux[j];
+
+//             if (aux_dos.distance < threshold_K*max_dist) good_matchesr_aux.push_back(aux_dos);
+
+//        }
+//        if(good_matchesr_aux.size()>0)good_matchesl.push_back(good_matchesr_aux);
+//    }
+
+
+//    for (size_t i = 0; i < matchesrtol.size(); ++i)
+//    {
+//        std::vector<cv::DMatch> aux =  matchesrtol[i];
+//        std::vector<cv::DMatch> good_matchesr_aux;
+//        for (size_t j = 0; j < aux.size(); ++j)
+//        {
+//            cv::DMatch aux_dos = aux[j];
+
+
+//             if (aux_dos.distance < threshold_K*max_dist) good_matchesr_aux.push_back(aux_dos);
+
+//        }
+//          if(good_matchesr_aux.size()>0)good_matchesr.push_back(good_matchesr_aux);
+//    }
+
+//    qDebug() << "Good matches. Left to Right: " << good_matchesl.size() <<" matches found."<< "Right to Left: " << good_matchesr.size() <<" matches found." ;
+
+
+
+
+//    if (good_matchesl.size()>0&&good_matchesr.size()>0)
+//    {
+
+//        int correct2=0;
+//       // clean image 1 -> image 2 matches
+//       int removed= ratioTest(good_matchesl);
+//       removed = ratioTest(good_matchesr);
+
+//       qDebug() << "End ratio test at " << myTimer.elapsed()/1000 <<" seg";;
+//       qDebug() << "Left to Right: " << good_matchesl.size() <<" matches found."<< "Right to Left: " << good_matchesr.size() <<" matches found." ;
+
+//       // 4. Remove non-symmetrical matches
+//       std::vector<cv::DMatch> symMatches;
+//       std::vector<cv::DMatch> matches;
+//       symmetryTest(good_matchesl,good_matchesr,symMatches);
+
+//       qDebug() << "End symetry test at " << myTimer.elapsed()/1000 <<" seg";;
+//       qDebug() << symMatches.size() <<" symmetric matches found.";
+
+//       // 5. Validate matches using RANSAC
+////       int method;
+////       switch (refinementMethod)
+////       {
+////       case 0:
+////           method =CV_FM_LMEDS;
+////           break;
+////       case 1:
+////           method=CV_FM_RANSAC;
+////           break;
+////       case 2:
+////           method=CV_FM_8POINT;
+////           break;
+////       }
+
+
+//         ransacTest(symMatches,tiePointsLeft, tiePointsRight, matches,CV_FM_LMEDS);
+//         // return the found fundemental matrix
+
+//         std::vector<std::vector<float>> imageMatchings;
+//         std::vector<float> imageCoordinates;
+
+
+//         for (int i=0;i<matches.size();i++)
+//         {
+//            imageCoordinates.clear();
+//            imageCoordinates.push_back(tiePointsLeft[matches[i].queryIdx].pt.x);
+//            imageCoordinates.push_back(tiePointsLeft[matches[i].queryIdx].pt.y);
+//            imageCoordinates.push_back(tiePointsRight[matches[i].trainIdx].pt.x);
+//            imageCoordinates.push_back(tiePointsRight[matches[i].trainIdx].pt.y);
+//            imageMatchings.push_back(imageCoordinates);
+//         }
+//         mMatchingsMap.insert(imageDataLeft.getImageName()+"_"+imageDataRight.getImageName(),imageMatchings);
+
+
+//        qDebug() << "End Matching refinement between images "<<imageDataLeft.getImageName() <<" and " <<imageDataRight.getImageName() << "at " << myTimer.elapsed()/1000 <<" seg";;
+//        qDebug() << matches.size() <<" matches found." ;
+//    }
+
+//}
+
+int MSDMatching::ratioTest(std::vector<std::vector<cv::DMatch>>& matches) {
+
+  int removed=0;
+
+  // for all matches
+  for (std::vector<std::vector<cv::DMatch>>::iterator matchIterator= matches.begin();
+       matchIterator!= matches.end(); ++matchIterator) {
+
+           // if 2 NN has been identified
+           if (matchIterator->size() > 1) {
+
+               // check distance ratio
+               if ((*matchIterator)[0].distance/(*matchIterator)[1].distance > ratio) {
+
+                   matchIterator->clear(); // remove match
+                   removed++;
+               }
+
+           } else { // does not have 2 neighbours
+
+               matchIterator->clear(); // remove match
+               removed++;
+           }
+  }
+
+  return removed;
+}
+
+// Insert symmetrical matches in symMatches vector
+void MSDMatching::symmetryTest(const std::vector<std::vector<cv::DMatch>>& matches1,
+                  const std::vector<std::vector<cv::DMatch>>& matches2,
+                  std::vector<cv::DMatch>& symMatches) {
+
+  // for all matches image 1 -> image 2
+  for (std::vector<std::vector<cv::DMatch>>::const_iterator matchIterator1= matches1.begin();
+       matchIterator1!= matches1.end(); ++matchIterator1) {
+
+      if (matchIterator1->size() < 2) // ignore deleted matches
+          continue;
+
+      // for all matches image 2 -> image 1
+      for (std::vector<std::vector<cv::DMatch>>::const_iterator matchIterator2= matches2.begin();
+          matchIterator2!= matches2.end(); ++matchIterator2) {
+
+          if (matchIterator2->size() < 2) // ignore deleted matches
+              continue;
+
+          // Match symmetry test
+          if ((*matchIterator1)[0].queryIdx == (*matchIterator2)[0].trainIdx  &&
+              (*matchIterator2)[0].queryIdx == (*matchIterator1)[0].trainIdx) {
+
+                  // add symmetrical match
+                  symMatches.push_back(cv::DMatch((*matchIterator1)[0].queryIdx,
+                                                  (*matchIterator1)[0].trainIdx,
+                                                  (*matchIterator1)[0].distance));
+                  break; // next match in image 1 -> image 2
+          }
+      }
+  }
+}
+
+// Identify good matches using RANSAC
+// Return fundemental matrix
+void MSDMatching::ransacTest(const std::vector<cv::DMatch>& matches,
+                   const std::vector<cv::KeyPoint>& keypoints1,
+                   const std::vector<cv::KeyPoint>& keypoints2,
+                   std::vector<cv::DMatch>& outMatches,int method) {
+
+  // Convert keypoints into Point2f
+  std::vector<cv::Point2f> points1, points2;
+  for (std::vector<cv::DMatch>::const_iterator it= matches.begin();
+       it!= matches.end(); ++it) {
+
+       // Get the position of left keypoints
+       float x= keypoints1[it->queryIdx].pt.x;
+       float y= keypoints1[it->queryIdx].pt.y;
+       points1.push_back(cv::Point2f(x,y));
+       // Get the position of right keypoints
+       x= keypoints2[it->trainIdx].pt.x;
+       y= keypoints2[it->trainIdx].pt.y;
+       points2.push_back(cv::Point2f(x,y));
+  }
+
+  // Compute F matrix using RANSAC
+  std::vector<uchar> inliers(points1.size(),0);
+  if (method==2)
+  {
+      cv::Mat fundemental= cv::findFundamentalMat(
+          cv::Mat(points1),cv::Mat(points2), // matching points
+          inliers,      // match status (inlier ou outlier)
+          method, // RANSAC method
+          distance);
+  }
+  else{
+  cv::Mat fundemental= cv::findFundamentalMat(
+      cv::Mat(points1),cv::Mat(points2), // matching points
+      inliers,      // match status (inlier ou outlier)
+      method, // RANSAC method
+      distance,     // distance to epipolar line
+      confidence);  // confidence probability
+}
+  // extract the surviving (inliers) matches
+  std::vector<uchar>::const_iterator itIn= inliers.begin();
+  std::vector<cv::DMatch>::const_iterator itM= matches.begin();
+  // for all matches
+  for ( ;itIn!= inliers.end(); ++itIn, ++itM) {
+
+      if (*itIn) { // it is a valid match
+
+          outMatches.push_back(*itM);
+      }
+  }
+
+}
+
+void MSDMatching::writeMatchesToApero(){
+
+    qDebug() << "Writing results for Pastis... ";
+    int totalDel =0;
+
+    for (int i = 0; i < mImagesPathList.count(); ++i) {
+        for (int j = 0; j < mImagesPathList.count(); ++j) {
+            QString matchingsKey;
+            std::vector<std::vector<float>> matchingsVector;
+            if (i<j) {
+                matchingsKey.append(mImagesPathList.at(i).split("/").last().append("_").append(mImagesPathList.at(j).split("/").last()));
+                matchingsVector = mMatchingsMap.value(matchingsKey);
+
+                if (matchingsVector.size()!=0) {
+//                    aperoMatches.clear();
+
+                    QString filename=matchesFolder+"/msd/Pastis/"+mImagesPathList.at(i).split("/").last()+"/"+mImagesPathList.at(j).split("/").last()+".txt";;
+                    QFile file3( filename );
+                    if ( file3.open(QIODevice::ReadWrite) )
+                    {
+                        QTextStream stream( &file3 );
+                        for (int k=0;k<matchingsVector.size();k++)
+                        {
+//                            match.clear();
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][0]/mImageScaleFactorX*100+0.5))/100.0);
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][1]/mImageScaleFactorY*100+0.5))/100.0);
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][2]/mImageScaleFactorX*100+0.5))/100.0);
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][3]/mImageScaleFactorY*100+0.5))/100.0);
+//                            aperoMatches.push_back(match);
+
+                            for (int h = 0; h <= k ; ++h) {
+                                if (h==k) {
+                                    stream <<matchingsVector[k][0]/mImageScaleFactorX<<" "<< matchingsVector[k][1]/mImageScaleFactorY<< " " <<  matchingsVector[k][2]/mImageScaleFactorX<< " " << matchingsVector[k][3]/mImageScaleFactorY << endl;
+                                }else if ((matchingsVector[k][0] == matchingsVector[h][0])&& (matchingsVector[k][1] == matchingsVector[h][1])) {
+                                    totalDel++;
+                                    break;
+                                }
+                            }
+                        }
+//                        removeDuplicatedMatches();
+
+//                        for (int l = 0; l < aperoMatches.size(); ++l) {
+//                            if (aperoMatches[l][0]!=-1) {
+//                                stream <<aperoMatches[l][0]<<" "<< aperoMatches[l][1]<< " " <<  aperoMatches[l][2]<< " " << aperoMatches[l][3] << endl;
+//                            }
+//                        }
+                    }
+                }
+            }else if (i!=j) {
+                matchingsKey.append(mImagesPathList.at(j).split("/").last().append("_").append(mImagesPathList.at(i).split("/").last()));
+                matchingsVector = mMatchingsMap.value(matchingsKey);
+
+                if (matchingsVector.size()!=0) {
+                    matchingsVector.clear();
+
+                    QString filename=matchesFolder+"/msd/Pastis/"+mImagesPathList.at(i).split("/").last()+"/"+mImagesPathList.at(j).split("/").last()+".txt";;
+                    QFile file3( filename );
+                    if ( file3.open(QIODevice::ReadWrite) )
+                    {
+                        QTextStream stream( &file3 );
+                        for (int k=0;k<matchingsVector.size();k++)
+                        {
+//                            match.clear();
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][2]/mImageScaleFactorX*100+0.5))/100.0);
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][3]/mImageScaleFactorY*100+0.5))/100.0);
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][0]/mImageScaleFactorX*100+0.5))/100.0);
+//                            match.push_back(static_cast<double>(static_cast<int>(matchingsVector[k][1]/mImageScaleFactorY*100+0.5))/100.0);
+//                            aperoMatches.push_back(match);
+
+
+                            for (int h = 0; h <= k ; ++h) {
+                                if (h==k) {
+//                                    if (matchingsVector[k][0]/mImageScaleFactorX> mOriginalImageWidth ||matchingsVector[k][2]/mImageScaleFactorX> mOriginalImageWidth ||matchingsVector[k][1]/mImageScaleFactorY> mOriginalImageHeight || matchingsVector[k][3]/mImageScaleFactorY> mOriginalImageHeight) {
+//                                        qDebug() << "Resultado mayor de lo permitido"<< matchingsVector[k][0]/mImageScaleFactorX << " "<<matchingsVector[k][2]/mImageScaleFactorX<< " " << matchingsVector[k][1]/mImageScaleFactorY << " "<< matchingsVector[k][3]/mImageScaleFactorY;
+//                                        break;
+//                                    }
+//                                    stream <<matchingsVector[k][2]<<" "<< matchingsVector[k][3]<< " " <<  matchingsVector[k][0]<< " " << matchingsVector[k][1] << endl;
+                                    stream <<matchingsVector[k][2]/mImageScaleFactorX<<" "<< matchingsVector[k][3]/mImageScaleFactorY<< " " <<  matchingsVector[k][0]/mImageScaleFactorX<< " " << matchingsVector[k][1]/mImageScaleFactorY << endl;
+                                }else if ((matchingsVector[k][2] == matchingsVector[h][2])&& (matchingsVector[k][3] == matchingsVector[h][3])) {
+                                    totalDel++;
+                                    break;
+                                }
+                            }
+
+                        }
+//                        removeDuplicatedMatches();
+
+//                        for (int l = 0; l < aperoMatches.size(); ++l) {
+//                            if (aperoMatches[l][0]!=-1) {
+//                                stream <<aperoMatches[l][0]<<" "<< aperoMatches[l][1]<< " " <<  aperoMatches[l][2]<< " " << aperoMatches[l][3] << endl;
+//                            }
+//                        }
+                    }
+                }
+            }
+        }
+    }
+    qDebug()<< "Duplicated matches:  " << totalDel;
+
+    qDebug() << "END. " ;
+}
+
+
+//void MSDProcess::removeDuplicatedMatches(){
+//    for (int i = 0; i < aperoMatches.size(); ++i) {
+//        for (int j = i+1; j < aperoMatches.size(); ++j) {
+//            if ((aperoMatches[i][0]==aperoMatches[j][0] && aperoMatches[i][1]==aperoMatches[j][1] )||(aperoMatches[i][2]==aperoMatches[j][2] && aperoMatches[i][3]==aperoMatches[j][3] )) {
+//                aperoMatches[i][0]=-1;
+//            }
+//        }
+//    }
+//}
+

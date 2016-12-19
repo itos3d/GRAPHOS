@@ -1,0 +1,26 @@
+#ifndef MICMACDENSEPROCESS_H
+#define MICMACDENSEPROCESS_H
+
+#include "MultiProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT MicMacDenseProcess : public MultiProcess
+{
+
+public:
+    MicMacDenseProcess(QString paramsPath, QString mainImgFileName);
+
+signals:
+    void finished();
+
+private slots:
+    void onFinished();
+
+private:
+
+
+};
+}
+
+#endif // MICMACDENSEPROCESS_H

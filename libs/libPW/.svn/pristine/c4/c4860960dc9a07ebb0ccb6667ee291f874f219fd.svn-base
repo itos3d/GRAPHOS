@@ -1,0 +1,19 @@
+#include "ProcessConcurrentTest1.h"
+
+using namespace PW;
+
+ProcessConcurrentTest1::ProcessConcurrentTest1()
+{
+    setSteps(100);
+    setStartupMessage("Preprocessing");
+}
+
+int ProcessConcurrentTest1::run()
+{
+    for(int i=0;i<1000000000;i++){
+        if(i%10000000==0)
+            emit statusChanged(i/10000000,"");
+    }
+
+    return 0;
+}

@@ -1,0 +1,21 @@
+#ifndef TAPIOCAPROCESS_H
+#define TAPIOCAPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT TapiocaProcess : public ExternalProcess
+{
+public:
+    TapiocaProcess();
+
+    TapiocaProcess(QString inputRegExp, QString imagesDir,
+                   QString mode="All", int range=0, int size=1500,int MulScaleMin = 0);
+
+public slots:
+        void onFinished();
+};
+
+}
+#endif // TAPIOCAPROCESS_H

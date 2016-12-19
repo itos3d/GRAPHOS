@@ -1,0 +1,12 @@
+#include "SQLiteProjectReader.h"
+
+using namespace PW;
+
+SQLiteProjectReader::SQLiteProjectReader()
+{
+}
+
+Project * SQLiteProjectReader::read(QString url)
+{
+    return NULL;
+}

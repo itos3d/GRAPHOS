@@ -1,0 +1,21 @@
+#ifndef APPUISWRITER_H
+#define APPUISWRITER_H
+
+#include "Project.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AppuisWriter
+{
+public:
+    AppuisWriter(Project *project);
+
+    int writeDicoAppuis(QString url);
+    int writeMesureAppuis(QString url);
+
+private:
+    Project * mProject;
+
+};
+}
+#endif // APPUISWRITER_H

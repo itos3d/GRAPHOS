@@ -1,0 +1,20 @@
+#ifndef CUSTOMSUREPROCESS_H
+#define CUSTOMSUREPROCESS_H
+
+#include "MultiProcess.h"
+#include "Project.h"
+namespace PW {
+
+class LIBPWSHARED_EXPORT CustomSureProcess : public MultiProcess
+{
+public:
+    CustomSureProcess(Project *project, int pyr,int fold, int maxModels);
+    ~CustomSureProcess();
+private:
+    Project *mProject;
+    int mPyr;
+    int mFold;
+    int mMaxModels;
+};
+}
+#endif // CUSTOMSUREPROCESS_H

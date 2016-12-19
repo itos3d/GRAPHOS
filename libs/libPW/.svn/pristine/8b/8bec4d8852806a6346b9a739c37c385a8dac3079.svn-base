@@ -1,0 +1,69 @@
+#include <QDebug>
+#include <QFile>
+
+#include "WaitForResultsProcess.h"
+
+using namespace PW;
+
+WaitForResultsProcess::WaitForResultsProcess(QStringList pathList, WatcherModeFlag watcherMode):
+    mElementList(pathList),
+    mStop(false)
+{
+    mFileWatcher = new QFileSystemWatcher();
+
+    //Monitorizamos los directorios:
+    for (int i = 0; i < mElementList.size(); i++){
+        if (QFile::exists(mElementList.at(i)))
+            mElementChanged.append(mElementList.at(i));
+        mFileWatcher->addPath(mElementList.at(0).left(mElementList.at(0).lastIndexOf(QRegExp("/"))+1));
+    }
+
+    if (mElementChanged.count() >= mElementList.count()){
+        mStop = true;
+    }
+
+    connect(mFileWatcher,SIGNAL(directoryChanged(QString)),this,SLOT(onElementChange(QString)));
+}
+
+QByteArray WaitForResultsProcess::readStdout()
+{
+    return "";
+}
+
+QByteArray WaitForResultsProcess::readStderr()
+{
+    return "";
+}
+
+// SOLO IMPLEMENTADO EN MODO "Create" ****************************************************
+void WaitForResultsProcess::onElementChange(QString path)
+{
+    for (int i = 0; i < mElementList.size(); i++){
+        if (QFile::exists(mElementList.at(i)))
+            mElementChanged.append(mElementList.at(i));
+    }
+
+    if (mElementChanged.count() >= mElementList.count()){
+        mStop = true;
+    }
+}
+
+void PW::WaitForResultsProcess::run()
+{
+    while (!mStop);
+}
+
+
+void WaitForResultsProcess::start()
+{
+    run();
+}
+
+void WaitForResultsProcess::setWaitForFinished(bool wait)
+{
+}
+
+bool WaitForResultsProcess::isRunning()
+{
+    return false;
+}

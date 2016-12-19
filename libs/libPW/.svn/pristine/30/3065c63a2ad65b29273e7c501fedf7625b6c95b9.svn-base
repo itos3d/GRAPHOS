@@ -1,0 +1,23 @@
+#ifndef ASIFTPROCESS_H
+#define ASIFTPROCESS_H
+
+#include "MultiProcess.h"
+#include "PWImage.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AsiftProcessConcurrent : public MultiProcess
+{
+public:
+    AsiftProcessConcurrent(QList<PWImage *> inputImages,
+                           bool resize,
+                           int tilts,
+                           QString pairsFileName, bool generateReverse=false, bool concurrent=false);
+
+private:
+    QList<PWImage *> mInputImages;
+};
+
+}
+
+#endif // ASIFTPROCESS_H

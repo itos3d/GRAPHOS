@@ -1,0 +1,107 @@
+#ifndef PHOTOGRAMMETRICMODEL_H
+#define PHOTOGRAMMETRICMODEL_H
+
+#include "CameraModel.h"
+#include "DistortionModel.h"
+
+namespace PW{
+
+/*!
+ \brief Class representing photogrammetric camera model.
+
+*/
+class LIBPWSHARED_EXPORT PhotogrammetricModel : public CameraModel
+{
+public:
+/*!
+ \brief Constructor
+
+*/
+    PhotogrammetricModel();
+    ~PhotogrammetricModel();
+
+    /*!
+     \brief Gets the focal lenght in milimeters.
+
+     \return float focal lenght in milimeters.
+    */
+    double getFocal();
+    /*!
+     \brief Gets the x coordinate of the principal point (milimeters).
+
+     \return float x coordinate of the principal point (milimeters).
+    */
+    double getXp();
+    /*!
+     \brief Gets the y coordinate of the principal point (milimeters).
+
+     \return float y coordinate of the principal point (milimeters).
+    */
+    double getYp();
+    /*!
+     \brief Gets the distortion model containing the distortion parameters.
+
+     \return DistortionModel * distortion model.
+    */
+    DistortionModel * getDistortionModel();
+
+    /*!
+     \brief Sets the focal lenght.
+
+     \param f focal lenght in milimeters.
+    */
+    void setFocal(double f);
+    /*!
+     \brief Sets the x coordinate of the principal point.
+
+     \param xp x coordinate of the principal point (milimeters).
+    */
+    void setXp(double xp);
+    /*!
+     \brief Sets y coordinate of the principal point.
+
+     \param yp y coordinate of the principal point (milimeters).
+    */
+    void setYp(double yp);
+    /*!
+     \brief Sets the distortion model containing the distortion parameters.
+
+     \param model distortion model.
+    */
+    void setDistortionModel(DistortionModel *model);
+
+    /*!
+     \brief Undistort a image according to distortion model.
+
+     \param inputImage image to undistort
+     \return PWImage undistorted image
+    */
+    virtual QString undistort(QString inputImage);
+
+    /*!
+     \brief
+
+     \return bool true if distortion model allows to undistort images.
+    */
+    virtual bool canUnistort();
+
+    virtual void undistort(float& x,
+                           float& y);
+
+    virtual void distort(float& x,
+                         float& y);
+
+private:
+
+    //********** TODO:  PROVISIONALMENTE USAMOS VALORES EN PIXELES ******************
+    double   mFocal; /*!< Focal lenght (mm) */
+    double   mXp; /*!< x coordinate of principal point (mm) */
+    double   mYp; /*!< y coordinate of principal point (mm) */
+    //********** TODO:  PROVISIONALMENTE USAMOS VALORES EN PIXELES ******************
+
+    DistortionModel *mDistortionModel;
+};
+
+}
+
+#endif // PHOTOGRAMMETRICMODEL_H

@@ -1,0 +1,15 @@
+#ifndef MICMACPROCESS_H
+#define MICMACPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT MicMacProcess : public ExternalProcess
+{
+public:
+    MicMacProcess();
+};
+}
+
+#endif // MICMACPROCESS_H

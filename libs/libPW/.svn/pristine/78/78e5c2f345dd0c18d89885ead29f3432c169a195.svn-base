@@ -1,0 +1,14 @@
+#ifndef GCPBASCULEPROCESS_H
+#define GCPBASCULEPROCESS_H
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT GCPBasculeProcess : public ExternalProcess
+{
+public:
+    GCPBasculeProcess();
+    ~GCPBasculeProcess();
+};
+}
+#endif // GCPBASCULEPROCESS_H

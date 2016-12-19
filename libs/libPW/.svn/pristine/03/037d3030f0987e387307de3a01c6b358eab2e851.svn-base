@@ -1,0 +1,34 @@
+#ifndef PSMARKERSIO_H
+#define PSMARKERSIO_H
+
+#include <QObject>
+
+#include "Project.h"
+#include "GroundControlIO.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT PSMarkersIO : public GroundControlIO
+{
+    Q_OBJECT
+public:
+    explicit PSMarkersIO();
+
+    virtual void read(QString url,
+                      QList<PW::PW3dPoint> &groudPoints,
+                      QMap<QString, QList<PW2dPoint *> *> &imagePoints);
+    virtual QList<PW::PW3dPoint> readGroundPoinst(QString url);
+    virtual QList<PW2dPoint *> readImagePoints(QString url);
+    virtual QMap<QString, QList<PW2dPoint *> *> readImagePointsByImage(QString url);
+
+    virtual int writeGroudPoints(QString url, QList<PW::PW3dPoint *> *points);
+    virtual int writeImagePoints(QString url, QList<PWImage *> images);
+    
+signals:
+    
+public slots:
+    
+};
+}
+
+#endif // PSMARKERSIO_H

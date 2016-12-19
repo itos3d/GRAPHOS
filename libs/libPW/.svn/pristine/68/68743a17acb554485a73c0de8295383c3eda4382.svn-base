@@ -1,0 +1,15 @@
+#ifndef OPENCV_KPM_PROCESS_H
+#define OPENCV_KPM_PROCESS_H
+
+#include "OpenCV/OpenCVKpM.h"
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT OpenCV_kpm_process : public ExternalProcess
+{
+public:
+    OpenCV_kpm_process(QString parametersFileName);
+};
+}
+#endif // OPENCV_KPDM_SIFTPLUSBF_PROCESS_H

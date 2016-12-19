@@ -1,0 +1,154 @@
+#include "MSDkpd.h"
+#include <QDir>
+
+using namespace cv;
+using namespace PW;
+
+MSDkpd::MSDkpd(QString inputFile, QString outputDir, ProcessedImageData *metadata,int patchRadius,
+               int SearchAreaRadius, int NMSRadius, int NMSScaleRadius, float ThSaliency,int KNN, float ScaleFactor,
+               int NScales, int imageResizeValue, bool computeOrientations,int maxTiepoints):
+    mInputFile(inputFile),
+    mOtputDir(outputDir),
+    mImageMetadata(metadata),
+    msdPatchRadius(patchRadius),
+    msdSearchAreaRadius(SearchAreaRadius),
+    msdNMSRadius(NMSRadius),
+    msdNMSScaleRadius(NMSScaleRadius),
+    msdThSaliency(ThSaliency),
+    msdKNN(KNN),
+    msdScaleFactor(ScaleFactor),
+    msdNScales(NScales),
+    msdImageResizeValue(imageResizeValue),
+    msdComputeOrientations(computeOrientations),
+    mMaxTiepoints(maxTiepoints)
+{
+}
+
+void MSDkpd::run()
+{
+
+    QFileInfo fileInfo(mInputFile);
+    QString *stdData = new QString();
+
+    stdData->clear();
+    stdData->append("Starting MSD keypoint detection for image:  ");
+    stdData->append(fileInfo.fileName());
+    emit newStdData(stdData->toAscii());
+
+    QString matchesFolder = mOtputDir;
+
+    QDir matchingMethodDir(matchesFolder+"/tapioca");
+    QString imageMatchings = matchesFolder+"/tapioca/Pastis"+mInputFile.split("/").last();
+    if(!matchingMethodDir.exists(imageMatchings))
+    {
+        matchingMethodDir.mkdir(imageMatchings);
+    }
+    cv::String cvImageFileName = mInputFile.toLatin1();
+
+    cv::Mat cvImg = cv::imread(cvImageFileName, CV_LOAD_IMAGE_COLOR);
+//    mOriginalImageWidth=cvImg.cols;
+//    mOriginalImageHeight=cvImg.rows;
+    if (msdImageResizeValue!=-1 && (cvImg.size[1]> msdImageResizeValue || cvImg.size[0]> msdImageResizeValue)) {
+//        int newImageWidth=msdImageResizeValue;
+
+        if (cvImg.size[1]>cvImg.size[0] && cvImg.size[1]>msdImageResizeValue) {
+            //Scale
+
+            int newImageHeight = (int)(cvImg.rows*msdImageResizeValue/cvImg.cols);
+
+//            mImageScaleFactorX = (float)msdImageResizeValue/(float)mOriginalImageWidth;
+//            mImageScaleFactorY = (float)newImageHeight/(float)mOriginalImageHeight;
+
+            Size newSize(msdImageResizeValue,newImageHeight);
+
+            cv::resize(cvImg,cvImg,newSize,INTER_NEAREST   ); //resize image
+
+            stdData->clear();
+            stdData->append("Image ");
+            stdData->append(fileInfo.fileName());
+            stdData->append(" downsampled.");
+            emit newStdData(stdData->toAscii());
+        }else if (cvImg.size[0]>cvImg.size[1] && cvImg.size[0]>msdImageResizeValue) {
+            //Scale
+
+            int newImageWidth = (int)(cvImg.cols*msdImageResizeValue/cvImg.rows);
+
+//            mImageScaleFactorX = (float)newImageWidth/(float)mOriginalImageWidth;
+//            mImageScaleFactorY = (float)msdImageResizeValue/(float)mOriginalImageHeight;
+
+            Size newSize(newImageWidth,msdImageResizeValue);
+
+            cv::resize(cvImg,cvImg,newSize,INTER_NEAREST   ); //resize image
+
+            stdData->clear();
+            stdData->append("Image ");
+            stdData->append(fileInfo.fileName());
+            stdData->append(" downlampled.");
+            emit newStdData(stdData->toAscii());
+        }
+    }
+
+    MsdDetector msdLeft;
+
+    msdLeft.setPatchRadius(msdPatchRadius);
+    msdLeft.setSearchAreaRadius(msdSearchAreaRadius);
+
+    msdLeft.setNMSRadius(msdNMSRadius);
+    msdLeft.setNMSScaleRadius(msdNMSScaleRadius);
+
+    msdLeft.setThSaliency(msdThSaliency);
+    msdLeft.setKNN(msdKNN);
+
+    msdLeft.setScaleFactor(msdScaleFactor);
+    msdLeft.setNScales(msdNScales);
+
+    msdLeft.setComputeOrientation(msdComputeOrientations);
+
+    cv::Mat kpsImg;
+    cv::Mat auxImage;
+
+
+    cv::cvtColor(cvImg,kpsImg,CV_RGB2GRAY);
+
+    std::vector<cv::KeyPoint> cvImg_keyPoints;
+    cvImg_keyPoints.clear();
+
+    stdData->clear();
+    stdData->append("Searching keypoints for image ");
+    stdData->append(fileInfo.fileName());
+    emit newStdData(stdData->toAscii());
+
+    cvImg_keyPoints = msdLeft.detectandcompute(kpsImg,auxImage,mMaxTiepoints);
+
+    emit statusChangedNext();
+
+    stdData->clear();
+    stdData->append(QString::number(cvImg_keyPoints.size()));
+    stdData->append(" keypoints found for image ");
+    stdData->append(fileInfo.fileName());
+    emit newStdData(stdData->toAscii());
+
+    cv::Ptr<cv::xfeatures2d::SIFT> detector = cv::xfeatures2d::SIFT::create();
+    cv::Mat cvDescriptors;
+
+    stdData->clear();
+    stdData->append("Starting SIFT description for image ");
+    stdData->append(fileInfo.fileName());
+    emit newStdData(stdData->toAscii());
+
+    detector->compute(kpsImg,cvImg_keyPoints,cvDescriptors);
+
+    emit statusChangedNext();
+
+    mImageMetadata->setTiepoints(cvImg_keyPoints);
+    mImageMetadata->setDescriptors(cvDescriptors);
+    QFileInfo inputFileInfo (mInputFile);
+    QString imageFileName = inputFileInfo.fileName();
+    mImageMetadata->setImageName(imageFileName);
+
+    stdData->clear();
+    stdData->append("Image ");
+    stdData->append(fileInfo.fileName());
+    stdData->append(" processed successfull.");
+    emit newStdData(stdData->toAscii());
+}

@@ -1,0 +1,65 @@
+#include "PhotogrammetricModel.h"
+
+using namespace PW;
+
+PhotogrammetricModel::PhotogrammetricModel()
+{
+}
+
+PhotogrammetricModel::~PhotogrammetricModel(){
+    delete mDistortionModel;
+}
+
+double PhotogrammetricModel::getFocal(){
+    return mFocal;
+}
+
+double PhotogrammetricModel::getXp(){
+    return mXp;
+}
+
+double PhotogrammetricModel::getYp(){
+    return mYp;
+}
+
+DistortionModel * PhotogrammetricModel::getDistortionModel()
+{
+    return mDistortionModel;
+}
+
+void PhotogrammetricModel::setFocal(double f){
+    mFocal = f;
+}
+
+void PhotogrammetricModel::setXp(double xp){
+    mXp = xp;
+}
+
+void PhotogrammetricModel::setYp(double yp){
+    mYp = yp;
+}
+
+void PhotogrammetricModel::setDistortionModel(DistortionModel *model)
+{
+    mDistortionModel = model;
+}
+
+QString PhotogrammetricModel::undistort(QString inputImage)
+{
+    return mDistortionModel->undistort(inputImage,mFocal,mXp,mYp);
+}
+
+bool PhotogrammetricModel::canUnistort()
+{
+    return mDistortionModel->canUnistort();
+}
+
+void PhotogrammetricModel::undistort(double &x, double &y)
+{
+    mDistortionModel->undistort(mXp,mYp,x,y);
+}
+
+void PhotogrammetricModel::distort(double &x, double &y)
+{
+    mDistortionModel->distort(mXp,mYp,x,y);
+}

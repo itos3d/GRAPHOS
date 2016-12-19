@@ -1,0 +1,38 @@
+
+<Global>
+
+  <ChantierDescripteur >
+
+    <LocCamDataBase>
+    
+        <CameraEntry>
+              <Name> TheCamera  </Name>
+              <SzCaptMm>  PW_SENSOR_WIDTH  PW_SENSOR_HEIGHT  </SzCaptMm>
+              <ShortName> TheCamera </ShortName>
+         </CameraEntry>
+    </LocCamDataBase>
+
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> TheCamera </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-CAM </Key>
+    </KeyedNamesAssociations>
+    
+    <KeyedNamesAssociations>
+            <Calcs>
+                 <Arrite>  1 1 </Arrite>
+                 <Direct>
+                       <PatternTransform> .*  </PatternTransform>
+                       <CalcName> PW_FOCAL </CalcName>
+                 </Direct>
+             </Calcs>
+             <Key>   NKS-Assoc-STD-FOC  </Key>
+    </KeyedNamesAssociations>
+
+  </ChantierDescripteur>
+</Global>

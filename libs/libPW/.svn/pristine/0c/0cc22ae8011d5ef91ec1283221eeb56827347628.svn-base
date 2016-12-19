@@ -1,0 +1,58 @@
+#include "imgPointWriter.h"
+#include "GeorefMicMac/imgPoint.h"
+using namespace PW;
+
+imgPointWriter::imgPointWriter(QMap<QString,QVector<PW::imgPoint>*> *imagePoints,QString outputPath):mImagePoints(imagePoints),mOutputPath(outputPath)
+{
+
+}
+
+imgPointWriter::~imgPointWriter()
+{
+
+}
+
+void imgPointWriter::run()
+{
+    QString stdTemplate ="<OneMesureAF1I><NamePt>_Desc_</NamePt><PtIm>_X_Coord_ _Y_Coord_</PtIm></OneMesureAF1I>";
+
+    /* Try and open a file for output */
+      QFile outputFile(mOutputPath);
+      outputFile.open(QIODevice::WriteOnly);
+
+      /* Check it opened OK */
+      if(!outputFile.isOpen()){
+//          qDebug() << argv[0] << "- Error, unable to open" << outputFilename << "for output";
+          return;
+      }
+
+      /* Point a QTextStream object at the file */
+      QTextStream outStream(&outputFile);
+
+      //Write xml header
+      outStream << "<?xml version=\"1.0\" ?><SetOfMesureAppuisFlottants>";
+      QStringList mapKeys = mImagePoints->keys();
+      foreach (QString key, mapKeys) {
+          outStream << "<MesureAppuiFlottant1Im><NameIm>" <<key << "</NameIm>";
+          QVector<PW::imgPoint> *imgPointVect = mImagePoints->value(key);
+          for (int i = 0; i < imgPointVect->count(); ++i) {
+              /* Write the line to the file */
+              QString outputString =stdTemplate;
+              PW::imgPoint imgPtToEvaluate = imgPointVect->at(i);
+              outputString.replace("_X_Coord_",QString::number(imgPtToEvaluate.getX()));
+              outputString.replace("_Y_Coord_",QString::number(imgPtToEvaluate.getY()));
+              outputString.replace("_Desc_",imgPtToEvaluate.getDesc());
+
+              outStream << outputString;
+          }
+
+          outStream << "</MesureAppuiFlottant1Im>";
+      }
+
+
+      //Write footer
+    outStream << "</SetOfMesureAppuisFlottants>";
+
+    /* Close the file */
+    outputFile.close();
+}

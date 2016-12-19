@@ -1,0 +1,15 @@
+#ifndef CONVERTPROCESS_H
+#define CONVERTPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ConvertProcess : public ExternalProcess
+{
+public:
+    ConvertProcess(QString inputPath, QString outputPath);
+};
+}
+
+#endif // CONVERTPROCESS_H

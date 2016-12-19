@@ -1,0 +1,28 @@
+#ifndef PROJECTWRITER_H
+#define PROJECTWRITER_H
+
+#include <QObject>
+
+#include "Project.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ProjectWriter : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ProjectWriter(Project *project, QObject *parent = 0);
+
+    virtual int write(QString url) = 0;
+
+signals:
+
+public slots:
+
+private:
+    Project * mProject;
+
+};
+}
+
+#endif // PROJECTWRITER_H

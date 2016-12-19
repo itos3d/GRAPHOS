@@ -1,0 +1,37 @@
+#include "cvDecolorProcess.h"
+#include "opencv2/photo.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/core.hpp"
+#include <QFileInfo>
+using namespace PW;
+
+cvDecolorProcess::cvDecolorProcess(QString inputFile, QString outputDir):mInputFile(inputFile),
+    mOtputDir(outputDir)
+{
+
+}
+
+cvDecolorProcess::~cvDecolorProcess()
+{
+
+}
+
+
+void cvDecolorProcess::run(){
+    QFileInfo fileInfo(mInputFile);
+    if (fileInfo.isFile()){
+        std::string filename = fileInfo.filePath().toLatin1();
+        cv::Mat I;
+        I = cv::imread(filename);
+        cv::Mat gray = cv::Mat(I.size(),CV_8UC1);
+        cv::Mat color_boost = cv::Mat(I.size(),CV_8UC3);
+        cv::decolor(I,gray,color_boost);
+        std::string outputFile;
+        outputFile.clear();
+        outputFile.append(mOtputDir.toUtf8().constData());
+        outputFile.append("/");
+        outputFile.append(fileInfo.fileName().split(".").first().append(".tif").toUtf8().constData());
+        cv::imwrite(outputFile, gray );
+    }
+}

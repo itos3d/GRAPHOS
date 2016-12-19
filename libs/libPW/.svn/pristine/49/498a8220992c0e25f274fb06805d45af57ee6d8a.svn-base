@@ -1,0 +1,27 @@
+#ifndef IMAGEMATCHING_H
+#define IMAGEMATCHING_H
+
+#include "libPW_global.h"
+#include <QMap>
+#include <QPointF>
+#include <QString>
+
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ImageMatching
+{
+public:
+     ImageMatching();
+     void insert(QString key, QPointF value);
+     QPointF value(QString key);
+     bool contains(QString key);
+
+
+private:
+     QMap<QString, QPointF> mMatching;
+};
+
+}
+
+#endif // IMAGEMATCHING_H

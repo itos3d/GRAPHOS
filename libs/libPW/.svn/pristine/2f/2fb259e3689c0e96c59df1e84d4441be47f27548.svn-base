@@ -1,0 +1,31 @@
+#ifndef IMAGEPAIRSFILEIO_H
+#define IMAGEPAIRSFILEIO_H
+
+#include "libPW_global.h"
+#include <QMap>
+#include <QString>
+#include <QVector>
+
+#define IMAGEPAIRSFILEIO_NO_ERROR               0
+#define IMAGEPAIRSFILEIO_ERROR                  1
+#define IMAGEPAIRSFILEIO_DUPLICATE_REVERSE      1
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ImagePairsFileIO
+{
+public:
+    ImagePairsFileIO();
+    ImagePairsFileIO(QMap<QString,QVector<QString> >& imagePairs);
+    int getImagePairs(QMap<QString,QVector<QString> >& imagePairs);
+    int readStandarAsciiFile(QString url);
+//    int readXmlFile(QString url);
+    int writeTapiocaPairsFile(QString url, int duplicateReverse);
+    int writeStandarAsciiPairsFile(QString url, int duplicateReverse);
+
+private:
+    QMap<QString,QVector<QString> > mImagePairs;
+};
+
+}
+#endif // IMAGEPAIRSFILEIO_H

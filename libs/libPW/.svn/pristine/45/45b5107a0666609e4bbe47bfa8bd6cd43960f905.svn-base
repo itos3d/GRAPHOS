@@ -1,0 +1,34 @@
+#include "ExternalOrientation.h"
+
+using namespace PW;
+
+ExteriorOrientation::ExteriorOrientation()
+{
+}
+
+ExteriorOrientation::ExteriorOrientation(QVector<double> cp, QVector< QVector<double> > r):
+    mCP(cp),
+    mR(r)
+{
+
+}
+
+void PW::ExteriorOrientation::setCP(QVector<double> cp)
+{
+    mCP = cp;
+}
+
+void PW::ExteriorOrientation::setR(QVector< QVector<double> > r)
+{
+    mR = r;
+}
+
+QVector<double> *PW::ExteriorOrientation::getCP()
+{
+    return &mCP;
+}
+
+QVector< QVector<double> > *PW::ExteriorOrientation::getR()
+{
+    return &mR;
+}

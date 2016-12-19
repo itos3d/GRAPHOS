@@ -1,0 +1,146 @@
+#include "RadialExtended.h"
+#include <QVector>
+#include <math.h>
+
+using namespace PW;
+
+RadialExtended::RadialExtended()
+{
+}
+
+int RadialExtended::getID()
+{
+    return APERO_MODEL_RADIAL_EXTENDED;
+}
+
+double PW::RadialExtended::getXcd()
+{
+    return mXcd;
+}
+
+double PW::RadialExtended::getYcd()
+{
+    return mYcd;
+}
+
+double PW::RadialExtended::getK3()
+{
+    return mK3;
+}
+
+double PW::RadialExtended::getK4()
+{
+    return mK4;
+}
+
+double PW::RadialExtended::getK5()
+{
+    return mK5;
+}
+
+void PW::RadialExtended::setXcd(double xcd)
+{
+    mXcd = xcd;
+}
+
+void PW::RadialExtended::setYcd(double ycd)
+{
+    mYcd = ycd;
+}
+
+void PW::RadialExtended::setK3(double k3)
+{
+    mK3 = k3;
+}
+
+void PW::RadialExtended::setK4(double k4)
+{
+    mK4 = k4;
+}
+
+void PW::RadialExtended::setK5(double k5)
+{
+    mK5 = k5;
+}
+
+QString RadialExtended::undistort(QString inputImage, float focal, float xpp, float ypp)
+{
+    return NULL;
+}
+
+bool RadialExtended::canUnistort()
+{
+    return true;
+}
+
+void RadialExtended::undistort(float xpp, float ypp, float &x, float &y)
+{
+    double du_pp=x-xpp;
+    double dv_pp=y-ypp;
+    double xcd=mXcd;
+    double ycd=mYcd;
+    double du_cd=x-xcd;
+    double dv_cd=y-ycd;
+    double rho2_cd=(du_cd*du_cd+dv_cd*dv_cd);
+    double cx_dr=0.0;
+    double cy_dr=0.0;
+    double cx_dr_before=-100000.0;
+    double cy_dr_before=-100000.0;
+    bool control=true;
+    QVector<double> coeffsDist;
+    coeffsDist.push_back(mK1);
+    coeffsDist.push_back(mK2);
+    coeffsDist.push_back(mK3);
+    coeffsDist.push_back(mK4);
+    coeffsDist.push_back(mK5);
+    while(control)
+    {
+        for(int nCoef=1;nCoef<=coeffsDist.size();nCoef++)
+        {
+            double coeffDist=coeffsDist[nCoef-1];
+            cx_dr=cx_dr+du_cd*(pow(rho2_cd,nCoef))*coeffDist;
+            cy_dr=cy_dr+dv_cd*(pow(rho2_cd,nCoef))*coeffDist;
+        }
+        if(fabs(cx_dr-cx_dr_before)<0.001&&abs(cy_dr-cy_dr_before)<0.001)
+            control=false;
+        else
+        {
+            cx_dr_before=cx_dr;
+            cy_dr_before=cy_dr;
+            du_cd=x-xcd-cx_dr;
+            dv_cd=y-ycd-cy_dr;
+            rho2_cd=(du_cd*du_cd+dv_cd*dv_cd);
+            cx_dr=0.0;
+            cy_dr=0.0;
+        }
+    }
+    x=du_pp-cx_dr;
+    y=dv_pp-cy_dr;
+}
+
+void RadialExtended::distort(float xpp, float ypp, float &x, float &y)
+{
+    double du_pp=x-xpp;
+    double dv_pp=y-ypp;
+    double xcd=mXcd;
+    double ycd=mYcd;
+    double du_cd=x-xcd;
+    double dv_cd=y-ycd;
+    double rho2_cd=(du_cd*du_cd+dv_cd*dv_cd);
+    double cx_dr=0.0;
+    double cy_dr=0.0;
+    QVector<double> coeffsDist;
+    coeffsDist.push_back(mK1);
+    coeffsDist.push_back(mK2);
+    coeffsDist.push_back(mK3);
+    coeffsDist.push_back(mK4);
+    coeffsDist.push_back(mK5);
+    for(int nCoef=1;nCoef<=coeffsDist.size();nCoef++)
+    {
+        double coeffDist=coeffsDist[nCoef-1];
+        cx_dr=cx_dr+du_cd*(pow(rho2_cd,nCoef))*coeffDist;
+        cy_dr=cy_dr+dv_cd*(pow(rho2_cd,nCoef))*coeffDist;
+    }
+    x=du_pp+cx_dr;
+    y=dv_pp+cy_dr;
+}

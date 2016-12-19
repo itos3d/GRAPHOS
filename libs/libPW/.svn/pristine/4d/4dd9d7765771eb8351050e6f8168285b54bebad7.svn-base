@@ -1,0 +1,60 @@
+#include <QStringList>
+
+#include "CameraMetadataIO.h"
+
+using namespace PW;
+
+CameraMetadataIO::CameraMetadataIO(QString imagePath):
+    mImagePath(imagePath)
+{
+    mImageMetaData = new QImageMetaData();
+}
+
+CameraMetadataIO::~CameraMetadataIO()
+{
+    delete mImageMetaData;
+}
+
+void CameraMetadataIO::setImagePath(QString imagePath)
+{
+    mImagePath = imagePath;
+}
+
+void CameraMetadataIO::read(Camera *camera)
+{
+    mImageMetaData->read(mImagePath);
+    QString model = mImageMetaData->model();
+    if(model == "Not defined")
+        model = "";
+    camera->setName(model);
+    QString lens = mImageMetaData->lens();
+    if(lens == "Not defined")
+        lens = "";
+    camera->setLensName(lens);
+    camera->setDeclaredFocal(mImageMetaData->focalLength().value());
+//    camera->setScaleFactor35(0.0);
+}
+
+void CameraMetadataIO::write(Camera *camera)
+{
+
+}
+
+void CameraMetadataIO::writeCameraName(QString name){
+
+}
+
+void CameraMetadataIO::writeLensName(QString lensName)
+{
+
+}
+
+void CameraMetadataIO::writeFocalLegth(double focal)
+{
+
+}
+
+void CameraMetadataIO::writeFocalLegth35(double focal35)
+{
+
+}

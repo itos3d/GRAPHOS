@@ -1,0 +1,12 @@
+#include <QtTest/QtTest>
+
+#include "TestMicMacEOReader.h"
+
+using namespace PW;
+
+void TestMicMacEOReader::reading(){
+    MicMacEOReader reader;
+    ExteriorOrientation *ori = reader.read("/home/dguerrero/desarrollo/USAL/PW/testData/SanSegundoCanon/Ori-RadialExtended/Orientation-IMG_7209.jpg.xml");
+    bool readOk = (ori != NULL);
+    QVERIFY(readOk);
+}

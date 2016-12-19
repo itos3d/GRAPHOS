@@ -1,0 +1,23 @@
+#include "GCPBasculeProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+GCPBasculeProcess::GCPBasculeProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + GCPBASCULE_COMMAND)
+{
+    setStartupMessage("Runnig Georreferenciation...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/GCPBascule.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/GCPBasculeError.log");
+}
+
+GCPBasculeProcess::~GCPBasculeProcess()
+{
+
+}
+

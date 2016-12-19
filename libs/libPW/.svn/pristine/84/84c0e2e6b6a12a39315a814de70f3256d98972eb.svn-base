@@ -1,0 +1,27 @@
+#include "ASIFTkpd.h"
+#include "libPW.h"
+
+using namespace  PW;
+
+ASIFTkpd::ASIFTkpd(QString inputFile, QString outputDir, bool resize, int numTilts):
+    ExternalProcess(LibPW::getAsiftBinPath() + "/" +  ASIFT_KPD_COMMAND)
+{
+    setStartupMessage("Computing ASIFT keypoints...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/AsiftKP.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/AsiftKPError.log");
+
+    if (outputDir.isEmpty())
+        outputDir = inputFile.left(inputFile.lastIndexOf(QRegExp("/")));
+
+    QStringList args;
+    args.append(inputFile);
+    QString inputFileName = inputFile.right(inputFile.length()-inputFile.lastIndexOf(QRegExp("/"))-1);
+    args.append(outputDir + "/" + inputFileName+".keys");
+    if(resize)
+        args.append("1");
+    else
+        args.append("0");
+    args.append(QString::number(numTilts));
+
+    addIntputs(args);
+}

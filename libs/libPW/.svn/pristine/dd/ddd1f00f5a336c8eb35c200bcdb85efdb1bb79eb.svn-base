@@ -1,0 +1,9 @@
+#include "ProjectWriter.h"
+
+using namespace PW;
+
+ProjectWriter::ProjectWriter(Project * project, QObject *parent) :
+    QObject(parent),
+    mProject(project)
+{
+}

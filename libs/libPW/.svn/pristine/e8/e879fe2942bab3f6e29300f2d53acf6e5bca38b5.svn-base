@@ -1,0 +1,64 @@
+#ifndef PW3DPOINT_H
+#define PW3DPOINT_H
+
+#include <QVector3D>
+
+#include "PWPoint.h"
+
+namespace PW{
+
+
+/*!
+ \brief
+
+*/
+class LIBPWSHARED_EXPORT PW3dPoint : public PWPoint, public QVector3D
+{
+
+public:
+
+    /*!
+     \brief
+
+    */
+        PW3dPoint();
+/*!
+ \brief
+
+*/
+    PW3dPoint(double x, double y, double z, QString name = "", PWPoint::PointType type = PWPoint::Control);
+
+    /*!
+     \brief
+
+    */
+    enum PointType {
+        Control = 0x0000,
+        Check = 0x0001
+    };
+
+    /*!
+     \brief Gets de number of components or dimensions of the point
+
+     \return int
+    */
+    virtual int getCoordsCount();
+    /*!
+     \brief Gets the value of a component or coordinate.
+
+     \param index
+     \return double
+    */
+    virtual double getCoord(int index);
+
+    /*!
+     \brief Sets the value of a component or coordinate.
+
+     \param index
+    */
+    void setCoord(int index, double value);
+
+
+};
+}
+#endif // PW3DPOINT_H

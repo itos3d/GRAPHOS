@@ -1,0 +1,166 @@
+#ifndef KPMPROCESSMONITOR_H
+#define KPMPROCESSMONITOR_H
+
+#include <QObject>
+#include <QTextStream>
+#include <QList>
+#include <QVector>
+
+#include "libPW.h"
+#include "ExternalInterfaceProcessMonitor.h"
+
+#define KPMPROCESSMONITOR_PNG_FILEEXTENSION            "png"
+
+#define KPMPROCESSMONITOR_KEYS_FILE_EXTENSION              ".keys"
+#define KPMPROCESSMONITOR_ASIFT_FILE_EXTENSION             ".keys.asift"
+
+#define KPMPROCESSMONITOR_IMAGE_PAIRS_ASCII_FILE_NAME                       "imagePairs.txt"
+#define KPMPROCESSMONITOR_IMAGE_PAIRS_APERO_FILE_NAME                       "MesCouples.xml"
+
+//#define KPMPROCESSMONITOR_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT  "ll"
+//#define KPMPROCESSMONITOR_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT  "ul"
+
+//#define KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_CAMERA            "camera"
+//#define KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_FOCAL             "focal"
+//#define KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_SENSORWIDTH       "sensorWidth"
+//#define KPMPROCESSMONITOR_XMLCAMERAFILE_TAG_SENSORHEIGHT      "sensorHeight"
+
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIRS                          "pairs"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIR                           "pair"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIR_PHOTO1                    "photo1"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PAIR_PHOTO2                    "photo2"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_ATTRIBUTE_FIRST_IMAGE              "first"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_ATTRIBUTE_SECOND_IMAGE             "second"
+
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PHOTO                          "photo"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PHOTOS                         "photos"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_DATASOURCE                     "dataSource"
+
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_IMAGE_COORDINATES_ORIGIN       "imageCoordinatesOrigin"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_IMAGE_COORDINATES_PRECISION    "imageCoordinatesPrecision"
+
+//#define KPMPROCESSMONITOR_IMAGE_COORDINATES_ORIGIN_LOWER_LEFT               "ll"
+//#define KPMPROCESSMONITOR_IMAGE_COORDINATES_ORIGIN_UPPER_LEFT               "ul"
+
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_POINTS                         "points"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_POINT                          "pnt"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_ATTRIBUTE_X1_COORDINATE            "x1"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_ATTRIBUTE_Y1_COORDINATE            "y1"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_ATTRIBUTE_X2_COORDINATE            "x2"
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_ATTRIBUTE_Y2_COORDINATE            "y2"
+
+//#define KPMPROCESSMONITOR_XMLMATCHESFILE_TAG_PROJECT_PATH                   "projectPath"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT KpMProcessMonitor : public ExternalInterfaceProcessMonitor
+{
+    Q_OBJECT
+public:
+    explicit KpMProcessMonitor(QObject *parent = 0);
+    
+signals:
+    
+public slots:
+//    void addPathToRemove(QString path);
+//    void addFileToRemove(QString file);
+    void onProcessFinished();
+    void setIsAsift();
+    void setIsAsift(QString imagesPath,
+                    QList<QString> imagesFileName,
+                    QString xmlMatchesFileName);
+    void setIsOpenMVG();
+    void setIsOpenMVG(QString imagesPath,
+                      QList<QString> imagesFileName,
+                      QString xmlFileName);
+    void setIsTapioca(QString sourceFolder,
+                      QString matchesFolder,
+                      QString tapiocaMatchesFolder,
+                      QString pastisFolder,
+                      QString tmpMMFolder);
+    void setIsTapioca(QString sourceFolder,
+                      QString matchesFolder,
+                      QString tapiocaMatchesFolder,
+                      QString pastisFolder,
+                      QString tmpMMFolder,
+                      QString xmlFileName);
+    void setMatchesPath(QString path);
+    void onASIFTProcessFinished();
+    void onOpenMVGKpmFinished();
+    void onOpenMVGKpmFinished_201501();
+//    void manageProccesStdOutput(QString data);
+//    void manageProccesErrorOutput(QString data);
+    bool readTiePointsFile(QString &url,
+                           bool removeDuplicatedPoints,
+                           int precision,
+                           QVector<int> &firstImagePixelsColumn,
+                           QVector<int> &firstImagePixelsRow,
+                           QVector<int> &secondImagePixelsColumn,
+                           QVector<int> &secondImagePixelsRow,
+                           QString& strError);
+//    int readXmlFile_firstVersion(QString url);
+//    int readXmlFile(QString url);
+    int readImagePairsFile(QString imagesPath,
+                           QString imagePairsFileName,
+                           float sensorWidth,
+                           float sensorHeight,
+                           float focal,
+                           int &numberOfImagePairs,
+                           QList<QString>& imagesFileName,
+                           QList<PW::PWImage *>& images,
+                           QString& strError);
+    bool readXmlCameraFile(QString& xmlCameraFileName,
+                           float& sensorWidth,
+                           float& sensorHeight,
+                           float& focal,
+                           QString& strError);
+//    bool readImagePairsXmlFile_firstVersion(QString imagesPath,
+//                                            QString imagePairsFileName,
+//                                            float sensorWidth,
+//                                            float sensorHeight,
+//                                            float focal,
+//                                            int &numberOfImagePairs,
+//                                            QList<QString>& imagesFileName,
+//                                            QList<PW::PWImage *>& images,
+//                                            QString& strError);
+//    bool readOrtoSkyXmlProjectFile(QString fileName,
+//                                   QString& imagesPath,
+//                                   float& sensorWidth,
+//                                   float& sensorHeight,
+//                                   float& focal,
+//                                   int &numberOfImagePairs,
+//                                   QList<QString>& imagesFileName,
+//                                   QList<PW::PWImage *>& images,
+//                                   QString& strError);
+    bool writeImagePairsXmlFile(QString imagePairsFileName, QString &strError);
+    bool writeOrtoSkyImagePairsXmlFile(QString imagePairsFileName, QString &strError);
+//    void writeMatchesInXmlFile_firstVersion(QString matchesPath);
+    bool writeOrtoSkyMatchesInXmlFile(QString matchesPath, QString &strError);
+    bool writeOrtoSkyMatchesInXmlFile_201501(QString matchesPath, QString &strError);
+
+private:
+    void onTapiocaProcessFinished();
+    QString mMatchesFolder;
+    QString mTapiocaMatchesFolder;
+    QString mPastisFolder;
+    QString mTmpMMFolder;
+    bool mIsTapioca;
+    bool mIsAsift;
+    bool mIsOpenMVG;
+
+//    QString mSourceFolder;
+//    bool KpMProcessMonitor::copyDir(QString sourceFolder, QString destFolder, bool move = true);
+//    bool removeDir(QString dirName);
+//    QTextStream *mStdOut;
+//    QString mXmlFileName;
+//    QString mImagesPath;
+//    QList<QString> mPathsToRemove;
+//    QList<QString> mFilesToRemove;
+//    QSize mSensorSize;
+//    QString mImageCoordinatesOrigin;
+//    int mImageCoordinatesPrecision;
+//    QList<QString> mImagesFileName;
+//    QMap<QString,QVector<QString> > mImagePairs;
+};
+}
+#endif // PROCESSMONITOR_H

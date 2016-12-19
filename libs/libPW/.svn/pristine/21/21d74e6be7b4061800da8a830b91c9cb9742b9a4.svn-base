@@ -1,0 +1,54 @@
+#ifndef IMAGEPOINTCLOUD_H
+#define IMAGEPOINTCLOUD_H
+
+#include "libPW_global.h"
+#include <QVector>
+
+#define IMAGEPOINTCLOUD_GRID_MAXIMUM_SIZE       10000
+
+class LIBPWSHARED_EXPORT ImagePointCloud
+{
+public:
+    ImagePointCloud(float pixelMinColumn,
+                    float pixelMinRow,
+                    float pixelMaxColumn,
+                    float pixelMaxRow,
+                    float gridDistance);
+    bool insertPoint(float pixelColumn,
+                     float pixelRow,
+                     QString& strError);
+    bool insertPair(float pixelColumn,
+                    float pixelRow,
+                    int pairId,
+                    float pairPixelColumn,
+                    float pairPixelRow,
+                    QString& strError);
+    bool getClosestPoint(float pixelColumn,
+                         float pixelRow,
+                         float tolerance,
+                         float& closestPixelColumn,
+                         float& closestPixelRow);
+    bool getClosestPair(float pixelColumn,
+                        float pixelRow,
+                        int pairId,
+                        float pairPixelColumn,
+                        float pairPixelRow,
+                        float tolerance,
+                        float& closestPixelColumn,
+                        float& closestPixelRow);
+private:
+    float mPixelMinColumn;
+    float mPixelMinRow;
+    float mPixelMaxColumn;
+    float mPixelMaxRow;
+    float mGridDistance;
+    int mColumns;
+    int mRows;
+    QVector<QVector<QVector<float> > > mPixelColumns;
+    QVector<QVector<QVector<float> > > mPixelRows;
+    QVector<QVector<QVector<int> > > mPairIds;
+    QVector<QVector<QVector<float> > > mPairPixelColumns;
+    QVector<QVector<QVector<float> > > mPairPixelRows;
+};
+
+#endif // IMAGEPOINTCLOUD_H

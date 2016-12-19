@@ -1,0 +1,19 @@
+#include <QDebug>
+
+#include "TestWaitForResultsProcess.h"
+#include "WaitForResultsProcess.h"
+
+using namespace PW;
+void TestWaitForResultsProcess::waiting(){
+    WaitForResultsProcess * process = new WaitForResultsProcess(QStringList () << "/tmp/a.txt", WaitForResultsProcess::Change);
+    connect(process,SIGNAL(finished()),this, SLOT(onFinish()));
+
+
+    process->start();
+}
+
+void TestWaitForResultsProcess::onFinish()
+{
+    qDebug() << "Wait for results finished....";
+}
+

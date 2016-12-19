@@ -1,0 +1,36 @@
+\hypertarget{classCamDistortion}{
+\section{CamDistortion Class Reference}
+\label{classCamDistortion}\index{CamDistortion@{CamDistortion}}
+}
+
+
+Base class representing camera distortion.  
+
+
+
+
+{\ttfamily \#include $<$CamDistortion.h$>$}
+
+Inheritance diagram for CamDistortion:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classCamDistortion}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classCamDistortion_afa8b5ea3910f856522246529911b0362}{
+\hyperlink{classCamDistortion_afa8b5ea3910f856522246529911b0362}{CamDistortion} ()}
+\label{classCamDistortion_afa8b5ea3910f856522246529911b0362}
+
+\begin{DoxyCompactList}\small\item\em Contructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Base class representing camera distortion. 
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+CamDistortion.h\item 
+CamDistortion.cpp\end{DoxyCompactItemize}

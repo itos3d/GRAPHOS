@@ -1,0 +1,446 @@
+#include <QCoreApplication>
+#include <ASIFT_UNIBO/asiftdetector.h>
+#include <iostream>
+#include "opencv/cv.h"
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/xfeatures2d.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv/highgui.h"
+#include "opencv/cv.hpp"
+#include <math.h>
+#include <vl/generic.h>
+#include <vl/mathop.h>
+#include <vl/sift.h>
+#include <vl/host.h>
+#include <sstream>
+
+#define _USE_MATH_DEFINES
+#define ABS(x)    (((x) > 0) ? (x) : (-(x)))
+
+using namespace cv;
+using namespace std;
+
+
+struct sortByResponse
+{
+    inline bool operator() (const std::pair<KeyPoint,std::vector<int>>& a, const std::pair<KeyPoint,std::vector<int>>& b)
+    {
+        return (a.first.size < b.first.size);
+    }
+};
+
+// make sure vectorA and vectorB are of the same size, before calling function
+template <typename T, typename R, typename Compare>
+void sortVecPair(std::vector<T>& vecA, std::vector<R>& vecB, Compare cmp)
+{
+
+    std::vector<pair<T,R>> vecC;
+    vecC.reserve(vecA.size());
+    for(int i=0; i<vecA.size(); i++)
+     {
+        vecC.push_back(std::make_pair(vecA[i],vecB[i]));
+     }
+
+    std::sort(vecC.begin(), vecC.end(), cmp);
+
+    vecA.clear();
+    vecB.clear();
+    vecA.reserve(vecC.size());
+    vecB.reserve(vecC.size());
+    for(int i=0; i<vecC.size(); i++)
+     {
+        vecA.push_back(vecC[i].first);
+        vecB.push_back(vecC[i].second);
+     }
+}
+
+ASiftDetector::ASiftDetector(int peakTh, float edgeTh,int nOctaves,int tilts): mPeakTh(peakTh),mEdgeTh(edgeTh),
+    mOctaves(nOctaves),mTilts(tilts){
+}
+
+ASiftDetector::~ASiftDetector(){
+   cout<<"__________"<<endl;
+}
+
+
+vector<vector<int> > ASiftDetector::vedaldiDetect(const IplImage* Image, vector< KeyPoint >& keypoints){//, vector<vector<int> > descriptorsOut){
+    keypoints.clear();
+
+    vector<vector<int> > descriptorsOut;
+    int o_min=0;
+//    int noctaves=4,
+    int nlevels=2;
+
+    vl_sift_pix *ImageData=new vl_sift_pix[Image->height*Image->width];
+    unsigned char *Pixel;
+    for (int i=0;i<Image->height;i++)
+    {
+        for (int j=0;j<Image->width;j++)
+        {
+            Pixel=(unsigned char*)(Image->imageData+i*Image->width+j);
+            ImageData[i*Image->width+j]=*(Pixel);
+        }
+    }
+    VlSiftFilt *SiftFilt=NULL;
+    SiftFilt=vl_sift_new(Image->width,Image->height,mOctaves,nlevels,o_min);
+
+    vl_sift_set_edge_thresh(SiftFilt,mEdgeTh);
+    vl_sift_set_peak_thresh(SiftFilt,mPeakTh);
+
+    int KeyPoint=0;
+    int idx=0;
+
+    if (vl_sift_process_first_octave(SiftFilt,ImageData)!=VL_ERR_EOF)
+    {
+        while (TRUE)
+        {
+            vl_sift_detect(SiftFilt);
+            KeyPoint+=SiftFilt->nkeys;
+            VlSiftKeypoint const *pKeyPoint=SiftFilt->keys;
+
+            for (int i=0;i<SiftFilt->nkeys;i++)
+            {
+                VlSiftKeypoint TemptKeyPoint=*pKeyPoint;
+                pKeyPoint++;
+                idx++;
+
+                double angles[4];
+
+                int angleCount=1;
+                try{
+                    angleCount=vl_sift_calc_keypoint_orientations(SiftFilt,angles,&TemptKeyPoint);
+                }
+                catch (int e){
+                    angles [0] = 0;
+                    angles [1] = VL_PI / 2 ;
+                    angles [2] = VL_PI - (VL_PI / 2) ;
+                    angles [3] = VL_PI;
+                }
+
+                for (int j=0;j<angleCount;j++)
+                {
+                    double TemptAngle=angles[j];
+                    cv::KeyPoint kp;//(TemptKeyPoint.x,TemptKeyPoint.y, TemptKeyPoint.s, TemptKeyPoint.sigma ,0, 0,-1);
+                    kp.pt.x=TemptKeyPoint.x;
+                    kp.pt.y=TemptKeyPoint.y;
+                    //The descriptor size is determined by multiplying the keypoint scale by this factor. It is set by vl_sift_set_magnif.
+                    //See: http://www.vlfeat.org/api/sift.html
+                    kp.octave = vl_sift_get_octave_index(SiftFilt);
+                    kp.size = ABS(TemptKeyPoint.s) * vl_sift_get_magnif(SiftFilt) * (kp.octave+1);
+                    //According to the docs
+                    kp.angle = - TemptKeyPoint.sigma;
+
+
+                    keypoints.push_back(kp);
+
+                    vl_sift_pix dscr[128];
+                    vl_sift_calc_keypoint_descriptor(SiftFilt,dscr,&TemptKeyPoint,TemptAngle);
+
+                    vector<int> row(128);
+                    for(int t=0;t<128;t++){
+                        float x =  512.0F * dscr[t];
+                        x = (x < 255.0F) ? x : 255.0F;
+                        row[t]=int(x);
+                    }
+                    descriptorsOut.push_back(row);
+                }
+            }
+
+            if (vl_sift_process_next_octave(SiftFilt)==VL_ERR_EOF)
+            {
+                break;
+            }
+
+            KeyPoint=NULL;
+        }
+    }
+    //delete[] SiftFilt;
+    vl_sift_delete(SiftFilt);
+    delete []ImageData;
+    ImageData=NULL;
+    SiftFilt = NULL;
+    Pixel = NULL;
+
+    return descriptorsOut;
+}
+
+void compensate_affine_coor1(float *x0, float *y0, int w1, int h1, float t1, float t2, float Rtheta)
+{
+  float x_ori, y_ori;
+  float x_tmp, y_tmp;
+
+  float x1 = *x0;
+  float y1 = *y0;
+
+
+  Rtheta = Rtheta*VL_PI/180;
+
+  if ( Rtheta <= VL_PI/2 )
+  {
+    x_ori = 0;
+    y_ori = w1 * sin(Rtheta) / t1;
+  }
+  else
+  {
+    x_ori = -w1 * cos(Rtheta) / t2;
+    y_ori = ( w1 * sin(Rtheta) + h1 * sin(Rtheta-VL_PI/2) ) / t1;
+  }
+
+  float sin_Rtheta = sin(Rtheta);
+  float cos_Rtheta = cos(Rtheta);
+
+
+  /* project the coordinates of im1 to original image before tilt-rotation transform */
+  /* Get the coordinates with respect to the 'origin' of the original image before transform */
+  x1 = x1 - x_ori;
+  y1 = y1 - y_ori;
+  /* Invert tilt */
+  x1 = x1 * t2;
+  y1 = y1 * t1;
+  /* Invert rotation (Note that the y direction (vertical) is inverse to the usual concention. Hence Rtheta instead of -Rtheta to inverse the rotation.) */
+  x_tmp = cos_Rtheta*x1 - sin_Rtheta*y1;
+  y_tmp = sin_Rtheta*x1 + cos_Rtheta*y1;
+  x1 = x_tmp;
+  y1 = y_tmp;
+
+  *x0 = x1;
+  *y0 = y1;
+}
+
+
+
+bool pointIsAcceptable( KeyPoint vl_keypoint, float theta, int width, int height, int tilt){
+    /* check if the keypoint is located on the boundary of the parallelogram (i.e., the boundary of the distorted input image). If so, remove it to avoid boundary artifacts. */
+    float t2;
+    if(tilt == 0){
+        t2=0;
+    }else{
+        t2 = 1/tilt;
+    }
+    float t1 = 1;
+    bool retVal= false;
+    float x0, y0, x1, y1, x2, y2, x3, y3 ,x4, y4, d1, d2, d3, d4, scale1, theta1, sin_theta1, cos_theta1, BorderTh;
+
+    x0 = vl_keypoint.pt.x;
+    y0 = vl_keypoint.pt.y;
+    scale1= vl_keypoint.size;
+
+    theta1 = theta * CV_PI / 180;
+    sin_theta1 = sin(theta1);
+    cos_theta1 = cos(theta1);
+
+    /* the coordinates of the 4 submits of the parallelogram */
+    if ( theta <= 90 )
+    {
+      x1 = height * sin_theta1;
+      y1 = 0;
+      y2 = width * sin_theta1;
+      x3 = width * cos_theta1;
+      x4 = 0;
+      y4 = height * cos_theta1;
+      x2 = x1 + x3;
+      y3 = y2 + y4;
+
+      /* note that the vertical direction goes from top to bottom!!!
+      The calculation above assumes that the vertical direction goes from the bottom to top. Thus the vertical coordinates need to be reversed!!! */
+      y1 = y3 - y1;
+      y2 = y3 - y2;
+      y4 = y3 - y4;
+      y3 = 0;
+
+      y1 = y1 * t2;
+      y2 = y2 * t2;
+      y3 = y3 * t2;
+      y4 = y4 * t2;
+    }
+    else
+    {
+      y1 = -height * cos_theta1;
+      x2 = height * sin_theta1;
+      x3 = 0;
+      y3 = width * sin_theta1;
+      x4 = -width * cos_theta1;
+      y4 = 0;
+      x1 = x2 + x4;
+      y2 = y1 + y3;
+
+      /* note that the vertical direction goes from top to bottom!!!
+      The calculation above assumes that the vertical direction goes from the bottom to top. Thus the vertical coordinates need to be reversed!!! */
+      y1 = y2 - y1;
+      y3 = y2 - y3;
+      y4 = y2 - y4;
+      y2 = 0;
+
+      y1 = y1 * t2;
+      y2 = y2 * t2;
+      y3 = y3 * t2;
+      y4 = y4 * t2;
+    }
+
+    /* the distances from the keypoint to the 4 sides of the parallelogram */
+    d1 = ABS((x2-x1)*(y1-y0)-(x1-x0)*(y2-y1)) / sqrt((x2-x1)*(x2-x1)+(y2-y1)*(y2-y1));
+    d2 = ABS((x3-x2)*(y2-y0)-(x2-x0)*(y3-y2)) / sqrt((x3-x2)*(x3-x2)+(y3-y2)*(y3-y2));
+    d3 = ABS((x4-x3)*(y3-y0)-(x3-x0)*(y4-y3)) / sqrt((x4-x3)*(x4-x3)+(y4-y3)*(y4-y3));
+    d4 = ABS((x1-x4)*(y4-y0)-(x4-x0)*(y1-y4)) / sqrt((x1-x4)*(x1-x4)+(y1-y4)*(y1-y4));
+
+    float BorderFact=6*sqrt(2.);
+    BorderTh = BorderFact*scale1;
+
+    if (!((d1<BorderTh) || (d2<BorderTh) || (d3<BorderTh) || (d4<BorderTh) ))
+    {
+      compensate_affine_coor1(&x0, &y0, width, height, 1/t2, t1, theta);
+      vl_keypoint.pt.x = x0;
+      vl_keypoint.pt.y = y0;
+
+      retVal = true; //Working INNNV?
+    }
+    return retVal;
+}
+
+
+void ASiftDetector::computeAsift(const Mat &img, std::vector<KeyPoint> & keypoints, vector<vector<int> > & descriptors,int maxTiepoints)
+{
+
+  keypoints.clear();
+
+  std::vector<KeyPoint> kps0;
+  kps0.clear();
+  vector<vector<int>> desc0;
+  desc0.clear();
+
+  IplImage* iplImg = new IplImage(img);
+  iplImg = new IplImage(img);
+  IplImage *grayImage0 = cvCreateImage(cvSize(iplImg->width, iplImg->height),IPL_DEPTH_8U,1);
+  grayImage0 = cvCloneImage(iplImg);
+  IplImage *grayImage = cvCreateImage(cvSize( iplImg->width, iplImg->height ), IPL_DEPTH_8U , 1 );
+
+  if (iplImg->nChannels>1){
+      cvCvtColor(iplImg,grayImage,CV_BGR2GRAY);
+  } else {
+      grayImage = cvCloneImage(iplImg);
+  }
+
+  grayImage0 = cvCloneImage(grayImage);
+  cv::Mat rImg = cvarrToMat(grayImage);
+
+  desc0 = vedaldiDetect(grayImage0,kps0);
+
+  for(int t=0; t<kps0.size();t++){
+      keypoints.push_back(kps0[t]);
+      descriptors.push_back(desc0[t]);
+  }
+
+  int i = 0;
+  //The number of tilt has been set as configurable for the user
+  for(int tl = 1; tl < mTilts; tl++)
+  {
+    double t = pow(2, 0.5*tl);
+    for(int phi = 0; phi < 180; phi += 72.0/t)
+    {
+      i++;
+      std::vector<KeyPoint> kps;
+      kps.clear();
+      vector<vector<int>> desc;
+      desc.clear();
+      Mat timg, mask, Ai;
+
+      affineSkew2(t, phi,rImg,timg,mask,Ai);
+
+
+      IplImage* tIplImg = new IplImage(timg);
+      desc = vedaldiDetect(tIplImg,kps);
+
+      for(unsigned int i = 0; i < kps.size(); i++)
+      {
+        Point3f kpt(kps[i].pt.x, kps[i].pt.y, 1);
+        Mat kpt_t = Ai*Mat(kpt);
+        if(pointIsAcceptable(kps[i],t,iplImg->width,iplImg->height,phi)){
+            kps[i].pt.x = kpt_t.at<float>(0,0);
+            kps[i].pt.y = kpt_t.at<float>(1,0);
+            keypoints.push_back(kps[i]);
+            descriptors.push_back(desc[i]);
+        }
+        kpt_t.release();
+      }
+      delete[] tIplImg;
+      tIplImg = NULL;
+      timg.release();
+      mask.release();
+      Ai.release();
+    }
+  }
+
+  if (maxTiepoints!=-1 && maxTiepoints<keypoints.size()) {
+      //Sort tiepoints by strength
+      sortVecPair(keypoints, descriptors, sortByResponse());
+      std::vector<KeyPoint>  *keypointsAux = new std::vector<KeyPoint>(keypoints.end() - maxTiepoints, keypoints.end());
+      vector<vector<int> >  *descriptorsAux= new vector<vector<int> >(descriptors.end() - maxTiepoints, descriptors.end());
+      keypoints.clear();
+      descriptors.clear();
+      keypoints.reserve( keypointsAux->size()); // preallocate memory
+      descriptors.reserve( descriptorsAux->size()); // preallocate memory
+
+      keypoints.insert( keypoints.end(), keypointsAux->begin(), keypointsAux->end() );
+      descriptors.insert( descriptors.end(), descriptorsAux->begin(), descriptorsAux->end() );
+  }
+
+  cvReleaseImage(&grayImage);
+  cvReleaseImage(&grayImage0);
+  rImg.release();
+}
+
+void ASiftDetector::affineSkew2(
+        float tilt,
+        float phi,
+        const cv::Mat & image,
+        cv::Mat & skewImage,
+        cv::Mat & skewMask,
+        cv::Mat & Ai
+        )
+{
+    float h = image.rows;
+    float w = image.cols;
+    cv::Mat A = cv::Mat::zeros(2,3,CV_32FC1);
+    A.at<float>(0,0) = A.at<float>(1,1) = 1;
+    skewMask = cv::Mat::ones(h, w, CV_8U) * 255;
+    if(phi != 0.0)
+    {
+        phi = phi*CV_PI/180.0f; // deg2rad
+        float s = std::sin(phi);
+        float c = std::cos(phi);
+        cv::Mat A22 = (cv::Mat_<float>(2, 2) <<
+                        c, -s,
+                        s, c);
+        cv::Mat cornersIn = (cv::Mat_<float>(4, 2) <<
+                        0,0,
+                        w,0,
+                        w,h,
+                        0,h);
+        cv::Mat cornersOut = cornersIn * A22.t();
+        cv::Rect rect = cv::boundingRect(cornersOut.reshape(2,4));
+        A = (cv::Mat_<float>(2, 3) <<
+                                c, -s, -rect.x,
+                                s, c, -rect.y);
+        cv::warpAffine(image, skewImage, A, cv::Size(rect.width, rect.height), cv::INTER_LINEAR, cv::BORDER_TRANSPARENT);
+    }
+    else
+    {
+        skewImage = image;
+    }
+    if(tilt != 1.0)
+    {
+        float s = 0.8*std::sqrt(tilt*tilt-1);
+        cv::Mat out, out2;
+        cv::GaussianBlur(skewImage, out, cv::Size(0, 0), s, 0.01);
+        cv::resize(out, out2, cv::Size(0, 0), 1.0/tilt, 1.0, cv::INTER_NEAREST);///tilt, 1.0, cv::INTER_NEAREST);
+        skewImage = out2;
+        A.row(0) /= tilt;
+    }
+    if(phi != 0.0 || tilt != 1.0)
+    {
+        cv::Mat mask = skewMask;
+        cv::warpAffine(mask, skewMask, A, skewImage.size(), cv::INTER_NEAREST);
+    }
+    cv::invertAffineTransform(A, Ai);
+}

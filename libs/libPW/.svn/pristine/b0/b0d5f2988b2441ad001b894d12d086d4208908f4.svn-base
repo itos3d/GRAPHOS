@@ -1,0 +1,24 @@
+#ifndef CVDECOLORPROCESS_H
+#define CVDECOLORPROCESS_H
+
+#include "ProcessConcurrent.h"
+
+namespace PW {
+
+class LIBPWSHARED_EXPORT cvDecolorProcess : public ProcessConcurrent
+{
+public:
+    cvDecolorProcess(QString inputFile, QString outputDir);
+    ~cvDecolorProcess();
+
+protected:
+    virtual void run();
+
+private:
+    QString mInputFile;
+    QString mOtputDir;
+};
+}
+
+
+#endif // CVDECOLORPROCESS_H

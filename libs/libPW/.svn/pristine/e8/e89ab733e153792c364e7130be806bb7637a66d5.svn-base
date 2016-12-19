@@ -1,0 +1,24 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "AperoProcess.h"
+#include "libPW.h"
+
+using namespace  PW;
+
+AperoProcess::AperoProcess(QString paramsPath):
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + APERO_COMMAND)
+{
+//    setStartupMessage("Runnig Apero...");
+    setStartupMessage("Computing orientations...");
+
+    addIntputs(QStringList()<< paramsPath);
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Apero.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/AperoError.log");
+}

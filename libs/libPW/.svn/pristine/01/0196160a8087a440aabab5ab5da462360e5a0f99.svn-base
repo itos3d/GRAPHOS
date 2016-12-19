@@ -1,0 +1,47 @@
+#ifndef TIEPOINTSIO_H
+#define TIEPOINTSIO_H
+
+#define TIEPOINTSIO_ERROR       1
+#define TIEPOINTSIO_NO_ERROR    0
+
+#include "libPW_global.h"
+#include <QStringList>
+#include <QMap>
+#include <QVector>
+
+namespace PW{
+
+
+class LIBPWSHARED_EXPORT TiePointsIO
+{
+public:
+    TiePointsIO();
+
+    static int mergeTiePointsResults(QStringList inputPaths, QString outputPath, bool removeDuplicates=false);
+    static int readTiePointsFile(QString& url,
+                                 QVector<double>& firstImagePixelsColumn,
+                                 QVector<double>& firstImagePixelsRow,
+                                 QVector<double> &secondImagePixelsColumn,
+                                 QVector<double> &secondImagePixelsRow,
+                                 QString &strError);
+    static int writeHomol(QString &homolPath,
+                          QMap<QString,QVector<QString> >& imagesIdsTiePoints,
+                          QMap<QString,QMap<QString,QVector<float> > >& imagesFirstColumnsTiePoints,
+                          QMap<QString,QMap<QString,QVector<float> > >& imagesFirstRowsTiePoints,
+                          QMap<QString,QMap<QString,QVector<float> > >& imagesSecondColumnsTiePoints,
+                          QMap<QString,QMap<QString,QVector<float> > >& imagesSecondRowsTiePoints,
+                          QString &strError);
+    static int writeHomolOrtoSky(QString &homolPath,
+                                 QMap<QString, QString>& imageFileNameWithoutPathsByName,
+                                 QMap<QString,QVector<QString> >& imagesIdsTiePoints,
+                                 QMap<QString,QMap<QString,QVector<float> > >& imagesFirstColumnsTiePoints,
+                                 QMap<QString,QMap<QString,QVector<float> > >& imagesFirstRowsTiePoints,
+                                 QMap<QString,QMap<QString,QVector<float> > >& imagesSecondColumnsTiePoints,
+                                 QMap<QString,QMap<QString,QVector<float> > >& imagesSecondRowsTiePoints,
+                                 QString &strError);
+
+private:
+    static int removeDuplicateLines(QString filePath);
+};
+}
+#endif // TIEPOINTSIO_H

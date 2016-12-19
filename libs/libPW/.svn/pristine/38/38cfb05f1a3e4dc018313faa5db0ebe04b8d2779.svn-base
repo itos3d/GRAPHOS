@@ -1,0 +1,29 @@
+#ifndef WALLISPROCESS_H
+#define WALLISPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class WallisProcess : public ExternalProcess
+{
+public:
+    WallisProcess(QString imagePath,
+                  QString outputPath,
+                  float wallisParameterA,
+                  float wallisParameterB,
+                  unsigned short int kernelSize,
+                  unsigned short int imposedAverage,
+                  unsigned short int  imposedStDeviation);
+
+private:
+    QStringList mImagesPaths;
+    QString mOutputPath;
+    float mWallisParameterA;
+    float mWallisParameterB;
+    unsigned short int mKernelSize;
+    unsigned short int mImposedAverage;
+    unsigned short int  mImposedStDeviation;
+};
+}
+#endif // WALLISPROCESS_H

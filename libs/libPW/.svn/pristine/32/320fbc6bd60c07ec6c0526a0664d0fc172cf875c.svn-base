@@ -1,0 +1,39 @@
+#ifndef PWMATCHESCATEGORY_H
+#define PWMATCHESCATEGORY_H
+
+#include "libPW.h"
+#include "Project.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT PWMatchesCategory
+{
+public:
+    PWMatchesCategory(Project* project,
+                      int id,
+                      QString description,
+                      QString metadata,
+                      QString timeCalculation);
+    QString getDescription();
+    PWGraphImages* getGraphImages();
+    void getImagePairs(QMap<QString, QVector<QString> >& imagesPairs);
+    QString getMetadata();
+    QString getTimeCalculation();
+    void getInvalidMatchedCategoryExplanation(QString &title,
+                                              QStringList &subgraphs);
+    bool isValid();
+    void setImagePairs(QMap<QString, QVector<QString> >& imagesPairs);
+    void setGraphImages(PWGraphImages* graphImages);
+private:
+    Project* mProject;
+    QString mTimeCalculation;
+    PWGraphImages* mGraphImages;
+    QMap<QString, QVector<QString> >  mImagesPairs;
+    QString mDescription;
+    QString mMetadata;
+    int mId;
+};
+
+}
+
+#endif // PWMATCHESCATEGORY_H

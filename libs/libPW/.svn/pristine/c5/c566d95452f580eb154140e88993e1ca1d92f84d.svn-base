@@ -1,0 +1,31 @@
+#include "MergeLasResultsProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+MergeLasResultsProcess::MergeLasResultsProcess(QStringList inputLasFiles,
+                                               QString outputFilePath):
+    ExternalProcess(LibPW::getToolsPath()+"/"+LASMERGE_COMMAND)
+{
+
+    QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+    workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+    if(workingDir.isEmpty())
+        workingDir = QDir::currentPath();
+//    setWorkingDir(outputPath);
+
+    setStartupMessage("Merging *.las results...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/lasmerge.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/lasmerge.log");
+
+
+    QStringList inputs;
+    foreach (QString inputFile, inputLasFiles) {
+        inputs << "-i" << inputFile;
+    }
+
+    inputs << "-o" << outputFilePath;
+    addIntputs(inputs);
+}
+
+

@@ -1,0 +1,49 @@
+#include "GCPWriter.h"
+#include "GeorefMicMac/GCP.h"
+using namespace PW;
+GCPWriter::GCPWriter(QVector<GCP> *GCPs,QString outputPath):mGCPs(GCPs),mOutputPath(outputPath)
+{
+
+}
+
+GCPWriter::~GCPWriter()
+{
+
+}
+
+void GCPWriter::run()
+{
+    QString stdTemplate ="<OneAppuisDAF><Pt>_X_Coord_ _Y_Coord_ _Z_Coord_</Pt><NamePt>_Desc_</NamePt><Incertitude>1 1 1</Incertitude></OneAppuisDAF>";
+    /* Try and open a file for output */
+      QFile outputFile(mOutputPath);
+      outputFile.open(QIODevice::WriteOnly);
+
+      /* Check it opened OK */
+      if(!outputFile.isOpen()){
+//          qDebug() << argv[0] << "- Error, unable to open" << outputFilename << "for output";
+          return;
+      }
+
+      /* Point a QTextStream object at the file */
+      QTextStream outStream(&outputFile);
+
+      //Write xml header
+      outStream << "<?xml version=\"1.0\" ?> <DicoAppuisFlottant>";
+      for (int i = 0; i < mGCPs->count(); ++i) {
+          /* Write the line to the file */
+          QString outputString =stdTemplate;
+          PW::GCP gcpToEvaluate = mGCPs->at(i);
+          outputString.replace("_X_Coord_",QString::number(gcpToEvaluate.getX(),'f',-1));
+          outputString.replace("_Y_Coord_",QString::number(gcpToEvaluate.getY(),'f',-1));
+          outputString.replace("_Z_Coord_",QString::number(gcpToEvaluate.getZ(),'f',-1));
+          outputString.replace("_Desc_",gcpToEvaluate.getDesc());
+
+          outStream << outputString;
+      }
+
+      //Write footer
+    outStream << "</DicoAppuisFlottant>";
+
+    /* Close the file */
+    outputFile.close();
+}

@@ -1,0 +1,21 @@
+Photo 0.4.0.1 - by Lukas Spies, 2012 - Licensed under the GPL - Contact: photoQt@ymail.com
+------------------------------------------------------------------------------------------
+
+Photo is an image viewer with a simple and fast interface, being good looking and highly configureable.
+
+
+DEPENDENCIES
+------------
+Qt 4
+
+
+INSTALL
+-------
+1) qmake
+2) make
+
+3) (as root) make install  -> that simply moves the executeable (per default) to /usr/bin/.
+				Right now, the only way to change that is to edit the file
+				photo.pro (before running step 1) and adjust the "target.path"
+				variable.
+				Or you can simply move the binary file manually to whereever you want.

@@ -1,0 +1,15 @@
+#ifndef TESTWAITFORRESULTSPROCESS_H
+#define TESTWAITFORRESULTSPROCESS_H
+
+#include <QObject>
+
+class TestWaitForResultsProcess : public QObject
+{
+    Q_OBJECT
+
+private slots:
+    void waiting();
+    void onFinish();
+};
+
+#endif // TESTWAITFORRESULTSPROCESS_H

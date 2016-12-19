@@ -1,0 +1,5 @@
+Para ejecutar el programa, llamarlo desde la línea de comandos con la siguiente estructura:
+
+GraphosDescriptor.exe "F:\ejemplo\Matches"
+
+En caso de no funcionar, revisar el backslash.

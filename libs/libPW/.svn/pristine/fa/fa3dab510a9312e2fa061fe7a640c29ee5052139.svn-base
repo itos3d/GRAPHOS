@@ -1,0 +1,18 @@
+#ifndef SQLITEPROJECTREADER_H
+#define SQLITEPROJECTREADER_H
+
+#include "Project.h"
+#include "ProjectReader.h"
+
+namespace PW {
+
+class LIBPWSHARED_EXPORT SQLiteProjectReader: public ProjectReader
+{
+public:
+    SQLiteProjectReader();
+
+    virtual Project * read(QString url);
+};
+}
+
+#endif // SQLITEPROJECTREADER_H

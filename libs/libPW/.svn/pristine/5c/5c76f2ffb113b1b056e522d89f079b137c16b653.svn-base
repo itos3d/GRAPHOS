@@ -1,0 +1,16 @@
+\hypertarget{classRadialExtended}{
+\section{RadialExtended Class Reference}
+\label{classRadialExtended}\index{RadialExtended@{RadialExtended}}
+}
+Inheritance diagram for RadialExtended:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classRadialExtended}
+\end{center}
+\end{figure}
+
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+RadialExtended.h\item 
+RadialExtended.cpp\end{DoxyCompactItemize}

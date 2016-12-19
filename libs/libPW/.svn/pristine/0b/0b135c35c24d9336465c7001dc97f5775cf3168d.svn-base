@@ -1,0 +1,21 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "MaltProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+MaltProcess::MaltProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + MALT_COMMAND)
+{
+    setStartupMessage("Runnig Malt...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Malt.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/MaltError.log");
+}

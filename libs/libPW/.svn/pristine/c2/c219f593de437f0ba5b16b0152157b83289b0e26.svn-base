@@ -1,0 +1,31 @@
+#include <QApplication>
+#include <QtTest/QtTest>
+
+#include "TestWaitForResultsProcess.h"
+#include "TestAperoDistReader.h"
+#include "TestMicMacEOReader.h"
+#include "TestCalculateImagePoints.h"
+#include "TestPersistenceManager.h"
+
+int main(int argc, char *argv[])
+{
+    QCoreApplication app(argc, argv);
+
+//    TestWaitForResultsProcess testWaitForResultsProcess;
+//    QTest::qExec(&testWaitForResultsProcess, argc, argv);
+
+//    TestAperoDistReader testAperoDistReader;
+//    QTest::qExec(&testAperoDistReader, argc, argv);
+
+//    TestMicMacEOReader testMicMacEOReader;
+//    QTest::qExec(&testMicMacEOReader, argc, argv);
+
+//    TestCalculateImagePoints testCalculateImagePoints;
+//    QTest::qExec(&testCalculateImagePoints, argc, argv);
+
+    TestPersistenceManager testPersistenceManager;
+    QTest::qExec(&testPersistenceManager, argc, argv);
+
+    return app.exec();
+
+}

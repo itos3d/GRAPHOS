@@ -1,0 +1,20 @@
+#ifndef TAPIOCAFINISHEDPROCESS_H
+#define TAPIOCAFINISHEDPROCESS_H
+
+#include "ProcessConcurrent.h"
+#include "libPW.h"
+namespace PW{
+class LIBPWSHARED_EXPORT TapiocaFinishedProcess: public ProcessConcurrent
+{
+public:
+    TapiocaFinishedProcess(PW::Project *project,int minimumMatches,QString tiepointsMetadata);
+    ~TapiocaFinishedProcess();
+    virtual void run();
+
+private:
+    PW::Project *mProject;
+    int mMinimumMatches;
+    QString mTiepointsMetadata;
+};
+}
+#endif // TAPIOCAFINISHEDPROCESS_H

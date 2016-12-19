@@ -1,0 +1,29 @@
+#include "PWPoint.h"
+
+using namespace PW;
+
+PWPoint::PWPoint(PointType type, QString name):
+    mType(type),
+    mName(name)
+{
+}
+
+QList<PW::PWPoint *> PW::PWPoint::getAssociatedPoints()
+{
+    return mAssociatedPoints;
+}
+
+PW::PWPoint::PointType PW::PWPoint::getType()
+{
+    return mType;
+}
+
+QString PW::PWPoint::getName()
+{
+    return mName;
+}
+
+void PW::PWPoint::setName(QString name)
+{
+    mName = name;
+}

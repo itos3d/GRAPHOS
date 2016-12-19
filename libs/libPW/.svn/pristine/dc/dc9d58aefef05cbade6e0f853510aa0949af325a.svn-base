@@ -1,0 +1,14 @@
+#ifndef APERO2PMVS_H
+#define APERO2PMVS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT Apero2pmvs : public ExternalProcess
+{
+public:
+    Apero2pmvs(QString inputRegExp, QString orientation);
+};
+}
+
+#endif // APERO2PMVS_H

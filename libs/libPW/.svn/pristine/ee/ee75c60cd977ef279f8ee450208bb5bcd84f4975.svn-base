@@ -1,0 +1,15 @@
+#ifndef APEROPROCESS_H
+#define APEROPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AperoProcess : public ExternalProcess
+{
+public:
+    AperoProcess(QString paramsPath);
+};
+}
+
+#endif // APEROPROCESS_H

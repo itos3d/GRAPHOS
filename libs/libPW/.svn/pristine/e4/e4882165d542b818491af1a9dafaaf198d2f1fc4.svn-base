@@ -1,0 +1,14 @@
+#ifndef SUREPROCESS_H
+#define SUREPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT SUREProcess : public ExternalProcess
+{
+public:
+    SUREProcess();
+};
+}
+
+#endif // SUREPROCESS_H

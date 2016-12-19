@@ -1,0 +1,15 @@
+#ifndef PORTOPROCESS_H
+#define PORTOPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT PortoProcess : public ExternalProcess
+{
+public:
+    PortoProcess();
+};
+}
+
+#endif // PORTOPROCESS_H

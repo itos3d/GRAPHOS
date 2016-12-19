@@ -1,0 +1,32 @@
+#include "SUREProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+SUREProcess::SUREProcess(QString prjPath, QString imagesPath, int pyr, int fold):
+    ExternalProcess(LibPW::getSUREBinPath() + "/" + SURE_COMMAND)
+{
+    QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+    workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+    if(workingDir.isEmpty())
+        workingDir = QDir::currentPath();
+    setWorkingDir(workingDir);
+
+    setStartupMessage("SURE densification...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/sure.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/sureError.log");
+
+    QStringList inputs;
+
+    inputs << prjPath <<
+              "-img" << imagesPath <<
+              "-pyr" << QString::number(pyr) <<
+              "-fold" << QString::number(fold) <<
+              "-no_mesh" << "-no_dsm" << "-no_filter" <<
+              "-no_refine" << "-no_gtif"; /*<< "-minangle" << QString::number(0) <<
+              "-minbase" << QString::number(0);*/
+
+
+
+    addIntputs(inputs);
+}

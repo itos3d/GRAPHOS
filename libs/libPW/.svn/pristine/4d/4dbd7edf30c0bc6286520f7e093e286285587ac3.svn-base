@@ -1,0 +1,27 @@
+#ifndef APPUISWRITER_H
+#define APPUISWRITER_H
+
+#include "Project.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT AppuisWriter
+{
+public:
+    AppuisWriter();
+
+    int writeDicoAppuis(Project *project, QString url);
+    int writeMesureAppuis(Project *project, QString url);
+
+    int write(QList<PW::PW3dPoint> groudPoints,
+              QMap<QString, QList<PW2dPoint *> *> imagePoints,
+              QString dicoAppuisUrl,
+              QString MesureAppuisUrl, QVector<PW3dPoint *> *ptrControlPointsAccuracies=NULL);
+
+    int writeDicoAppuis(QString url,
+                        QVector<PW3dPoint *> controlPoints,
+                        QVector<PW3dPoint *> *ptrControlPointsAccuracies);
+
+};
+}
+#endif // APPUISWRITER_H

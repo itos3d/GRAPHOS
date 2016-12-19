@@ -1,0 +1,19 @@
+#ifndef MESUREBASCWRITER_H
+#define MESUREBASCWRITER_H
+
+#include "Project.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT MesureBascWriter
+{
+public:
+    MesureBascWriter(Project *project);
+
+    int write(QString url);
+
+private:
+    Project * mProject;
+
+};
+}
+#endif // MESUREBASCWRITER_H

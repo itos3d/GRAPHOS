@@ -1,0 +1,135 @@
+<!--
+   The simplest MicMac exemple
+
+0.00161 60-156  =>  90   ; Jump de batiment 0.15
+-->
+
+<ParamMICMAC>
+
+<!--  M1 : Declare an association between an image and its orientation file-->
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>    
+      <IntervAltimetrie>
+             <ZIncCalc>   3.0  </ZIncCalc>
+      </IntervAltimetrie>
+
+</Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >   
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <ImPat> PW_INPUT_IMGS </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-PW_ORI   </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+
+      <NbMinImagesVisibles>  4 </NbMinImagesVisibles>
+      <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      2             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+
+             <Gen8Bits_Px1>  true   </Gen8Bits_Px1>
+
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        0.5  </ZPas>
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	     <ZDilatAlti>  2    </ZDilatAlti>
+             <ZDilatPlani> 2    </ZDilatPlani>
+	     <ZRegul>  0.05    </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>   7               </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   100.0    </Px1PenteMax>
+            </ModulationProgDyn>
+
+            
+        </EtapeMEC>
+	     
+
+        <EtapeMEC> 
+              <DeZoom >        32        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> 
+                <DeZoom >        16        </DeZoom> 
+        </EtapeMEC>
+        <EtapeMEC> <DeZoom >        8        </DeZoom> </EtapeMEC>
+
+
+        <EtapeMEC> 
+                 <DeZoom >        4        </DeZoom> 
+                 <SeuilAttenZRegul> 0.02 </SeuilAttenZRegul>
+                 <AttenRelatifSeuilZ> 0.3 </AttenRelatifSeuilZ>
+
+                 <GenerePartiesCachees >
+                       <ByMkF> true </ByMkF>
+                       <SeuilUsePC> 4 </SeuilUsePC>
+                </GenerePartiesCachees>
+        </EtapeMEC>
+        <EtapeMEC> 
+                 <DeZoom >        2        </DeZoom> 
+                 <SeuilAttenZRegul> 0.015 </SeuilAttenZRegul>
+                 <AttenRelatifSeuilZ> 0.3 </AttenRelatifSeuilZ>
+        </EtapeMEC>
+
+        <EtapeMEC> 
+                 <AlgoRegul>    eAlgoDequant    </AlgoRegul>
+                 <DeZoom >        2        </DeZoom> 
+                 <ZPas>         1  </ZPas>
+                 <GenerePartiesCachees >
+                       <ByMkF> true </ByMkF>
+                       <SeuilUsePC> 3 </SeuilUsePC>
+                       <KeyCalcPC> NKS-Assoc-AddDirAndPref@ORTHO@PC_ </KeyCalcPC>
+                       <MakeOrthoParImage >
+                           <KeyCalcInput>    NKS-Assoc-Id  </KeyCalcInput>
+                           <KeyCalcOutput >  NKS-Assoc-AddDirAndPref@ORTHO@Ort_ </KeyCalcOutput>
+                           <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@ORTHO@Incid_ </KeyCalcIncidHor>
+                           <!-- Par rapport a la resolution des image R1 -->
+                           <ResolIm> 1.0 </ResolIm>
+                           <CalcIncAZMoy> true </CalcIncAZMoy>
+                       </MakeOrthoParImage>
+                </GenerePartiesCachees>
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+    <GeomMNT> eGeomMNTEuclid  </GeomMNT> 
+<!--
+    <DoNothingBut>
+        <ButDoOrtho> true </ButDoOrtho>
+    </DoNothingBut>
+-->
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir> 
+     <TmpMEC>    MM-Ter/  </TmpMEC>
+     <TmpResult> MM-Ter/  </TmpResult>
+     <TmpPyr>    Pyram-Ter/  </TmpPyr>
+     <ByProcess>  ${MMNbProc} </ByProcess>
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>
+
+

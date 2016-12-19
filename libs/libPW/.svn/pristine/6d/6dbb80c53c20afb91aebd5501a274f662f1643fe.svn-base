@@ -1,0 +1,81 @@
+#ifndef MSDPROCESS_H
+#define MSDPROCESS_H
+
+#include "opencv/cv.h"
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/xfeatures2d.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv/highgui.h"
+#include "msd.h"
+#include "opencv/cv.hpp"
+#include <time.h>
+#include <iostream>
+#include <QDebug>
+#include <QTime>
+#include "processedImageData.h"
+
+
+class msdProcess : public QObject
+{
+public:
+    std::vector<cv::Mat> mDescriptors;
+    std::vector<std::vector<cv::KeyPoint>> mTiePoints;
+
+    QMap<QString, std::vector<std::vector<float>>> mMatchingsMap;
+
+    QStringList mImagesPathList;
+    float max_dist;
+    float ratio;
+    float distance;
+    float confidence;
+    float threshold_K;
+    int mOriginalImageHeight;
+    int mOriginalImageWidth;
+    float mImageScaleFactorX;
+    float mImageScaleFactorY;
+    QString matchesFolder;
+
+    int stepsNumber;
+
+    std::vector<std::vector<cv::DMatch>> matchesltor;
+    std::vector<std::vector<cv::DMatch>> matchesrtol;
+
+    cv::Mat img_left;
+    cv::Mat img_right;
+    std::vector<cv::KeyPoint> img_left_key;
+    std::vector<cv::KeyPoint> img_right_key;
+
+
+    msdProcess(QStringList ImagesPathList);
+    ~msdProcess();
+
+    void start();
+
+private:
+
+
+    QMap<QString, processedImageData> mImageDataMap;
+    QTime myTimer;
+    bool flann;
+    std::vector< cv::DMatch > matchesFLANNLeftToRight;
+    std::vector< cv::DMatch > matchesFLANNRightToLeft;
+
+    cv::String leftImageFileName;
+    cv::String rightImageFileName;
+    void msdProcess::writeMatchesToApero();
+    void computeMatching();
+    void ransacTest(const std::vector<cv::DMatch>& matches,
+                       const std::vector<cv::KeyPoint>& keypoints1,
+                       const std::vector<cv::KeyPoint>& keypoints2,
+                       std::vector<cv::DMatch>& outMatches,int method);
+    void symmetryTest(const std::vector<std::vector<cv::DMatch>>& matches1,
+                      const std::vector<std::vector<cv::DMatch>>& matches2,
+                      std::vector<cv::DMatch>& symMatches);
+    int ratioTest(std::vector<std::vector<cv::DMatch>>& matches);
+    void msdProcess::computeTiePointsAndDescriptors(const QString &imageFileName);
+    void msdProcess::startMatchingThread(processedImageData imageDataLeft,processedImageData imageDataRight);
+
+};
+
+#endif // MSDPROCESS_H

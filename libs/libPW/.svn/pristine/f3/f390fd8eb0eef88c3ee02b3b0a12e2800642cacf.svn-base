@@ -1,0 +1,55 @@
+#ifndef DISTORTIONMODEL_H
+#define DISTORTIONMODEL_H
+
+#define APERO_MODEL_RADIAL_EXTENDED               0
+#define APERO_MODEL_RADIAL_BASIC                  1
+#define APERO_MODEL_FRASER                        3
+#define APERO_MODEL_FRASER_BASIC                  4
+#define APERO_MODEL_FISHEYE                       5
+
+#include "libPW_global.h"
+#include <QString>
+
+namespace PW{
+
+/*!
+ \brief Base class representing camera distortion model.
+
+*/
+class LIBPWSHARED_EXPORT DistortionModel
+{
+public:
+/*!
+ \brief Constructor.
+
+*/
+    DistortionModel();
+
+//    virtual int getID() = 0;
+
+    /*!
+     \brief Undistort a image according to distortion model.
+
+     \param inputImage image to undistort
+     \return PWImage undistorted image
+    */
+    virtual QString undistort(QString inputImagePath,
+                              double focal,
+                              double xpp,
+                              double ypp) = 0;
+    /*!
+     \brief
+
+     \return bool true if distortion model allows to undistort images.
+    */
+    virtual bool canUnistort() = 0;
+
+    virtual void undistort(double xpp, double ypp, double &x, double &y) = 0;
+    virtual void distort(double xpp, double ypp, double &x, double &y) = 0;
+
+
+};
+
+}
+
+#endif // DISTORTIONMODEL_H

@@ -1,0 +1,16 @@
+#ifndef DRUNKPROCESS_H
+#define DRUNKPROCESS_H
+
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT DrunkProcess : public ExternalProcess
+{
+public:
+    DrunkProcess(QString inputRegExp, QString orientation, QString outputPath = "");
+};
+}
+
+#endif // DRUNKPROCESS_H

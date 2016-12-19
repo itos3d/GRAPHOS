@@ -1,0 +1,57 @@
+#include "PMVSProccess.h"
+#include "libPW.h"
+
+#include <QTextStream>
+
+using namespace PW;
+
+
+PMVSProccess::PMVSProccess(QString pmvsDir, QString optionsFile, QMap<QString, QString> options):
+    ExternalProcess(LibPW::getPMVSBinPath() + "/" + PMVS_PMVS_COMMAND),
+    mOptions(options),
+    mPMVSDir(pmvsDir)
+{
+    setStartupMessage("Generating PVMS Dense Model...");
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/PMVS.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/PMVSError.log");
+
+    QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+    //    workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+    setWorkingDir(workingDir);
+
+    addIntputs(QStringList() << pmvsDir << optionsFile);
+
+}
+
+void PMVSProccess::start()
+{
+    //****pmvs options: *******************
+
+    QFile pmvsOptionsFile(mPMVSDir +  "/pmvs_options.txt");
+    QString optionsString = "";
+    QString optionsLine = "";
+    if (pmvsOptionsFile.open(QIODevice::ReadOnly)){
+        while (!pmvsOptionsFile.atEnd()) {
+            optionsLine = QString(pmvsOptionsFile.readLine());
+            for(int i=0; i<mOptions.count();i++){                
+                if (optionsLine.contains(mOptions.keys().at(i))){
+                    optionsLine = mOptions.keys().at(i) + " " + mOptions.values().at(i)+ "\r\n";
+                    break;
+                }
+            }
+            optionsString = optionsString + optionsLine;
+        }
+        pmvsOptionsFile.close();
+
+        if(pmvsOptionsFile.open(QIODevice::WriteOnly)){
+            QTextStream outputStream(&pmvsOptionsFile);
+            outputStream << optionsString << "\n";
+
+            pmvsOptionsFile.close();
+        }
+    }
+
+    //*************************************
+    ExternalProcess::start();
+}

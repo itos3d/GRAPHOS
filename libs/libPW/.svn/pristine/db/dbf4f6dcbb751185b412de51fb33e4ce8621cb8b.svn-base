@@ -1,0 +1,20 @@
+#ifndef MICMACSPARSEPROCESS_H
+#define MICMACSPARSEPROCESS_H
+
+#include "MultiProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT MicMacSparseProcess : public MultiProcess
+{
+public:
+    MicMacSparseProcess(QString inputRegExp, QString imagesDir,
+                        QString mode="All", int range=0, int size=1500,
+                        QString model="", QString outputName = "PW", QString inCal = "");
+
+private:
+
+};
+}
+
+#endif // MICMACSPARSEPROCESS_H

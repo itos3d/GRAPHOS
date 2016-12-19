@@ -1,0 +1,36 @@
+\hypertarget{classDistortionModel}{
+\section{DistortionModel Class Reference}
+\label{classDistortionModel}\index{DistortionModel@{DistortionModel}}
+}
+
+
+Base class representing camera distortion model.  
+
+
+
+
+{\ttfamily \#include $<$DistortionModel.h$>$}
+
+Inheritance diagram for DistortionModel:\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[height=3.000000cm]{classDistortionModel}
+\end{center}
+\end{figure}
+\subsection*{Public Member Functions}
+\begin{DoxyCompactItemize}
+\item 
+\hypertarget{classDistortionModel_a7d3ce5dc270e180b7b0594f2292b57d8}{
+\hyperlink{classDistortionModel_a7d3ce5dc270e180b7b0594f2292b57d8}{DistortionModel} ()}
+\label{classDistortionModel_a7d3ce5dc270e180b7b0594f2292b57d8}
+
+\begin{DoxyCompactList}\small\item\em Constructor. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\subsection{Detailed Description}
+Base class representing camera distortion model. 
+
+The documentation for this class was generated from the following files:\begin{DoxyCompactItemize}
+\item 
+DistortionModel.h\item 
+DistortionModel.cpp\end{DoxyCompactItemize}

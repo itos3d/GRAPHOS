@@ -1,0 +1,49 @@
+#include <QDir>
+#include "MSDProcess.h"
+#include "MSDkpd.h"
+#include "MSDMatching.h"
+
+using namespace PW;
+
+MSDProcess::MSDProcess(QString matchesFolder, QStringList imagesPathList, QString outputPath):
+    MultiProcess(true),
+    matchesFolder(matchesFolder),
+    mImagesPathList(imagesPathList)
+{
+    setStartupMessage("Searching for tie points (MSD)...");
+
+//    matchesFolder=mProjectBasePath+"/Matches";
+//    QDir auxDir(mProjectBasePath);
+//    if(!auxDir.exists(matchesFolder))
+//    {
+//        auxDir.mkdir(matchesFolder);
+//        QDir matchesDir(matchesFolder);
+//        if (!matchesDir.exists(matchesFolder+"/tapioca"))
+//            matchesDir.mkdir(matchesFolder+"/tapioca");
+//    }
+
+    mKPDProcess = new MultiProcess(false); //concurrent
+    foreach (QString imagePath, imagesPathList) {
+        ProcessedImageData * metadata = new ProcessedImageData();
+        MSDkpd *kpmProcess = new MSDkpd(imagePath,outputPath,metadata);
+        mKPDProcess->appendProcess(kpmProcess);
+        QFileInfo inputFileInfo (imagePath);
+        QString imageFileName = inputFileInfo.fileName();
+        mImageMetadataMap.insert(imageFileName, metadata);
+    }
+
+    mMatchingProcess = new MSDMatching(matchesFolder, imagesPathList,mImageMetadataMap);
+
+    appendProcess(mKPDProcess);
+    appendProcess(mMatchingProcess);
+}
+
+
+MSDProcess::~MSDProcess()
+{
+    foreach (ProcessedImageData * metadata, mImageMetadataMap.values()){
+        delete metadata;
+    }
+    delete mKPDProcess;
+    delete mMatchingProcess;
+}

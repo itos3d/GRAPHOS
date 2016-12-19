@@ -1,0 +1,18 @@
+#include <QtTest/QtTest>
+
+#include "TestAperoDistReader.h"
+
+using namespace PW;
+
+void TestAperoDistReader::reading(){
+    qDebug() << "Working dir:"+ QDir::currentPath();
+    qDebug() << "Probando *************************************************";
+//    QFile file("/home/dguerrero/desarrollo/USAL/Calibraciones/Apero/AutoCal170.xml");
+    //qDebug() << file.fileName();
+    Camera *camera = new Camera("Canon EOS 500D","",22.3,14.9);
+    AperoModelReader reader(camera);
+    CameraModel *cm = reader.read("/home/dguerrero/desarrollo/USAL/Calibraciones/Apero/AutoCal170.xml");
+    bool readOk = (cm != NULL);
+    qDebug() << "Probando *************************************************";
+    QVERIFY(readOk);
+}

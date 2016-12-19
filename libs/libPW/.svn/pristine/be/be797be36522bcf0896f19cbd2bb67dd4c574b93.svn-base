@@ -1,0 +1,11 @@
+#include "CameraModel.h"
+
+using namespace PW;
+
+CameraModel::CameraModel()
+{
+}
+
+CameraModel::~CameraModel(){
+}
+

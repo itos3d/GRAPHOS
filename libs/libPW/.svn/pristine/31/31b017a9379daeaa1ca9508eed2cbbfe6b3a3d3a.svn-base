@@ -1,0 +1,27 @@
+#ifndef ASIFTDETECTOR_H
+#define ASIFTDETECTOR_H
+#endif
+
+#include <vector>
+#include <vl/host.h>
+#include "opencv/cv.h"
+#include "opencv2/features2d/features2d.hpp"
+#include "opencv2/xfeatures2d.hpp"
+#include "opencv2/highgui.hpp"
+#include "opencv2/imgproc.hpp"
+#include "opencv/highgui.h"
+#include "opencv/cv.hpp"
+
+using namespace cv;
+
+class ASiftDetector
+{
+    public:
+        ASiftDetector();
+        ~ASiftDetector();
+        void computeAsift(const Mat &img, std::vector<KeyPoint> & keypoints, std::vector<std::vector<int> >  & descriptors);
+
+    private:
+      void affineSkew2(float tilt,float phi,const cv::Mat & image,cv::Mat & skewImage,cv::Mat & skewMask,cv::Mat & Ai);
+      std::vector<std::vector<int> > vedaldiDetect(const IplImage* Image, std::vector< KeyPoint >& keypoints);
+};

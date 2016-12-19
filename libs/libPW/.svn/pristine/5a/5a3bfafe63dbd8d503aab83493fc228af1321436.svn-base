@@ -1,0 +1,64 @@
+#include <QDebug>
+
+#include "PW3dPoint.h"
+
+using namespace PW;
+
+PW3dPoint::PW3dPoint():
+    PWPoint(PWPoint::Control, ""),
+    QVector3D(0.0,0.0,0.0)
+{
+}
+
+PW3dPoint::PW3dPoint(double x, double y, double z, QString name, PWPoint::PointType type):
+    PWPoint(type, name),
+    QVector3D(x,y,z)
+{
+}
+
+int PW::PW3dPoint::getCoordsCount()
+{
+    return 3;
+}
+
+double PW::PW3dPoint::getCoord(int index)
+{
+    if(index>=0 && index <3){
+        switch(index){
+        case 0:
+            return x();
+            break;
+        case 1:
+            return y();
+            break;
+        case 2:
+            return z();
+            break;
+        default:
+            qCritical() << "Index out of bounds";
+            return 0;
+
+        }
+    }
+    return 0;
+}
+
+void PW::PW3dPoint::setCoord(int index, double value)
+{
+    if(index>=0 && index <3){
+        switch(index){
+        case 0:
+            setX(value);
+            break;
+        case 1:
+            setY(value);
+            break;
+        case 2:
+            setZ(value);
+            break;
+        default:
+            qCritical() << "Index out of bounds";
+        }
+    }else
+        qCritical() << "Index out of bounds";
+}

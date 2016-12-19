@@ -1,0 +1,33 @@
+#ifndef WRITEMATCHESPROCESS_H
+#define WRITEMATCHESPROCESS_H
+
+#include <QThread>
+
+#include "../Process.h"
+#include "../PersistenceManager.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT WriteMatchesProcess : public QThread
+{
+public:
+    WriteMatchesProcess(PersistenceManager *persistenceManager,
+                        Project *project,
+                        QString tiePointsMetadata,
+                        QString tiePointsDescription,
+                        QString timeCalculation,
+                        QString tiePointsPath);
+
+protected:
+        void run();
+
+private:
+        PersistenceManager * mPersistenceManager;
+        Project *mProject;
+        QString mTiePointsMetadata;
+        QString mTiePointsDescription;
+        QString mTimeCalculation;
+        QString mTiePointsPath;
+};
+}
+
+#endif // WRITEMATCHESPROCESS_H

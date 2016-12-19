@@ -1,0 +1,64 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "TapiocaProcess.h"
+#include "libPW.h"
+
+using namespace  PW;
+
+TapiocaProcess::TapiocaProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + TAPIOCA_COMMAND)
+{
+//    setStartupMessage("Runnig Tapioca...");
+    setStartupMessage("Searching for tie points...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Tapioca.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/TapiocaError.log");
+
+    //    connect(this,SIGNAL(finished()),this,SLOT(onFinished()));
+}
+
+TapiocaProcess::TapiocaProcess(QString inputRegExp, QString imagesDir, QString mode, int range, int size):
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + TAPIOCA_COMMAND)
+{
+    setStartupMessage("Searching for tie points (Tapioca)...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Tapioca.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/TapiocaError.log");
+
+    QStringList inputs;
+    if(mode == "File"){
+        QString pairsFilePath = imagesDir + "MesCouples.xml";
+        inputs << mode << pairsFilePath << QString::number(size);
+    }
+    else if(mode == "MulScale"){
+        inputs << mode << inputRegExp << QString::number(300) << QString::number(size);
+    }
+    else{
+        inputs << mode << inputRegExp <<QString::number(size);
+        if(mode=="Line")
+            inputs << QString::number(range);
+    }
+    inputs << "ExpTxt=1";
+
+    addIntputs(inputs);
+}
+
+
+void TapiocaProcess::onFinished()
+{
+    write("\r");
+    write("\r");
+    write("\r");
+    write("\r");
+}

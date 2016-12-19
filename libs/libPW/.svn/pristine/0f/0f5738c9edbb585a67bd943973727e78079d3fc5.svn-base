@@ -1,0 +1,26 @@
+#ifndef DISTORTIONREADER_H
+#define DISTORTIONREADER_H
+
+#include <QIODevice>
+
+#include "CameraModel.h"
+#include "DistortionModel.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT CameraModelReader : public QObject
+{
+public:
+    CameraModelReader();
+
+    virtual CameraModel * read(QString filePath) = 0;
+//    virtual DistortionModel *getDistortion() = 0;
+//    virtual CameraModel *getCameraModel() = 0;
+
+protected:
+//    CameraModel *mCameraModel;
+};
+
+}
+
+#endif // DISTORTIONREADER_H

@@ -1,0 +1,63 @@
+#include <QFile>
+#include <QDir>
+#include <QStringList>
+#include <QTextStream>
+
+#include "GroundControlImageMasterIO.h"
+
+using namespace PW;
+
+GroundControlImageMasterIO::GroundControlImageMasterIO()
+{
+}
+
+QList<PW::PW3dPoint> GroundControlImageMasterIO::read(QString url)
+{
+    QList<PW::PW3dPoint> result;
+    return result;
+}
+
+QList<PW2dPoint *> GroundControlImageMasterIO::readImagePoints(QString url)
+{
+    QFile file(url);
+    QList<PW2dPoint *> points;
+    if(file.open(QIODevice::ReadOnly | QIODevice::Text)){
+        bool ok;
+        file.readLine();
+        file.readLine();
+        QString line = file.readLine();
+        int lines = line.simplified().toInt();
+        for(int i=0; i<lines; i++) {
+            QString line = file.readLine();
+            QStringList splitedLine = line.simplified().split(" ");
+            if(splitedLine.count() >= 3){
+                points.append(new PW2dPoint(splitedLine.at(1).toDouble(&ok),
+                                            splitedLine.at(2).toDouble(&ok),
+                                            splitedLine.at(0)));
+            }
+            else ok = false;
+            if(!ok){
+                points.clear();
+                return points;
+            }
+        }
+    }
+    return points;
+}
+
+QMap<QString, QList<PW2dPoint *> *> GroundControlImageMasterIO::readImagePointsByImage(QString url)
+{
+    //TODO: Por implementar
+    QMap<QString, QList<PW2dPoint *> *> points;
+    return points;
+}
+
+int GroundControlImageMasterIO::write(QString url, QList<PW::PW3dPoint *> *points)
+{
+    return 1;
+}
+
+int GroundControlImageMasterIO::writeImagePoints(QString url, QList<PWImage *> images)
+{
+    return 1;
+}

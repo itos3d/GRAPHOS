@@ -1,0 +1,23 @@
+#include "SUREProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+SUREProcess::SUREProcess():
+    ExternalProcess(LibPW::getToolsPath() + "/" + SURE_COMMAND)
+{
+    QString workingDir = mCommandPath.left(mCommandPath.lastIndexOf(QRegExp("/")));
+    workingDir = workingDir.left(workingDir.lastIndexOf(QRegExp("/"))+1);
+    if(workingDir.isEmpty())
+        workingDir = QDir::currentPath();
+    setWorkingDir(workingDir);
+
+    setStartupMessage("SURE densification...");
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/sure.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/sureError.log");
+
+    QStringList inputs;
+    inputs << "" <<
+              "";
+    addIntputs(inputs);
+}

@@ -1,0 +1,95 @@
+#include <QDir>
+#include "MSDProcess.h"
+#include "MSDkpd.h"
+#include "MSDMatching.h"
+
+using namespace PW;
+
+MSDProcess::MSDProcess(QString matchesFolder, QStringList imagesPathList, QString outputPath,  QMap<QString, QString> MSDParameters):
+    MultiProcess(true),
+    matchesFolder(matchesFolder),
+    mImagesPathList(imagesPathList),
+    mMSDParameters(MSDParameters)
+{
+    setStartupMessage("Searching for tie points (MSD)...");
+
+    //Parse msd parameters
+    int msdPatchRadius= mMSDParameters.value("PatchRadius").toInt();
+    int msdSearchAreaRadius= mMSDParameters.value("SearchAreaRadius").toInt();
+    int msdNMSRadius= mMSDParameters.value("NMSRadius").toInt();
+    int msdNMSScaleRadius= mMSDParameters.value("NMSScaleRadius").toInt();
+    float msdThSaliency= mMSDParameters.value("ThSaliency").toFloat();
+    int msdKNN= mMSDParameters.value("KNN").toInt();
+    float msdScaleFactor= mMSDParameters.value("ScaleFactor").toFloat();
+    int msdNScales= mMSDParameters.value("NScales").toInt();
+    int RB_ratio= mMSDParameters.value("RB_ratio").toInt();
+    int RB_distance= mMSDParameters.value("RB_distance").toInt();
+    int RB_confidence= mMSDParameters.value("RB_confidence").toInt();
+    int RB_threshold_K= mMSDParameters.value("RB_threshold_K").toInt();
+    int ImageResizeValue= mMSDParameters.value("ResizeValue").toInt();
+    bool msdComputeOrientations;
+    if (mMSDParameters.value("ComputeOrientations").contains("true")) {
+        msdComputeOrientations=true;
+    }else {
+        msdComputeOrientations=false;
+    }
+//    matchesFolder=mProjectBasePath+"/Matches";
+//    QDir auxDir(mProjectBasePath);
+
+//    if(!auxDir.exists(matchesFolder))
+//    {
+//        auxDir.mkdir(matchesFolder);
+//        QDir matchesDir(matchesFolder);
+//        if (!matchesDir.exists(matchesFolder+"/tapioca"))
+//            matchesDir.mkdir(matchesFolder+"/tapioca");
+//    }
+
+    mKPDProcess = new MultiProcess(false); //concurrent
+    foreach (QString imagePath, imagesPathList) {
+        ProcessedImageData * metadata = new ProcessedImageData();
+        MSDkpd *kpmProcess = new MSDkpd(imagePath,outputPath,metadata,msdPatchRadius,msdSearchAreaRadius,msdNMSRadius,msdNMSScaleRadius,msdThSaliency,msdKNN,msdScaleFactor,msdNScales,ImageResizeValue,msdComputeOrientations);
+        mKPDProcess->appendProcess(kpmProcess);
+        QFileInfo inputFileInfo (imagePath);
+        QString imageFileName = inputFileInfo.fileName();
+        mImageMetadataMap.insert(imageFileName, metadata);
+    }
+
+    mMatchingProcess = new MSDMatching(matchesFolder, imagesPathList,mImageMetadataMap,ImageResizeValue);
+    appendProcess(mKPDProcess);
+    appendProcess(mMatchingProcess);
+//    connect(mKPDProcess,SIGNAL(newStdData(QString)),this, SIGNAL(newStdData(QString)));
+//    connect(mMatchingProcess,SIGNAL(newStdData(QString)),this, SIGNAL(newStdData(QString)));
+
+}
+
+
+MSDProcess::~MSDProcess()
+{
+    foreach (ProcessedImageData * metadata, mImageMetadataMap.values()){
+        delete metadata;
+    }
+    delete mKPDProcess;
+    delete mMatchingProcess;
+}
+
+bool MSDProcess::removeDir(QString dirName)
+{
+    bool result = true;
+    QDir dir(dirName);
+    if (dir.exists(dirName)) {
+        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+            if (info.isDir()) {
+                result = removeDir(info.absoluteFilePath());
+            }
+            else {
+                result = QFile::remove(info.absoluteFilePath());
+            }
+            if (!result) {
+                return result;
+            }
+        }
+        result = dir.rmdir(dirName);
+    }
+    return result;
+}
+

@@ -1,0 +1,60 @@
+#include "TiePoint.h"
+
+using namespace PW;
+
+TiePoint::TiePoint(int id,
+                   ImagePoint *firstImagePoint,
+                   ImagePoint *secondImagePoint):
+    mId(id)
+{
+    mImagePoints[firstImagePoint->imagePosition()]=firstImagePoint;
+    mImagePoints[secondImagePoint->imagePosition()]=secondImagePoint;
+    mIsValid=true;
+}
+
+bool TiePoint::addImagePoint(ImagePoint *imagePoint,
+                             QString &strError)
+{
+    if(mImagePoints.contains(imagePoint->imagePosition()))
+    {
+        strError=QObject::tr("TiePoint::addImagePoint, duplicated image position %1")
+                .arg(QString::number(imagePoint->imagePosition()));
+        return(false);
+    }
+    mImagePoints[imagePoint->imagePosition()]=imagePoint;
+    return(true);
+}
+
+bool TiePoint::containsImagePoint(int imagePosition,
+                                  int column,
+                                  int row)
+{
+    QMap<int,ImagePoint*> ::const_iterator iter=mImagePoints.begin();
+    while(iter!=mImagePoints.end())
+    {
+        if(iter.key()==imagePosition)
+        {
+            if(column==iter.value()->column()
+                    &&row==iter.value()->row())
+            {
+                return(true);
+            }
+        }
+        iter++;
+    }
+    return(false);
+}
+
+bool TiePoint::containsImage(int imagePosition)
+{
+    QMap<int,ImagePoint*> ::const_iterator iter=mImagePoints.begin();
+    while(iter!=mImagePoints.end())
+    {
+        if(iter.key()==imagePosition)
+        {
+            return(true);
+        }
+        iter++;
+    }
+    return(false);
+}

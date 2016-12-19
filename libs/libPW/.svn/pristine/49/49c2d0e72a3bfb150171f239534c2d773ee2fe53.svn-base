@@ -1,0 +1,27 @@
+#include "Decentering.h"
+
+using namespace PW;
+
+Decentering::Decentering()
+{
+}
+
+double Decentering::getP1()
+{
+    return mP1;
+}
+
+double Decentering::getP2()
+{
+    return mP2;
+}
+
+void Decentering::setP1(double p1)
+{
+    mP1 = p1;
+}
+
+void Decentering::setP2(double p2)
+{
+    mP2 = p2;
+}

@@ -1,0 +1,102 @@
+<RCC>
+    <qresource prefix="/">
+        <file>styleGRAPHOS.qss</file>
+        <file>GRAPHOS_es.qm</file>
+        <file>img/WallisImages/1-a0b0w1m127ds40.jpg</file>
+        <file>img/WallisImages/2-a0b0w11m127ds40.jpg</file>
+        <file>img/WallisImages/3-a0b0w41m127ds40.jpg</file>
+        <file>img/WallisImages/4-a0.1b0w41m127ds40.jpg</file>
+        <file>img/WallisImages/5-a0.2b0w41m127ds40.jpg</file>
+        <file>img/WallisImages/6-a0.5b0w41m127ds40.jpg</file>
+        <file>img/WallisImages/7-a0b0.5w41m127ds40.jpg</file>
+        <file>img/WallisImages/8-a0.5b0.5w41m127ds40.jpg</file>
+    </qresource>
+    <qresource prefix="/PW/MICMAC">
+        <file alias="paramMICMAC1">xml_schemas/ParamMICMAC_1.xml</file>
+        <file alias="mask">xml_schemas/Masq.xml</file>
+        <file alias="AperoGC">xml_schemas/Apero-7.xml</file>
+        <file alias="paramMICMAC1_GC">xml_schemas/ParamMICMAC_1_GC.xml</file>
+        <file>xml_schemas/ParamMICMAC_NoMask_GC.xml</file>
+        <file alias="paramMICMAC_Ortho">xml_schemas/ParamMICMAC_Ortho.xml</file>
+        <file alias="paramPorto">xml_schemas/Param-Porto.xml</file>
+        <file alias="CalibNoDist">xml_schemas/CalibNoDist.xml</file>
+        <file alias="LocalChantier">xml_schemas/MicMac-LocalChantierDescripteur.xml</file>
+        <file alias="AperoFraserGC">xml_schemas/AperoFraser_GC.xml</file>
+        <file alias="AperoFraserBasicGC">xml_schemas/AperoFraserBasic_GC.xml</file>
+        <file alias="AperoRadialBasicGC">xml_schemas/AperoRadialBasic_GC.xml</file>
+        <file alias="AperoRadialExtendedGC">xml_schemas/AperoRadialExtended_GC.xml</file>
+        <file alias="AperoFishEyeEquiGC">xml_schemas/AperoFishEyeEqui_GC.xml</file>
+        <file>xml_schemas/ParamMICMAC_ObjectSpaceDeZoom2.xml</file>
+        <file>xml_schemas/ParamMICMAC_ObjectSpaceDeZoom4.xml</file>
+        <file>xml_schemas/ParamMICMAC_ObjectSpaceDeZoom1.xml</file>
+        <file>xml_schemas/orthoObjectSpaceDeZoom1.xml</file>
+        <file>xml_schemas/orthoObjectSpaceDeZoom2.xml</file>
+        <file>xml_schemas/orthoObjectSpaceDeZoom4.xml</file>
+        <file>xml_schemas/ParamMICMAC_NoMaskDeZoom1.xml</file>
+        <file>xml_schemas/ParamMICMAC_NoMaskDeZoom2.xml</file>
+        <file>xml_schemas/ParamMICMAC_NoMaskDeZoom4.xml</file>
+        <file>xml_schemas/ParamMICMAC_WithMaskDeZoom1.xml</file>
+        <file>xml_schemas/ParamMICMAC_WithMaskDeZoom2.xml</file>
+        <file>xml_schemas/ParamMICMAC_WithMaskDeZoom4.xml</file>
+    </qresource>
+    <qresource prefix="/PW/icons">
+        <file alias="polyline">img/14_polyline.png</file>
+        <file alias="picking">img/pointPicking.png</file>
+        <file alias="PointEdit">img/pointEditing.png</file>
+        <file alias="0xLine">img/0xLine.png</file>
+        <file alias="L1">img/Line1.png</file>
+        <file alias="L2">img/Line2.png</file>
+        <file alias="Picking0">img/pointPicking0.png</file>
+        <file alias="Apply">img/apply.png</file>
+        <file alias="ruler">img/ruler.png</file>
+        <file alias="angle">img/angle.png</file>
+        <file alias="pointTool">img/xyz.png</file>
+        <file alias="normalCursor">img/cursor.png</file>
+        <file>img/graphos.PNG</file>
+        <file>img/Tido.png</file>
+        <file>img/info.png</file>
+        <file>img/Left.png</file>
+        <file>img/Mid.png</file>
+        <file>img/Right.png</file>
+        <file>img/GraphosIcon.png</file>
+        <file>img/fbk.png</file>
+        <file>img/uclm.png</file>
+        <file>img/unibo.png</file>
+        <file>img/usal.png</file>
+        <file>img/compact.png</file>
+        <file>img/reflex.png</file>
+        <file>img/smartphoneTablet.png</file>
+        <file>img/compactSELECTED.png</file>
+        <file>img/reflexSELECTED.png</file>
+        <file>img/smartphoneTabletSELECTED.png</file>
+        <file>img/logoGraphosWorkflow.png</file>
+        <file>img/Parallel.png</file>
+        <file>img/ParallelSELECTED.png</file>
+        <file>img/Ring.png</file>
+        <file>img/RingSELECTED.png</file>
+        <file>img/textureprueba.png</file>
+        <file>img/nframes.png</file>
+        <file>img/SureIntro.png</file>
+        <file>img/custom.png</file>
+        <file>img/customSelected.png</file>
+        <file>img/arrowLeft.png</file>
+        <file>img/arrowRight.png</file>
+        <file>img/warning.png</file>
+        <file>img/editIcon.png</file>
+        <file>img/cota.png</file>
+        <file>img/viewBack.png</file>
+        <file>img/viewBottom.png</file>
+        <file>img/viewFront.png</file>
+        <file>img/viewIsoBack.png</file>
+        <file>img/viewIsoFront.png</file>
+        <file>img/viewLeft.png</file>
+        <file>img/viewRight.png</file>
+        <file>img/viewTop.png</file>
+        <file>img/ImgPtsExample.png</file>
+        <file>img/GcpExample.png</file>
+    </qresource>
+    <qresource prefix="/PW">
+        <file alias="projectsSpatialDB">xml_schemas/PW_dataSpatial.sqlite</file>
+        <file alias="qparamsDB">xml_schemas/qparams.sqlite</file>
+    </qresource>
+</RCC>

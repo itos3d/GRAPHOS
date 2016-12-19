@@ -1,0 +1,14 @@
+#ifndef PLYMERGEPROCESS_H
+#define PLYMERGEPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+class LIBPWSHARED_EXPORT PlyMergeProcess : public ExternalProcess
+{
+public:
+    PlyMergeProcess();
+    ~PlyMergeProcess();
+};
+}
+#endif // PLYMERGEPROCESS_H

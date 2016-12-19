@@ -1,0 +1,21 @@
+#ifndef SQLITEPROJECTWRITER_H
+#define SQLITEPROJECTWRITER_H
+
+#include "Project.h"
+#include "ProjectWriter.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT SQLiteProjectWriter : public ProjectWriter
+{
+public:
+    SQLiteProjectWriter(Project * Project, QString dbUrl);
+
+    virtual int write(QString url);
+
+private:
+    QString mDBUrl;
+
+};
+}
+#endif // SQLITEPROJECTWRITER_H

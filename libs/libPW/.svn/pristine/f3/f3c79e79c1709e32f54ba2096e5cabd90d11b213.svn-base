@@ -1,0 +1,19 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "Nuage2PlyProcess.h"
+#include "libPW.h"
+
+using namespace PW;
+
+Nuage2PlyProcess::Nuage2PlyProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + NUAGE2PLY_COMMAND)
+{
+//    setStartupMessage("Runnig Nuage2Ply...");
+    setStartupMessage("Writing ply file...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+}

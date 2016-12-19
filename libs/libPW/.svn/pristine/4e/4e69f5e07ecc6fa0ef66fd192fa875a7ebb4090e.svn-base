@@ -1,0 +1,22 @@
+#include <QFileInfo>
+#include <QDir>
+
+#include "AperiCloudProcess.h"
+#include "libPW.h"
+
+
+using namespace  PW;
+
+AperiCloudProcess::AperiCloudProcess():
+    ExternalProcess(LibPW::getMicMacBinPath() + "/" + APERICLOUD_COMMAND)
+{
+    setStartupMessage("Writing ply file...");
+
+    QFileInfo commandFileInfo(mCommandPath);
+    QDir workingDir = commandFileInfo.absoluteDir();
+    workingDir.cdUp();
+    setWorkingDir(workingDir.absolutePath());
+
+    setStdOutputFilePath(LibPW::getStdErrorPath() + "/Apericloud.log");
+    setStdErrorFilePath(LibPW::getStdErrorPath() + "/ApericloudError.log");
+}

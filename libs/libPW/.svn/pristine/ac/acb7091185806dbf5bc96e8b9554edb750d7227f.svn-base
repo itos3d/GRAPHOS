@@ -1,0 +1,21 @@
+#ifndef IMGPOINTWRITER_H
+#define IMGPOINTWRITER_H
+#include "ProcessConcurrent.h"
+//#include "GeorefMicMac/imgPoint.h"
+#include "PW2dPoint.h"
+#include <QMap>
+
+namespace PW {
+class LIBPWSHARED_EXPORT imgPointWriter: public ProcessConcurrent
+{
+public:
+    imgPointWriter(QMap<QString,QList<PW2dPoint *>*> *imagePoints,QString outputPath);
+    ~imgPointWriter();
+protected:
+    virtual void run();
+private:
+    QMap<QString,QList<PW2dPoint *>*> *mImagePoints;
+    QString mOutputPath;
+};
+}
+#endif // IMGPOINTWRITER_H

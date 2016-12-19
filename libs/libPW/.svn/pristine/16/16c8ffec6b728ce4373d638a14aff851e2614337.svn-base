@@ -1,0 +1,79 @@
+#ifndef FISHEYEMODEL_H
+#define FISHEYEMODEL_H
+
+#include <DistortionModel.h>
+#include <QVector>
+
+namespace PW{
+
+
+class LIBPWSHARED_EXPORT FishEyeModel : public DistortionModel
+{
+public:
+    FishEyeModel();
+
+    int getID();
+
+    /*!
+     \brief Gets the x coordinate of distortion center in pixel
+
+     \return double
+    */
+    double getXcd();
+    /*!
+     \brief Gets the y coordinate of distortion center in pixel
+
+     \return double
+    */
+    double getYcd();
+
+    double getParam(int index);
+
+    int getParamsCount();
+
+    /*!
+     \brief Sets the x coordinate of distortion center in pixel
+
+     \param xcd
+    */
+    void setXcd(double xcd);
+
+    /*!
+     \brief Sets the y coordinate of distortion center in pixel
+
+     \param ycd
+    */
+    void setYcd(double ycd);
+
+    void setParam(int index, double value);
+    void addParam(double value);
+
+
+    /*!
+     \brief Undistort a image according to distortion model.
+
+     \param inputImage image to undistort
+     \return PWImage undistorted image
+    */
+    virtual QString undistort(QString inputImage, double focal, double xpp, double ypp);
+
+    /*!
+     \brief
+
+     \return bool true if distortion model allows to undistort images.
+    */
+    virtual bool canUnistort();
+
+    virtual void undistort(double xpp, double ypp, double &x, double &y);
+    virtual void distort(double xpp, double ypp, double &x, double &y);
+
+private:
+    double mXcd;
+    double mYcd;
+    QVector<double> mParams;
+
+};
+
+}
+
+#endif // FISHEYEMODEL_H

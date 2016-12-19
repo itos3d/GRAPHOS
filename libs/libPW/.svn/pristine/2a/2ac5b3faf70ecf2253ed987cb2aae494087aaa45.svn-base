@@ -1,0 +1,15 @@
+#ifndef SCALEPROCESS_H
+#define SCALEPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ScaleProcess : public ExternalProcess
+{
+public:
+    ScaleProcess(QString inputFile,float scalex,float scaley,float scalez);
+    ~ScaleProcess();
+};
+}
+#endif // SCALEPROCESS_H

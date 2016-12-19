@@ -1,0 +1,31 @@
+#ifndef PROCESSEDIMAGEDATA_H
+#define PROCESSEDIMAGEDATA_H
+
+#include <QObject>
+#include "opencv/cv.h"
+
+namespace PW{
+class ProcessedImageData
+{
+public:
+
+    explicit ProcessedImageData();
+    ~ProcessedImageData();
+
+    cv::Mat getDescriptors();
+    std::vector<cv::KeyPoint> getTiepoints();
+    void setDescriptors(cv::Mat descriptors);
+    void setTiepoints(std::vector<cv::KeyPoint> tiePoints);
+    QString getImageName();
+    void setImageName(QString imagename);
+private:
+    cv::Mat mDescriptors;
+    std::vector<cv::KeyPoint> mTiePoints;
+    QString mImageName;
+signals:
+
+public slots:
+};
+}
+
+#endif // PROCESSEDIMAGEDATA_H

@@ -1,0 +1,184 @@
+<!--
+   The simplest MicMac exemple
+-->
+
+<ParamMICMAC>
+
+<!--  M1 : Declare an association between an image and its orientation file-->
+<DicoLoc>
+    <!-- <KeyedNamesAssociations>
+        <Calcs>
+            <Direct>
+                <PatternTransform> (.*) </PatternTransform>
+                <CalcName>  Ori-GCP-FIX-3/Orientation-$1.xml  </CalcName>
+             </Direct>
+        </Calcs>
+        <Key>   Loc-Key-Orient </Key>
+    </KeyedNamesAssociations> -->
+</DicoLoc>
+
+<!--  M2 : Describe the ground zone where the matching is to be done -->
+<Section_Terrain>
+  <IntervAltimetrie>
+         <!-- Mandatory but unused -->
+         <ZIncCalc>   0.0  </ZIncCalc>
+  </IntervAltimetrie>
+  <IntervSpecialZInv >
+         <MulZMin >  0.8</MulZMin>
+         <MulZMax > 1.2 </MulZMax>
+  </IntervSpecialZInv>
+ </Section_Terrain>
+
+<!--  M3 : describe the set of images to match -->
+<Section_PriseDeVue >
+     <GeomImages> eGeomImageOri </GeomImages>
+     <Images >
+          <ImPat> PW_INPUT_IMGS </ImPat>
+     </Images>
+
+     <NomsGeometrieImage>
+         <FCND_Mode_GeomIm>
+               <FCND_GeomCalc> NKS-Assoc-Im2Orient@-PW_ORI  </FCND_GeomCalc>
+         </FCND_Mode_GeomIm>
+     </NomsGeometrieImage>
+</Section_PriseDeVue>
+
+<Section_MEC >
+      <NbMinImagesVisibles> 3 </NbMinImagesVisibles>
+      <Correl16Bits> true </Correl16Bits>
+      <!-- <ChantierFullImage1>  true </ChantierFullImage1> -->
+
+     <EtapeMEC>
+             <DeZoom >  -1                      </DeZoom>
+             <SzW >      1             </SzW>
+             <AlgoRegul>  eAlgo2PrgDyn </AlgoRegul>
+
+             <GenImagesCorrel > true </GenImagesCorrel>
+
+             <ZPas>        GRAPHOS_ZPAS  </ZPas>
+             <ModeInterpolation> eInterpolMPD </ModeInterpolation>
+
+	     <ZDilatAlti>  8    </ZDilatAlti>
+             <ZDilatPlani> 8   </ZDilatPlani>
+	     <ZRegul>  0.05 </ZRegul>
+             <ModulationProgDyn>
+                 <EtapeProgDyn>
+                      <ModeAgreg> ePrgDAgrSomme </ModeAgreg>
+                      <NbDir>  9 </NbDir>
+                  </EtapeProgDyn>
+                  <Px1PenteMax>   150.0  </Px1PenteMax> <!-- 25.0 -->
+            </ModulationProgDyn>
+            <Gen8Bits_Px1> true   </Gen8Bits_Px1>
+
+        </EtapeMEC>
+
+       <EtapeMEC>
+                 <DeZoom >        64        </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+                 <DeZoom >        32        </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+                 <DeZoom >        16        </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+                 <DeZoom >        8        </DeZoom>
+        </EtapeMEC>
+
+        <EtapeMEC>
+                 <DeZoom >        4        </DeZoom>
+                 <SeuilAttenZRegul> 5 </SeuilAttenZRegul>
+                 <AttenRelatifSeuilZ> 0.3 </AttenRelatifSeuilZ>
+                 <GenerePartiesCachees >
+                       <ByMkF> true </ByMkF>
+                       <SeuilUsePC> 6 </SeuilUsePC>
+                 </GenerePartiesCachees>
+                 <ZDilatAlti>  6    </ZDilatAlti>
+                 <ZDilatPlani> 6   </ZDilatPlani>
+	         <ZRegul>  GRAPHOS_ZREGUL </ZRegul>
+        </EtapeMEC>
+
+         <EtapeMEC>
+                 <DeZoom >        2        </DeZoom>
+                 <SeuilAttenZRegul> 4 </SeuilAttenZRegul>
+                 <AttenRelatifSeuilZ> 0.3 </AttenRelatifSeuilZ>
+                 <GenerePartiesCachees >
+                       <ByMkF> true </ByMkF>
+                       <SeuilUsePC> 5 </SeuilUsePC>
+                 </GenerePartiesCachees>
+                 <ZDilatAlti>  4    </ZDilatAlti>
+                 <ZDilatPlani> 4   </ZDilatPlani>
+	         <ZRegul>  GRAPHOS_ZREGUL </ZRegul>
+        </EtapeMEC>
+
+<!-- uncomment to run until the original resolution -->
+       <EtapeMEC>
+                 <DeZoom >        1        </DeZoom>
+                 <SeuilAttenZRegul> 0.1 </SeuilAttenZRegul>
+                 <AttenRelatifSeuilZ> 5 </AttenRelatifSeuilZ>
+                 <GenerePartiesCachees >
+                       <ByMkF> true </ByMkF>
+                       <SeuilUsePC> 4 </SeuilUsePC>
+                </GenerePartiesCachees>
+                <ZDilatAlti>  3    </ZDilatAlti>
+                <ZDilatPlani> 3   </ZDilatPlani>
+	        <ZRegul>  GRAPHOS_ZREGUL </ZRegul>
+        </EtapeMEC>
+
+        <EtapeMEC>
+                 <AlgoRegul>    eAlgoDequant    </AlgoRegul>
+                 <DeZoom >        1       </DeZoom>
+                 <ZPas>         1  </ZPas>
+                 <GenerePartiesCachees >
+                       <ByMkF> true </ByMkF>
+                       <SeuilUsePC> 4 </SeuilUsePC>
+                       <KeyCalcPC> NKS-Assoc-AddDirAndPref@ORTHO@PC_ </KeyCalcPC>
+                       <MakeOrthoParImage >
+                           <KeyCalcInput> Key-Assoc-Id  </KeyCalcInput>
+                           <KeyCalcOutput >  NKS-Assoc-AddDirAndPref@ORTHO@Ort_ </KeyCalcOutput>
+                           <KeyCalcIncidHor> NKS-Assoc-AddDirAndPref@ORTHO@Incid_ </KeyCalcIncidHor>
+                           <!-- Par rapport a la resolution des image R1 -->
+                           <ResolIm> 1.0 </ResolIm>
+                           <CalcIncAZMoy> true </CalcIncAZMoy>
+                       </MakeOrthoParImage>
+                </GenerePartiesCachees>
+        </EtapeMEC>
+
+</Section_MEC>
+
+<!--  M4 : Specify the output geometry -->
+<Section_Results >
+    <GeomMNT> eGeomMNTEuclid  </GeomMNT>
+</Section_Results>
+
+<Section_WorkSpace >
+     <WorkDir >  ThisDir </WorkDir>
+     <TmpMEC>  MEC-0-PW/  </TmpMEC>
+     <TmpResult>  MEC-0-PW/</TmpResult>
+     <TmpPyr>    Pyram-Ter/  </TmpPyr>
+     <ByProcess>  ${MMNbProc} </ByProcess>
+     <NomChantier> PW_NOM_CHANTIER </NomChantier>
+
+<!-- Point cloud extraction without photo-texturing -->
+	 	    <PostProcess>
+               <OneCmdPar>
+                   <OneCmdSer> echo  ${ThisDir} </OneCmdSer>
+                   <OneCmdSer>${MMDir}bin/Porto ${ThisDir}ORTHO/ortho.xml</OneCmdSer>
+               </OneCmdPar>
+        </PostProcess>
+        <!-- <PostProcess>
+            <OneCmdPar>
+                <OneCmdSer> echo  ${ThisDir} </OneCmdSer>
+                <OneCmdSer>${MMDir}bin/Nuage2Ply ${ThisDir}/MEC-GroundGeometry/NuageImProf_LeChantier_Etape_7.xml Attr=${ThisDir}ORTHO/ortho.tif</OneCmdSer>
+            </OneCmdPar>
+        </PostProcess> -->
+</Section_WorkSpace>
+
+
+<Section_Vrac> </Section_Vrac>
+
+
+</ParamMICMAC>

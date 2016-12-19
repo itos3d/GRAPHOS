@@ -1,0 +1,15 @@
+#ifndef MALTPROCESS_H
+#define MALTPROCESS_H
+
+#include "ExternalProcess.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT MaltProcess : public ExternalProcess
+{
+public:
+    MaltProcess();
+};
+}
+
+#endif // MALTPROCESS_H

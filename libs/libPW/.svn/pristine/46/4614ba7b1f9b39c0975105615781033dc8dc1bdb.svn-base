@@ -1,0 +1,68 @@
+#include "PWMatchesCategory.h"
+
+using namespace PW;
+
+
+PWMatchesCategory::PWMatchesCategory(Project *project,
+                                     int id,
+                                     QString description,
+                                     QString metadata,
+                                     QString timeCalculation):
+    mProject(project),
+    mId(id),
+    mDescription(description),
+    mMetadata(metadata),
+    mTimeCalculation(timeCalculation)
+{
+    mGraphImages=NULL;
+}
+
+QString PWMatchesCategory::getDescription()
+{
+    return(mDescription);
+}
+
+PWGraphImages *PWMatchesCategory::getGraphImages()
+{
+    return(mGraphImages);
+}
+
+void PWMatchesCategory::getImagePairs(QMap<QString, QVector<QString> > &imagesPairs)
+{
+    imagesPairs.clear();
+    imagesPairs=mImagesPairs;
+}
+
+QString PWMatchesCategory::getMetadata()
+{
+    return(mMetadata);
+}
+
+QString PWMatchesCategory::getTimeCalculation()
+{
+    return(mTimeCalculation);
+}
+
+void PWMatchesCategory::getInvalidMatchedCategoryExplanation(QString &title, QStringList &subgraphs)
+{
+    if(mGraphImages!=NULL)
+        mGraphImages->getInvalidMatchedCategoryExplanation(title,subgraphs);
+}
+
+bool PWMatchesCategory::isValid()
+{
+    bool isValid=false;
+    if(mGraphImages!=NULL)
+        isValid=mGraphImages->isValid();
+    return(isValid);
+}
+
+void PWMatchesCategory::setImagePairs(QMap<QString, QVector<QString> > &imagesPairs)
+{
+    mImagesPairs=imagesPairs;
+}
+
+void PWMatchesCategory::setGraphImages(PWGraphImages *graphImages)
+{
+    mGraphImages=graphImages;
+}

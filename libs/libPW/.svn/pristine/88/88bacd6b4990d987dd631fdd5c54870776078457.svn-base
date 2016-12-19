@@ -1,0 +1,90 @@
+#include <QDir>
+#include "ASIFTUProcess.h"
+#include "ASIFTUkpd.h"
+#include "ASIFTUMatching.h"
+
+using namespace PW;
+
+ASIFTUProcess::ASIFTUProcess(QString matchesFolder, QStringList imagesPathList, QString outputPath,  QMap<QString, QString> ASIFTParameters):
+    MultiProcess(true),
+    matchesFolder(matchesFolder),
+    mImagesPathList(imagesPathList),
+    mASIFTParameters(ASIFTParameters)
+{
+    setStartupMessage("Searching for tie points (ASIFT)...");
+
+    //Parse ASIFT parameters
+    float RB_ratio= mASIFTParameters.value("RB_ratio").toFloat();
+    float RB_distance= mASIFTParameters.value("RB_distance").toFloat();
+    float RB_confidence= mASIFTParameters.value("RB_confidence").toFloat();
+    float RB_threshold_K= mASIFTParameters.value("RB_threshold_K").toFloat();
+    int ImageResizeValue= mASIFTParameters.value("ResizeValue").toInt();
+
+    int matchingMethod=0;  //BFMatcher matchingMethod=0
+    if (ASIFTParameters.value("matchingMethod").contains("FLANN")) {
+        matchingMethod=1;
+    }
+    int minimumMatches = mASIFTParameters.value("minimumMatches").toInt();
+
+//    matchesFolder=mProjectBasePath+"/Matches";
+//    QDir auxDir(mProjectBasePath);
+
+//    if(!auxDir.exists(matchesFolder))
+//    {
+//        auxDir.mkdir(matchesFolder);
+//        QDir matchesDir(matchesFolder);
+//        if (!matchesDir.exists(matchesFolder+"/tapioca"))
+//            matchesDir.mkdir(matchesFolder+"/tapioca");
+//    }
+
+    mKPDProcess = new MultiProcess(false); //concurrent
+    foreach (QString imagePath, imagesPathList) {
+        ProcessedImageData * metadata = new ProcessedImageData();
+        ASIFTUkpd *kpmProcess = new ASIFTUkpd(imagePath,outputPath,metadata,ImageResizeValue);
+        mKPDProcess->appendProcess(kpmProcess);
+        QFileInfo inputFileInfo (imagePath);
+        QString imageFileName = inputFileInfo.fileName();
+        mImageMetadataMap.insert(imageFileName, metadata);
+    }
+
+    mMatchingProcess = new ASIFTUmatching(matchesFolder, imagesPathList,mImageMetadataMap,ImageResizeValue,minimumMatches, RB_ratio, RB_distance, RB_confidence, RB_threshold_K,matchingMethod);
+    appendProcess(mKPDProcess);
+    appendProcess(mMatchingProcess);
+//    connect(mKPDProcess,SIGNAL(newStdData(QString)),this, SIGNAL(newStdData(QString)));
+//    connect(mMatchingProcess,SIGNAL(newStdData(QString)),this, SIGNAL(newStdData(QString)));
+
+}
+
+
+ASIFTUProcess::~ASIFTUProcess()
+{
+    foreach (ProcessedImageData * metadata, mImageMetadataMap.values()){
+        delete metadata;
+    }
+    delete mKPDProcess;
+    delete mMatchingProcess;
+}
+
+bool ASIFTUProcess::removeDir(QString dirName)
+{
+    bool result = true;
+    QDir dir(dirName);
+    if (dir.exists(dirName)) {
+        Q_FOREACH(QFileInfo info, dir.entryInfoList(QDir::NoDotAndDotDot | QDir::System | QDir::Hidden  | QDir::AllDirs | QDir::Files, QDir::DirsFirst)) {
+            if (info.isDir()) {
+                result = removeDir(info.absoluteFilePath());
+            }
+            else {
+                result = QFile::remove(info.absoluteFilePath());
+            }
+            if (!result) {
+                return result;
+            }
+        }
+        result = dir.rmdir(dirName);
+    }
+    return result;
+}
+
+
+

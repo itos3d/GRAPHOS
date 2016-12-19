@@ -1,0 +1,24 @@
+#ifndef PROJECTREADER_H
+#define PROJECTREADER_H
+
+#include <QObject>
+
+#include "Project.h"
+
+namespace PW{
+
+class LIBPWSHARED_EXPORT ProjectReader : public QObject
+{
+    Q_OBJECT
+public:
+    explicit ProjectReader(QObject *parent = 0);
+
+    virtual Project * read(QString URL) = 0;
+
+signals:
+
+public slots:
+
+};
+}
+#endif // PROJECTREADER_H
