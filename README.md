@@ -2,6 +2,8 @@
 
 If you use this project for research purposes, please quote this article:
 
+GRAPHOS – Open-Source Software for Photogrammetric Applications; The Photogrammetric Record (2018), DOI: 10.1111/phor.12231; Authors: D. González-Aguilera; L. López-Fernández; P. Rodríguez-Gonzálvez; D. Hernández-López; D. Guerrero; F. Remondino; F. Menna; E. Nocerino; I. Toschi; A. Ballabeni; M. Gaiani;
+
 Development of an all-purpose free photogrammetric tool
 Congress: XXIII ISPRS Congress
 Date: 12 to 19 of July of the year 2016,Prague,Czech Republic
