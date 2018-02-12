@@ -1,6 +1,6 @@
 **Attribution**
 
-If you use this project for research purposes, please quote this article:
+If you use this project for research purposes, please quote this articles:
 
 GRAPHOS – Open-Source Software for Photogrammetric Applications; The Photogrammetric Record (2018), DOI: 10.1111/phor.12231; Authors: D. González-Aguilera; L. López-Fernández; P. Rodríguez-Gonzálvez; D. Hernández-López; D. Guerrero; F. Remondino; F. Menna; E. Nocerino; I. Toschi; A. Ballabeni; M. Gaiani;
 
